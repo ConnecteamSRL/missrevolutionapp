@@ -1,0 +1,24 @@
+# Dipendenze Node
+/node_modules
+
+# Output di build, cache e artefatti di Expo/React Native
+/android
+/ios
+/.expo
+/dist
+/build
+/coverage
+
+# File di configurazione e log
+.git
+.npmignore
+.eslintignore
+.nvmrc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.lockb
+.pnp.*
+
+# File generati da Typescript/Flow (se presenti)
+**/*.d.ts

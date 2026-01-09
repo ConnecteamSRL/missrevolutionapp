@@ -1,0 +1,232 @@
+{
+  "expo": {
+    "name": "Miss Revolution",
+    "slug": "miss-revolution",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "missrevolution",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.automatiko.missrevolution",
+      "icon": "assets/revolution.icon",
+      "entitlements": {
+        "aps-environment": "development",
+        "com.apple.security.application-groups": ["group.${ios.bundleIdentifier}.onesignal"]
+      },
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#CCAEE3",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "navigationBar": {
+        "backgroundColor": "transparent",
+        "position": "absolute"
+      },
+      "softwareKeyboardLayoutMode": "resize",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json",
+      "package": "com.automatiko.missrevolution",
+      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#F8F2FF",
+          "dark": {
+            "backgroundColor": "#F8F2FF"
+          }
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "node_modules/@expo-google-fonts/poppins/600SemiBold/Poppins_600SemiBold.ttf",
+            "node_modules/@expo-google-fonts/poppins/400Regular/Poppins_400Regular.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Graphit_Thin",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-Thin.otf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_Light",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-Light.otf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_Regular",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-Regular.otf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_Medium",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-Medium.otf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_Bold",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-Bold.otf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_Black",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-Black.otf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_ThinItalic",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-ThinItalic.otf",
+                    "weight": 400,
+                    "style": "italic"
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_LightItalic",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-LightItalic.otf",
+                    "weight": 400,
+                    "style": "italic"
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_RegularItalic",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-RegularItalic.otf",
+                    "weight": 400,
+                    "style": "italic"
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_MediumItalic",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-MediumItalic.otf",
+                    "weight": 400,
+                    "style": "italic"
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_BoldItalic",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-BoldItalic.otf",
+                    "weight": 400,
+                    "style": "italic"
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Graphit_BlackItalic",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/graphit/Graphit-BlackItalic.otf",
+                    "weight": 400,
+                    "style": "italic"
+                  }
+                ]
+              }
+            ]
+          },
+          "ios": {
+            "fonts": [
+              "./assets/fonts/graphit/Graphit-Black.otf",
+              "./assets/fonts/graphit/Graphit-Bold.otf",
+              "./assets/fonts/graphit/Graphit-Light.otf",
+              "./assets/fonts/graphit/Graphit-Medium.otf",
+              "./assets/fonts/graphit/Graphit-Regular.otf",
+              "./assets/fonts/graphit/Graphit-Thin.otf",
+              "./assets/fonts/graphit/Graphit-BlackItalic.otf",
+              "./assets/fonts/graphit/Graphit-BoldItalic.otf",
+              "./assets/fonts/graphit/Graphit-LightItalic.otf",
+              "./assets/fonts/graphit/Graphit-MediumItalic.otf",
+              "./assets/fonts/graphit/Graphit-RegularItalic.otf",
+              "./assets/fonts/graphit/Graphit-ThinItalic.otf"
+            ]
+          }
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i barcode dei prodotti.",
+          "microphonePermission": "Permetti $(PRODUCT_NAME) di accedere al microfono",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permetti $(PRODUCT_NAME) di accedere alle foto del dispositivo per caricare le immagini del profilo."
+        }
+      ],
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "development"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "652cd736-fb7a-46b4-ae6f-3c682eab7d83"
+      }
+    },
+    "owner": "miss-revolution"
+  }
+}
