@@ -134,12 +134,6 @@ const LoginScreen: React.FC = () => {
             >
               <Text style={styles.buttonText}>{loading ? 'Accesso in corso...' : 'Accedi'}</Text>
             </TouchableOpacity>
-
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>oppure</Text>
-              <View style={styles.dividerLine} />
-            </View>
           </View>
         </KeyboardAvoidingView>
       </DismissKeyboardView>
