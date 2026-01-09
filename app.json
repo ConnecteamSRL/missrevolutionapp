@@ -224,9 +224,26 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "652cd736-fb7a-46b4-ae6f-3c682eab7d83"
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.automatiko.missrevolution.OneSignalNotificationServiceExtension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.automatiko.missrevolution.onesignal"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "023b5e0b-d6ed-47d3-8f40-94e9c4d14987"
       }
     },
-    "owner": "miss-revolution"
+    "owner": "erika.papini"
   }
 }
