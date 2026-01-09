@@ -78,6 +78,10 @@ const LoginScreen: React.FC = () => {
     router.push({ pathname: '/forgot-password' });
   }
 
+  function handleOpenPrivacy(): void {
+    router.push('/privacy-policy');
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackgroundGradientComponent />
@@ -135,6 +139,16 @@ const LoginScreen: React.FC = () => {
               <Text style={styles.buttonText}>{loading ? 'Accesso in corso...' : 'Accedi'}</Text>
             </TouchableOpacity>
           </View>
+
+          {/* FOOTER PRIVACY POLICY */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Continuando, accetti la nostra{' '}
+              <Text style={styles.linkText} onPress={handleOpenPrivacy}>
+                Privacy Policy
+              </Text>
+            </Text>
+          </View>
         </KeyboardAvoidingView>
       </DismissKeyboardView>
     </SafeAreaView>
@@ -145,8 +159,8 @@ export default LoginScreen;
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
-  logoContainer: { alignItems: 'center', marginBottom: 40 },
+  container: { flex: 1, padding: 20 },
+  logoContainer: { alignItems: 'center', marginBottom: 40, marginTop: 20 },
   logo: { width: 150, height: 55 },
   title: {
     fontSize: 24,
@@ -190,18 +204,20 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: colors.white, fontFamily: GraphitFonts.GraphitRegular, fontSize: 16 },
-  secondarySection: { marginTop: 8, alignItems: 'center' },
-  secondaryButtonText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-    color: colors.text,
+  footer: {
+    marginTop: 'auto',
+    alignItems: 'center',
+    paddingBottom: 10,
   },
-  dividerContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: 24 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E6E6E6' },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 14,
-    color: '#999',
+  footerText: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#888',
     fontFamily: GraphitFonts.GraphitRegular,
+  },
+  linkText: {
+    color: colors.secondary,
+    textDecorationLine: 'underline',
+    fontFamily: GraphitFonts.GraphitBold,
   },
 });

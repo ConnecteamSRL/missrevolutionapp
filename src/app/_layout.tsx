@@ -86,7 +86,7 @@ const AppEntryPoint: React.FC = () => {
 
       <Stack.Screen
         name={'privacy-policy'}
-        options={{ headerShown: true, presentation: 'modal' }}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
     </Stack>
   );
