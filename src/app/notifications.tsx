@@ -1,85 +1,111 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  FlatList,
+  SectionList,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import { colors, GraphitFonts } from '@/src/theme';
-import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
-import { format } from 'date-fns';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { formatDistanceToNow, isToday, isThisWeek, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useNotifications } from '@/src/hooks/core/useNotifications';
+import { Bell } from 'lucide-react-native';
 
 export default function NotificationsScreen() {
-  const {
-    notifications,
-    loading,
-    refreshing,
-    refresh,
-    fetchNotifications,
-    markAsRead,
-    markAllAsRead,
-    unreadCount,
-  } = useNotifications();
+  const { notifications, loading, refreshing, refresh, fetchNotifications, markAsRead } =
+    useNotifications();
 
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  const sections = useMemo(() => {
+    const today: any[] = [];
+    const thisWeek: any[] = [];
+    const older: any[] = [];
+
+    notifications.forEach((n) => {
+      const date = parseISO(n.sent_at);
+      if (isToday(date)) today.push(n);
+      else if (isThisWeek(date)) thisWeek.push(n);
+      else older.push(n);
+    });
+
+    const result: { title: string; data: any[] }[] = [];
+    if (today.length > 0) result.push({ title: 'Oggi', data: today });
+    if (thisWeek.length > 0) result.push({ title: 'Questa Settimana', data: thisWeek });
+    if (older.length > 0) result.push({ title: 'Precedenti', data: older });
+
+    return result;
+  }, [notifications]);
+
   const renderItem = ({ item, index }: { item: any; index: number }) => {
+    const date = parseISO(item.sent_at);
+    const timeAgo = formatDistanceToNow(date, { addSuffix: true, locale: it });
+
     return (
-      <Animated.View layout={LinearTransition} entering={FadeIn.delay(index * 50)}>
+      <Animated.View entering={FadeIn.delay(index * 50)}>
         <TouchableOpacity
-          style={[styles.card, !item.is_read && styles.unreadCard]}
+          style={[styles.itemContainer, !item.is_read && styles.itemContainerUnread]}
           onPress={() => !item.is_read && markAsRead(item.id)}
-          activeOpacity={0.7}
+          activeOpacity={0.85}
         >
-          <View style={styles.headerRow}>
-            <View style={styles.titleContainer}>
-              {!item.is_read && <View style={styles.dot} />}
-              <Text style={[styles.title, !item.is_read && styles.unreadText]}>{item.title}</Text>
-            </View>
-            <Text style={styles.date}>
-              {format(new Date(item.sent_at), 'dd MMM HH:mm', { locale: it })}
-            </Text>
+          {!item.is_read && <View style={styles.unreadAccent} />}
+
+          <View style={styles.iconCircle}>
+            <Bell size={24} color={colors.secondary} />
           </View>
 
-          <Text style={styles.body}>{item.description}</Text>
+          <View style={styles.textContainer}>
+            <View style={styles.headerRow}>
+              <Text style={styles.title} numberOfLines={1}>
+                {item.title}
+              </Text>
+              {!item.is_read && (
+                <View style={styles.newBadge}>
+                  <Text style={styles.newBadgeText}>New</Text>
+                </View>
+              )}
+            </View>
+
+            <Text style={styles.body} numberOfLines={2}>
+              {item.description}
+            </Text>
+
+            <Text style={styles.timeText}>{timeAgo}</Text>
+          </View>
         </TouchableOpacity>
       </Animated.View>
     );
   };
 
+  const renderSectionHeader = ({ section: { title } }: { section: { title: string } }) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionHeaderText}>{title}</Text>
+    </View>
+  );
+
   return (
     <ContentScreenLayout title="Notifiche">
-      <View style={styles.actionsContainer}>
-        <Text style={styles.counter}>
-          {unreadCount > 0 ? `${unreadCount} nuove` : 'Tutte lette'}
-        </Text>
-        {unreadCount > 0 && (
-          <TouchableOpacity onPress={markAllAsRead}>
-            <Text style={styles.markAll}>Segna tutte come lette</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
       {loading && !refreshing ? (
         <View style={styles.center}>
           <ActivityIndicator size="small" color={colors.secondary} />
         </View>
       ) : (
-        <FlatList
-          data={notifications}
+        <SectionList
+          sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           onRefresh={refresh}
           refreshing={refreshing}
+          stickySectionHeadersEnabled={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>Nessuna notifica presente</Text>
@@ -97,75 +123,100 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 4,
-  },
-  counter: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.secondary,
-    fontSize: 14,
-  },
-  markAll: {
-    fontFamily: GraphitFonts.GraphitMedium,
-    color: '#C388F0',
-    fontSize: 14,
-  },
   listContent: {
     paddingBottom: 40,
   },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+  sectionHeader: {
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#eee',
+    backgroundColor: 'transparent',
   },
-  unreadCard: {
-    backgroundColor: '#F9F5FF', // Leggero tint viola
-    borderColor: '#EBD4FF',
+  sectionHeaderText: {
+    fontFamily: GraphitFonts.GraphitMedium,
+    fontSize: 18,
+    color: colors.secondary,
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FFE7F1',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#FFD1E4',
+    paddingVertical: 26,
+    paddingHorizontal: 12,
+    marginVertical: 6,
+    shadowColor: 'rgba(204, 174, 227, 0.20)',
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 2,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  itemContainerUnread: {
+    backgroundColor: '#FFE7F1',
+    borderColor: '#FFB8D6',
+  },
+  unreadAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: '#ED5192',
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFD1E4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  titleContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    marginRight: 10,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#C388F0',
-    marginRight: 8,
+    marginBottom: 4,
   },
   title: {
-    fontFamily: GraphitFonts.GraphitMedium,
-    fontSize: 16,
-    color: '#333',
-  },
-  unreadText: {
     fontFamily: GraphitFonts.GraphitBold,
+    fontSize: 15,
+    color: colors.text,
+    flex: 1,
+    marginRight: 8,
   },
-  date: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 12,
-    color: '#999',
+  newBadge: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#FFD1E4',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newBadgeText: {
+    fontFamily: GraphitFonts.GraphitMedium,
+    fontSize: 10,
+    color: '#ED5192',
   },
   body: {
     fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    color: '#555',
-    lineHeight: 20,
+    fontSize: 13,
+    color: 'rgba(31, 31, 31, 0.78)',
+    marginBottom: 6,
+    lineHeight: 18,
+  },
+  timeText: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 12,
+    color: 'rgba(31, 31, 31, 0.55)',
   },
   emptyContainer: {
     paddingTop: 60,
@@ -173,7 +224,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontFamily: GraphitFonts.GraphitRegular,
-    color: '#999',
+    color: 'rgba(31, 31, 31, 0.55)',
     fontSize: 16,
   },
 });
