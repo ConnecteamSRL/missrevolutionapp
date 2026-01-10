@@ -216,8 +216,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
   },
-
-  // Camera styles
   cameraContainer: { flex: 1, backgroundColor: '#000' },
   camera: { flex: 1 },
   cameraOverlay: {
@@ -248,8 +246,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   closeButtonText: { fontFamily: GraphitFonts.GraphitBold, color: '#FFF', fontSize: 16 },
-
-  // NUOVI STILI PER IL LOADING E RISULTATI
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.7)',

@@ -30,7 +30,6 @@ export default function ForgotPasswordScreen() {
 
     setLoading(true);
     try {
-      // Questa chiamata invia l'email con il codice (token)
       const { error } = await supabase.auth.resetPasswordForEmail(emailTrim);
 
       if (error) {
