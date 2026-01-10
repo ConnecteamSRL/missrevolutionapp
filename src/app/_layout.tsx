@@ -75,6 +75,7 @@ const AppEntryPoint: React.FC = () => {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="video" />
         <Stack.Screen name="faq" />
+        <Stack.Screen name="notifications" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="recipes" />
         <Stack.Screen name="survey/index" />

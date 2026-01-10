@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import NotificationIcon from '@components/ui/icons/NotificationIcon';
 import { colors } from '@/src/theme';
+import { router } from 'expo-router';
 
 export default function NotificationButton() {
-  const [showNotifications, setShowNotifications] = useState<boolean>(true);
-
   return (
     <TouchableOpacity
       style={styles.button}
-      onPress={() => setShowNotifications(!showNotifications)}
+      onPress={() => router.push('/notifications')}
       activeOpacity={0.7}
     >
       <View style={styles.iconWrapper}>
         <NotificationIcon color={'#6A717A'} size={25} />
-        {showNotifications && <View style={styles.badge} />}
+        {<View style={styles.badge} />}
       </View>
     </TouchableOpacity>
   );
