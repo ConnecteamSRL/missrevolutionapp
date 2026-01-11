@@ -69,6 +69,7 @@ const AppEntryPoint: React.FC = () => {
         <Stack.Screen name="(auth)/reset-password" />
         <Stack.Screen name="(auth)/forgot-password" />
         <Stack.Screen name="(auth)/confirm-signup" />
+        <Stack.Screen name="(auth)/set-password" />
       </Stack.Protected>
 
       <Stack.Protected guard={isLoggedIn}>
