@@ -1,11 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: '13.0.5';
-  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -472,6 +467,65 @@ export type Database = {
           },
         ];
       };
+      fitness_rules: {
+        Row: {
+          created_at: string;
+          max_carbs_100g: number | null;
+          max_fat_100g: number | null;
+          max_sugar_100g: number | null;
+          min_protein_100g: number | null;
+          objective: Database['public']['Enums']['fitness_objective'];
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          max_carbs_100g?: number | null;
+          max_fat_100g?: number | null;
+          max_sugar_100g?: number | null;
+          min_protein_100g?: number | null;
+          objective: Database['public']['Enums']['fitness_objective'];
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          max_carbs_100g?: number | null;
+          max_fat_100g?: number | null;
+          max_sugar_100g?: number | null;
+          min_protein_100g?: number | null;
+          objective?: Database['public']['Enums']['fitness_objective'];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      gym_editorial_configs: {
+        Row: {
+          banner_key: string | null;
+          created_at: string;
+          gym_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          banner_key?: string | null;
+          created_at?: string;
+          gym_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          banner_key?: string | null;
+          created_at?: string;
+          gym_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'gym_editorial_configs_gym_id_fkey';
+            columns: ['gym_id'];
+            isOneToOne: true;
+            referencedRelation: 'gyms';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       gyms: {
         Row: {
           addr_line1: string | null;
@@ -613,46 +667,25 @@ export type Database = {
       };
       memberships: {
         Row: {
-          canceled_at: string | null;
           created_at: string;
-          ends_on: string;
+          description: string | null;
           gym_id: string;
           id: string;
-          notes: string | null;
-          plan_code: string | null;
-          plan_name: string | null;
-          starts_on: string;
-          status: Database['public']['Enums']['membership_status'];
-          updated_at: string;
-          user_id: string;
+          name: string;
         };
         Insert: {
-          canceled_at?: string | null;
           created_at?: string;
-          ends_on: string;
+          description?: string | null;
           gym_id: string;
           id?: string;
-          notes?: string | null;
-          plan_code?: string | null;
-          plan_name?: string | null;
-          starts_on: string;
-          status?: Database['public']['Enums']['membership_status'];
-          updated_at?: string;
-          user_id: string;
+          name: string;
         };
         Update: {
-          canceled_at?: string | null;
           created_at?: string;
-          ends_on?: string;
+          description?: string | null;
           gym_id?: string;
           id?: string;
-          notes?: string | null;
-          plan_code?: string | null;
-          plan_name?: string | null;
-          starts_on?: string;
-          status?: Database['public']['Enums']['membership_status'];
-          updated_at?: string;
-          user_id?: string;
+          name?: string;
         };
         Relationships: [
           {
@@ -662,68 +695,50 @@ export type Database = {
             referencedRelation: 'gyms';
             referencedColumns: ['id'];
           },
-          {
-            foreignKeyName: 'memberships_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'app_users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'memberships_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'v_app_users_list';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'memberships_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'v_user_anamnesis';
-            referencedColumns: ['user_id'];
-          },
         ];
       };
       notifications: {
         Row: {
           body: string;
           created_at: string;
-          created_by: string | null;
-          data: Json | null;
+          data: Json;
+          error_message: string | null;
           gym_id: string | null;
           id: string;
+          recipient_ids: string[];
+          retry_count: number | null;
           scheduled_at: string | null;
           sent_at: string | null;
           status: Database['public']['Enums']['notification_status'];
           title: string;
-          type: string;
         };
         Insert: {
           body: string;
           created_at?: string;
-          created_by?: string | null;
-          data?: Json | null;
+          data?: Json;
+          error_message?: string | null;
           gym_id?: string | null;
           id?: string;
+          recipient_ids?: string[];
+          retry_count?: number | null;
           scheduled_at?: string | null;
           sent_at?: string | null;
           status?: Database['public']['Enums']['notification_status'];
           title: string;
-          type: string;
         };
         Update: {
           body?: string;
           created_at?: string;
-          created_by?: string | null;
-          data?: Json | null;
+          data?: Json;
+          error_message?: string | null;
           gym_id?: string | null;
           id?: string;
+          recipient_ids?: string[];
+          retry_count?: number | null;
           scheduled_at?: string | null;
           sent_at?: string | null;
           status?: Database['public']['Enums']['notification_status'];
           title?: string;
-          type?: string;
         };
         Relationships: [
           {
@@ -1153,48 +1168,6 @@ export type Database = {
           },
         ];
       };
-      user_devices: {
-        Row: {
-          app_version: string | null;
-          created_at: string;
-          expo_push_token: string;
-          id: string;
-          is_active: boolean;
-          last_seen_at: string;
-          locale: string | null;
-          platform: string;
-          revoked_at: string | null;
-          updated_at: string;
-          user_id: string;
-        };
-        Insert: {
-          app_version?: string | null;
-          created_at?: string;
-          expo_push_token: string;
-          id?: string;
-          is_active?: boolean;
-          last_seen_at?: string;
-          locale?: string | null;
-          platform: string;
-          revoked_at?: string | null;
-          updated_at?: string;
-          user_id: string;
-        };
-        Update: {
-          app_version?: string | null;
-          created_at?: string;
-          expo_push_token?: string;
-          id?: string;
-          is_active?: boolean;
-          last_seen_at?: string;
-          locale?: string | null;
-          platform?: string;
-          revoked_at?: string | null;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
       user_diet_assignments: {
         Row: {
           assigned_at: string;
@@ -1288,47 +1261,102 @@ export type Database = {
           },
         ];
       };
-      user_notifications: {
+      user_memberships: {
         Row: {
           created_at: string;
-          delivery_status: Database['public']['Enums']['user_notification_delivery_status'];
-          error_code: string | null;
-          error_message: string | null;
+          end_date: string | null;
+          gym_id: string;
           id: string;
-          notification_id: string;
-          read_at: string | null;
-          read_status: Database['public']['Enums']['user_notification_read_status'];
-          sent_at: string | null;
-          updated_at: string;
+          membership_id: string;
+          start_date: string;
+          status: Database['public']['Enums']['membership_status'];
           user_id: string;
         };
         Insert: {
           created_at?: string;
-          delivery_status?: Database['public']['Enums']['user_notification_delivery_status'];
-          error_code?: string | null;
-          error_message?: string | null;
+          end_date?: string | null;
+          gym_id: string;
           id?: string;
-          notification_id: string;
-          read_at?: string | null;
-          read_status?: Database['public']['Enums']['user_notification_read_status'];
-          sent_at?: string | null;
-          updated_at?: string;
+          membership_id: string;
+          start_date?: string;
+          status?: Database['public']['Enums']['membership_status'];
           user_id: string;
         };
         Update: {
           created_at?: string;
-          delivery_status?: Database['public']['Enums']['user_notification_delivery_status'];
-          error_code?: string | null;
-          error_message?: string | null;
+          end_date?: string | null;
+          gym_id?: string;
           id?: string;
-          notification_id?: string;
-          read_at?: string | null;
-          read_status?: Database['public']['Enums']['user_notification_read_status'];
-          sent_at?: string | null;
-          updated_at?: string;
+          membership_id?: string;
+          start_date?: string;
+          status?: Database['public']['Enums']['membership_status'];
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'user_memberships_gym_id_fkey';
+            columns: ['gym_id'];
+            isOneToOne: false;
+            referencedRelation: 'gyms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_memberships_membership_id_fkey';
+            columns: ['membership_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_memberships_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_memberships_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_app_users_list';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_memberships_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_user_anamnesis';
+            referencedColumns: ['user_id'];
+          },
+        ];
+      };
+      user_notifications: {
+        Row: {
+          created_at: string;
+          notification_id: string;
+          read_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          notification_id: string;
+          read_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          notification_id?: string;
+          read_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_notifications_notification_id_fkey';
+            columns: ['notification_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_user_notifications_view';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'user_notifications_notification_id_fkey';
             columns: ['notification_id'];
@@ -1524,38 +1552,86 @@ export type Database = {
           },
         ];
       };
+      video_allowed_memberships: {
+        Row: {
+          created_at: string | null;
+          membership_id: string;
+          video_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          membership_id: string;
+          video_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          membership_id?: string;
+          video_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'video_allowed_memberships_membership_id_fkey';
+            columns: ['membership_id'];
+            isOneToOne: false;
+            referencedRelation: 'memberships';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'video_allowed_memberships_video_id_fkey';
+            columns: ['video_id'];
+            isOneToOne: false;
+            referencedRelation: 'videos';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       video_categories: {
         Row: {
           created_at: string;
           description: string | null;
-          gym_id: string | null;
+          gym_id: string;
           id: string;
           name: string;
-          position: number;
+          parent_id: string | null;
           slug: string;
           updated_at: string;
         };
         Insert: {
           created_at?: string;
           description?: string | null;
-          gym_id?: string | null;
+          gym_id: string;
           id?: string;
           name: string;
-          position?: number;
+          parent_id?: string | null;
           slug: string;
           updated_at?: string;
         };
         Update: {
           created_at?: string;
           description?: string | null;
-          gym_id?: string | null;
+          gym_id?: string;
           id?: string;
           name?: string;
-          position?: number;
+          parent_id?: string | null;
           slug?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'video_categories_gym_id_fkey';
+            columns: ['gym_id'];
+            isOneToOne: false;
+            referencedRelation: 'gyms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'video_categories_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'video_categories';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       videos: {
         Row: {
@@ -1563,7 +1639,8 @@ export type Database = {
           created_at: string;
           description: string | null;
           duration_seconds: number | null;
-          gym_id: string | null;
+          free: boolean;
+          gym_id: string;
           id: string;
           is_active: boolean;
           published_at: string | null;
@@ -1577,7 +1654,8 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           duration_seconds?: number | null;
-          gym_id?: string | null;
+          free?: boolean;
+          gym_id: string;
           id?: string;
           is_active?: boolean;
           published_at?: string | null;
@@ -1591,7 +1669,8 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           duration_seconds?: number | null;
-          gym_id?: string | null;
+          free?: boolean;
+          gym_id?: string;
           id?: string;
           is_active?: boolean;
           published_at?: string | null;
@@ -1606,6 +1685,13 @@ export type Database = {
             columns: ['category_id'];
             isOneToOne: false;
             referencedRelation: 'video_categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'videos_gym_id_fkey';
+            columns: ['gym_id'];
+            isOneToOne: false;
+            referencedRelation: 'gyms';
             referencedColumns: ['id'];
           },
         ];
@@ -1709,6 +1795,55 @@ export type Database = {
       };
     };
     Views: {
+      app_config_public: {
+        Row: {
+          id: number | null;
+          latest_version: string | null;
+          maintenance_message: string | null;
+          maintenance_mode: boolean | null;
+          min_supported_version: string | null;
+          store_url_android: string | null;
+          store_url_ios: string | null;
+          support_email: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: number | null;
+          latest_version?: string | null;
+          maintenance_message?: string | null;
+          maintenance_mode?: boolean | null;
+          min_supported_version?: string | null;
+          store_url_android?: string | null;
+          store_url_ios?: string | null;
+          support_email?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: number | null;
+          latest_version?: string | null;
+          maintenance_message?: string | null;
+          maintenance_mode?: boolean | null;
+          min_supported_version?: string | null;
+          store_url_android?: string | null;
+          store_url_ios?: string | null;
+          support_email?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      app_user_notifications_view: {
+        Row: {
+          data: Json | null;
+          description: string | null;
+          id: string | null;
+          is_read: boolean | null;
+          read_at: string | null;
+          sent_at: string | null;
+          title: string | null;
+          user_id: string | null;
+        };
+        Relationships: [];
+      };
       survey_assignments_view: {
         Row: {
           created_at: string | null;
@@ -1821,80 +1956,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'gyms';
             referencedColumns: ['id'];
-          },
-        ];
-      };
-      v_memberships_active: {
-        Row: {
-          canceled_at: string | null;
-          created_at: string | null;
-          ends_on: string | null;
-          gym_id: string | null;
-          id: string | null;
-          notes: string | null;
-          plan_code: string | null;
-          plan_name: string | null;
-          starts_on: string | null;
-          status: Database['public']['Enums']['membership_status'] | null;
-          updated_at: string | null;
-          user_id: string | null;
-        };
-        Insert: {
-          canceled_at?: string | null;
-          created_at?: string | null;
-          ends_on?: string | null;
-          gym_id?: string | null;
-          id?: string | null;
-          notes?: string | null;
-          plan_code?: string | null;
-          plan_name?: string | null;
-          starts_on?: string | null;
-          status?: Database['public']['Enums']['membership_status'] | null;
-          updated_at?: string | null;
-          user_id?: string | null;
-        };
-        Update: {
-          canceled_at?: string | null;
-          created_at?: string | null;
-          ends_on?: string | null;
-          gym_id?: string | null;
-          id?: string | null;
-          notes?: string | null;
-          plan_code?: string | null;
-          plan_name?: string | null;
-          starts_on?: string | null;
-          status?: Database['public']['Enums']['membership_status'] | null;
-          updated_at?: string | null;
-          user_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'memberships_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'memberships_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'app_users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'memberships_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'v_app_users_list';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'memberships_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'v_user_anamnesis';
-            referencedColumns: ['user_id'];
           },
         ];
       };
@@ -2022,10 +2083,6 @@ export type Database = {
       };
     };
     Functions: {
-      _desired_member_role: {
-        Args: { p_user_id: string };
-        Returns: Database['public']['Enums']['app_role'];
-      };
       _faq_categories_last_position: { Args: never; Returns: number };
       _faqs_last_position: { Args: { p_category: string }; Returns: number };
       _get_default_gym_id: { Args: never; Returns: string };
@@ -2086,19 +2143,6 @@ export type Database = {
       };
       me: { Args: never; Returns: Json };
       me_detailed: { Args: never; Returns: Json };
-      membership_effective_status: {
-        Args: {
-          p_canceled_at: string;
-          p_ends_on: string;
-          p_starts_on: string;
-          p_status: Database['public']['Enums']['membership_status'];
-        };
-        Returns: Database['public']['Enums']['membership_status'];
-      };
-      normalize_membership_status: {
-        Args: { p_membership_id: string };
-        Returns: undefined;
-      };
       rbac_roles: {
         Args: never;
         Returns: {
@@ -2126,9 +2170,8 @@ export type Database = {
         Args: { p_assignment_id: string };
         Returns: boolean;
       };
-      sync_all_member_roles: { Args: never; Returns: undefined };
+      sync_all_user_member_roles: { Args: never; Returns: undefined };
       sync_auth_ban_from_app_users: { Args: never; Returns: undefined };
-      sync_membership_statuses: { Args: never; Returns: undefined };
       sync_user_member_role: { Args: { p_user_id: string }; Returns: undefined };
       update_youtube_live_statuses: { Args: never; Returns: undefined };
       user_has_active_membership: {
@@ -2150,10 +2193,10 @@ export type Database = {
       fitness_objective: 'dimagrimento' | 'massa_muscolare' | 'mantenimento';
       flow_status_enum: 'in_flow' | 'out_of_flow' | 'no_checkup';
       gender_enum: 'maschio' | 'femmina' | 'non_binario' | 'altro' | 'non_dichiarato';
-      membership_status: 'pending' | 'active' | 'paused' | 'canceled' | 'expired';
+      membership_status: 'pending' | 'active' | 'expired';
       menstrual_cycle_enum: 'regolare' | 'irregolare' | 'non_applicabile' | 'non_dichiarato';
       notification_status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
-      survey_assignment_status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'EXPIRED';
+      survey_assignment_status: 'PENDING' | 'COMPLETED' | 'EXPIRED';
       user_notification_delivery_status: 'pending' | 'sent' | 'error';
       user_notification_read_status: 'unread' | 'read';
       user_permission:
@@ -2241,7 +2284,11 @@ export type Database = {
         | 'CHECKUP:WRITE:ALL'
         | 'CHECKUP:WRITE:GYM'
         | 'CHECKUP:DELETE:ALL'
-        | 'CHECKUP:DELETE:GYM';
+        | 'CHECKUP:DELETE:GYM'
+        | 'EDITORIAL:READ:ALL'
+        | 'EDITORIAL:WRITE:ALL'
+        | 'EDITORIAL:WRITE:GYM'
+        | 'FITNESS_RULES:WRITE';
       user_program_status: 'in_cura' | 'iniziato' | 'registrato';
       youtube_live_status: 'scheduled' | 'live' | 'ended' | 'canceled';
     };
@@ -2386,10 +2433,10 @@ export const Constants = {
       fitness_objective: ['dimagrimento', 'massa_muscolare', 'mantenimento'],
       flow_status_enum: ['in_flow', 'out_of_flow', 'no_checkup'],
       gender_enum: ['maschio', 'femmina', 'non_binario', 'altro', 'non_dichiarato'],
-      membership_status: ['pending', 'active', 'paused', 'canceled', 'expired'],
+      membership_status: ['pending', 'active', 'expired'],
       menstrual_cycle_enum: ['regolare', 'irregolare', 'non_applicabile', 'non_dichiarato'],
       notification_status: ['draft', 'scheduled', 'sent', 'cancelled'],
-      survey_assignment_status: ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'EXPIRED'],
+      survey_assignment_status: ['PENDING', 'COMPLETED', 'EXPIRED'],
       user_notification_delivery_status: ['pending', 'sent', 'error'],
       user_notification_read_status: ['unread', 'read'],
       user_permission: [
@@ -2478,6 +2525,10 @@ export const Constants = {
         'CHECKUP:WRITE:GYM',
         'CHECKUP:DELETE:ALL',
         'CHECKUP:DELETE:GYM',
+        'EDITORIAL:READ:ALL',
+        'EDITORIAL:WRITE:ALL',
+        'EDITORIAL:WRITE:GYM',
+        'FITNESS_RULES:WRITE',
       ],
       user_program_status: ['in_cura', 'iniziato', 'registrato'],
       youtube_live_status: ['scheduled', 'live', 'ended', 'canceled'],

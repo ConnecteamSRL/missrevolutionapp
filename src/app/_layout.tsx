@@ -74,7 +74,8 @@ const AppEntryPoint: React.FC = () => {
 
       <Stack.Protected guard={isLoggedIn}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="video" />
+        <Stack.Screen name="video/index" />
+        <Stack.Screen name="video/[categoryId]" />
         <Stack.Screen name="faq" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="profile" />

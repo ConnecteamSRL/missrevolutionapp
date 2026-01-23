@@ -1,18 +1,21 @@
-export type GymVideo = {
-  id: string;
-  title: string;
-  vimeo_id: string;
-  description: string | null;
-  thumbnail_url: string | null;
-  duration_seconds: number | null;
-  published_at: string | null;
-};
+import { Tables } from '@mr-types/database.types';
 
-export type GymVideoCategoryWithVideos = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  position: number | null;
-  videos: GymVideo[];
+export type Video = Tables<'videos'>;
+
+export type VideoPageData = {
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  breadcrumb: {
+    id: string;
+    name: string;
+  }[];
+  children: {
+    id: string;
+    name: string;
+    videos_count: number;
+  }[];
+  videos: Video[];
 };
