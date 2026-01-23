@@ -1,21 +1,65 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useUser } from '@/src/contexts/UserContext';
-import { useUserMemberships } from '@/src/hooks/core/useUserMemberships';
+import { useUserMemberships, UserMembershipDetail } from '@/src/hooks/core/useUserMemberships';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, GraphitFonts } from '@/src/theme';
 import React from 'react';
 
 export default function MembershipsSection() {
   const { me } = useUser();
-  const userId = me?.profile.user_id;
+  const userId = me?.user_id;
   const { data, loading } = useUserMemberships(userId);
 
-  const iconColor = (colors as any).secondary || colors.gray;
-  const fmt = (d?: string | null) => (d ? new Date(d).toLocaleDateString('it-IT') : '-');
+  const iconColor = (colors as any).secondary || '#ED5192';
 
-  const status = data?.status?.toString().toUpperCase() || '-';
-  const planName = data?.plan_name || data?.plan_code || '-';
-  const period = `${fmt(data?.starts_on)} – ${fmt(data?.ends_on)}`;
+  const fmt = (d?: string | null) => (d ? new Date(d).toLocaleDateString('it-IT') : '∞');
+
+  const renderMembershipItem = (item: UserMembershipDetail, index: number) => {
+    const status = item.status_label;
+    const planName = item.membership?.name || 'Piano sconosciuto';
+    const period = `${fmt(item.start_date)} – ${fmt(item.end_date)}`;
+    const isLast = index === data.length - 1;
+
+    return (
+      <View key={item.id} style={[styles.membershipBlock, !isLast && styles.separator]}>
+        <View style={styles.infoGroup}>
+          <Text style={styles.infoLabel}>Stato</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoText} numberOfLines={1}>
+              {status}
+            </Text>
+            <View style={styles.iconBox}>
+              <MaterialIcons name="verified" size={24} color={iconColor} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.infoGroup}>
+          <Text style={styles.infoLabel}>Nome piano</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoText} numberOfLines={1}>
+              {planName}
+            </Text>
+            <View style={styles.iconBox}>
+              <MaterialIcons name="assignment" size={24} color={iconColor} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.infoGroup}>
+          <Text style={styles.infoLabel}>Periodo</Text>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoText} numberOfLines={1}>
+              {period}
+            </Text>
+            <View style={styles.iconBox}>
+              <MaterialIcons name="event" size={24} color={iconColor} />
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -27,7 +71,7 @@ export default function MembershipsSection() {
         </View>
       ) : (
         <View style={styles.infoList}>
-          {!data ? (
+          {!data || data.length === 0 ? (
             <View style={styles.infoGroup}>
               <Text style={styles.infoLabel}>Membership</Text>
               <View style={styles.infoRow}>
@@ -38,43 +82,7 @@ export default function MembershipsSection() {
               </View>
             </View>
           ) : (
-            <>
-              <View style={styles.infoGroup}>
-                <Text style={styles.infoLabel}>Stato</Text>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoText} numberOfLines={1}>
-                    {status}
-                  </Text>
-                  <View style={styles.iconBox}>
-                    <MaterialIcons name="verified" size={24} color={iconColor} />
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.infoGroup}>
-                <Text style={styles.infoLabel}>Nome piano</Text>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoText} numberOfLines={1}>
-                    {planName}
-                  </Text>
-                  <View style={styles.iconBox}>
-                    <MaterialIcons name="assignment" size={24} color={iconColor} />
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.infoGroup}>
-                <Text style={styles.infoLabel}>Periodo</Text>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoText} numberOfLines={1}>
-                    {period}
-                  </Text>
-                  <View style={styles.iconBox}>
-                    <MaterialIcons name="event" size={24} color={iconColor} />
-                  </View>
-                </View>
-              </View>
-            </>
+            data.map((item, index) => renderMembershipItem(item, index))
           )}
         </View>
       )}
@@ -96,7 +104,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   infoList: {
+    gap: 24,
+  },
+  membershipBlock: {
     gap: 14,
+  },
+  separator: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFD1E4',
+    paddingBottom: 24,
   },
   infoGroup: {
     gap: 6,
