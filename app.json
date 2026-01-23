@@ -10,18 +10,20 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.connectteam.missrevolution",
+      "bundleIdentifier": "com.connecteam.missrevolution",
       "icon": "assets/revolution.icon",
       "config": {
         "usesNonExemptEncryption": false
       },
+      "appleTeamId": "93V425WR3A",
       "entitlements": {
         "aps-environment": "development",
-        "com.apple.security.application-groups": ["group.com.connectteam.missrevolution.onesignal"]
+        "com.apple.security.application-groups": ["group.com.connecteam.missrevolution.onesignal"]
       },
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification"]
-      }
+      },
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
