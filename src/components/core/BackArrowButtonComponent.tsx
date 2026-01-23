@@ -7,8 +7,21 @@ import { useRouter } from 'expo-router';
 export default function BackArrowButtonComponent() {
   const router = useRouter();
 
+  const handlePress = () => {
+    try {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/');
+      }
+    } catch (error) {
+      console.warn('Errore navigazione back, fallback su home:', error);
+      router.replace('/');
+    }
+  };
+
   return (
-    <TouchableOpacity style={styles.button} onPress={() => router.back()}>
+    <TouchableOpacity style={styles.button} onPress={handlePress}>
       <ArrowLeft color={'#292D32'} size={25} />
     </TouchableOpacity>
   );

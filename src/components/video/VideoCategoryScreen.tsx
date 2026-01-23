@@ -1,5 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Linking,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import VideoSearchBar from '@components/video/VideoSearchBar';
@@ -29,7 +38,20 @@ export default function VideoCategoryScreen() {
   };
 
   const handleVideoPress = (video: VideoItem) => {
-    console.log('Open video', video.title);
+    Alert.alert(
+      'Apertura Vimeo',
+      'Stai per essere reindirizzato su Vimeo per guardare il video. Vuoi procedere?',
+      [
+        {
+          text: 'Annulla',
+          style: 'cancel',
+        },
+        {
+          text: 'Apri',
+          onPress: () => Linking.openURL(`https://vimeo.com/${video.vimeo_id}`),
+        },
+      ],
+    );
   };
 
   const filteredData = useMemo(() => {
