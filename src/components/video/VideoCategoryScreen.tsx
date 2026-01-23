@@ -3,11 +3,11 @@ import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } f
 import { router, useLocalSearchParams } from 'expo-router';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import VideoSearchBar from '@components/video/VideoSearchBar';
-import VideoBreadcrumbs from '@components/video/VideoBreadcrumbs';
-import CategoryFolderItem from '@components/video/CategoryFolderItem';
+import CategoryItem from '@components/video/CategoryItem';
 import VideoCard from '@components/video/VideoCard';
 import { GraphitFonts } from '@/src/theme';
 import { VideoBreadcrumbItem, VideoItem } from '@mr-types/video.types';
+import VideoBreadcrumbs from '@components/video/VideoBreadcrumbs';
 import { useVideoPage } from '@/src/hooks/content/useVideoPage';
 
 export default function VideoCategoryScreen() {
@@ -33,15 +33,15 @@ export default function VideoCategoryScreen() {
   };
 
   const filteredData = useMemo(() => {
-    if (!data) return { folders: [], videos: [] };
+    if (!data) return { categories: [], videos: [] };
 
     const lowerSearch = searchText.toLowerCase();
 
-    const folders = data.children.filter((c) => c.name.toLowerCase().includes(lowerSearch));
+    const categories = data.children.filter((c) => c.name.toLowerCase().includes(lowerSearch));
 
     const videos = data.videos.filter((v) => v.title.toLowerCase().includes(lowerSearch));
 
-    return { folders, videos };
+    return { categories, videos };
   }, [data, searchText]);
 
   const renderContent = () => {
@@ -63,11 +63,12 @@ export default function VideoCategoryScreen() {
 
     if (!data) return null;
 
-    const hasContent = filteredData.folders.length > 0 || filteredData.videos.length > 0;
+    const hasContent = filteredData.categories.length > 0 || filteredData.videos.length > 0;
 
     return (
       <FlatList
         data={filteredData.videos}
+        showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#C388F0" />
@@ -78,15 +79,15 @@ export default function VideoCategoryScreen() {
             <VideoSearchBar
               value={searchText}
               onChangeText={setSearchText}
-              placeholder="Cerca cartelle o video..."
+              placeholder="Cerca categorie o video..."
             />
 
             <VideoBreadcrumbs items={data.breadcrumb} onPress={handleBreadcrumbPress} />
 
-            {filteredData.folders.length > 0 && (
+            {filteredData.categories.length > 0 && (
               <View style={styles.section}>
-                {filteredData.folders.map((folder) => (
-                  <CategoryFolderItem key={folder.id} item={folder} onPress={handleCategoryPress} />
+                {filteredData.categories.map((cat) => (
+                  <CategoryItem key={cat.id} item={cat} onPress={handleCategoryPress} />
                 ))}
               </View>
             )}

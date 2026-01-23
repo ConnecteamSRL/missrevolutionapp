@@ -9,7 +9,11 @@ type Props = {
   placeholder?: string;
 };
 
-function VideoSearchBar({ value, onChangeText, placeholder = 'Cerca video...' }: Props) {
+function VideoSearchBar({
+  value,
+  onChangeText,
+  placeholder = 'Cerca categorie o video...',
+}: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.iconWrapper}>

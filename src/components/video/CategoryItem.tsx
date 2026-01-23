@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { VideoCategoryChild } from '@mr-types/video.types';
-import { ChevronRight, Folder } from 'lucide-react-native';
+import { ChevronRight, LayoutGrid } from 'lucide-react-native';
 import { GraphitFonts } from '@/src/theme';
 
 type Props = {
@@ -9,14 +9,14 @@ type Props = {
   onPress: (id: string) => void;
 };
 
-export default function CategoryFolderItem({ item, onPress }: Props) {
+export default function CategoryItem({ item, onPress }: Props) {
   const count = item.videos_count + item.children_count;
   const countLabel = count === 1 ? 'elemento' : 'elementi';
 
   return (
     <TouchableOpacity style={styles.container} activeOpacity={0.7} onPress={() => onPress(item.id)}>
       <View style={styles.iconContainer}>
-        <Folder size={24} color="#ED5192" fill="#FFE7F1" />
+        <LayoutGrid size={24} color="#ED5192" />
       </View>
 
       <View style={styles.infoContainer}>
