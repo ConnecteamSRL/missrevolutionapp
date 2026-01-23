@@ -1,21 +1,18 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { GymVideoCategoryWithVideos } from '@mr-types/video.types';
+import { VideoItem } from '@mr-types/video.types';
 import Badge from '@components/ui/Badge';
 import { GraphitFonts } from '@/src/theme';
 import ClockIcon from '@components/ui/icons/ClockIcon';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
-type Video = GymVideoCategoryWithVideos['videos'][number];
-
 type Props = {
-  video: Video;
+  video: VideoItem;
   categoryName: string;
-  onPress?: (video: Video) => void;
+  onPress?: (video: VideoItem) => void;
 };
 
 const CARD_COLORS = ['#CCAEE3', '#FE61A2', '#A9D982', '#FFD48F', '#9ED8F7', '#F3B3E6'];
-
 const CATEGORY_COLOR_MAP: Record<string, string> = {};
 
 const getCategoryColor = (categoryName: string) => {
@@ -39,7 +36,6 @@ const formatDuration = (seconds: number | null) => {
 export default function VideoCard({ video, categoryName, onPress }: Props) {
   const backgroundColor = getCategoryColor(categoryName);
   const formattedDuration = formatDuration(video.duration_seconds ?? null);
-
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
