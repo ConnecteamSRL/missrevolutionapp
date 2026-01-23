@@ -37,7 +37,8 @@
       "predictiveBackGestureEnabled": false,
       "googleServicesFile": "./google-services.json",
       "package": "com.automatiko.missrevolution",
-      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"]
+      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
+      "versionCode": 2
     },
     "plugins": [
       "expo-router",
