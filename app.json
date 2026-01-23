@@ -10,11 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.automatiko.missrevolution",
+      "bundleIdentifier": "com.connectteam.missrevolution",
       "icon": "assets/revolution.icon",
       "entitlements": {
         "aps-environment": "development",
-        "com.apple.security.application-groups": ["group.${ios.bundleIdentifier}.onesignal"]
+        "com.apple.security.application-groups": ["group.com.connectteam.missrevolution.onesignal"]
       },
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification"]

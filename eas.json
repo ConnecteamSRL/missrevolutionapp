@@ -17,6 +17,15 @@
         "EXPO_PUBLIC_APP_ENV": "staging"
       }
     },
+    "staging": {
+      "distribution": "store",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging"
+      },
+      "ios": {
+        "image": "latest"
+      }
+    },
     "production": {
       "distribution": "store",
       "env": {
