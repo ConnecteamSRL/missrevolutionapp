@@ -24,7 +24,7 @@
         "UIBackgroundModes": ["remote-notification"],
         "NSLocationWhenInUseUsageDescription": "L'app potrebbe utilizzare la posizione per migliorare l'esperienza utente tramite servizi di terze parti."
       },
-      "buildNumber": "2"
+      "buildNumber": "3"
     },
     "android": {
       "adaptiveIcon": {
@@ -41,7 +41,7 @@
       "googleServicesFile": "./google-services.json",
       "package": "com.automatiko.missrevolution",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
-      "versionCode": 2
+      "versionCode": 3
     },
     "plugins": [
       "expo-router",
