@@ -41,7 +41,7 @@
       "googleServicesFile": "./google-services.json",
       "package": "com.automatiko.missrevolution",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
-      "versionCode": 3
+      "versionCode": 4
     },
     "plugins": [
       "expo-router",
