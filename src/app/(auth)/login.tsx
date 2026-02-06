@@ -108,10 +108,10 @@ const LoginScreen: React.FC = () => {
               placeholder="Email"
               autoCapitalize="none"
               style={styles.input}
+              placeholderTextColor={'#9CA3AF'}
               keyboardType="email-address"
               editable={!loading}
               returnKeyType="next"
-              blurOnSubmit={false}
               onSubmitEditing={() => Keyboard.dismiss()}
             />
 
@@ -120,6 +120,7 @@ const LoginScreen: React.FC = () => {
               value={password}
               secureTextEntry
               placeholder="Password"
+              placeholderTextColor={'#9CA3AF'}
               autoCapitalize="none"
               style={styles.input}
               editable={!loading}
