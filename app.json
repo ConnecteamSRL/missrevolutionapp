@@ -17,7 +17,7 @@
       },
       "appleTeamId": "93V425WR3A",
       "entitlements": {
-        "aps-environment": "development",
+        "aps-environment": "production",
         "com.apple.security.application-groups": ["group.com.connecteam.missrevolution.onesignal"]
       },
       "infoPlist": {
@@ -28,7 +28,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#CCAEE3",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "navigationBar": {
@@ -38,7 +38,6 @@
       "softwareKeyboardLayoutMode": "resize",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "googleServicesFile": "./google-services.json",
       "package": "com.automatiko.missrevolution",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
       "versionCode": 4
