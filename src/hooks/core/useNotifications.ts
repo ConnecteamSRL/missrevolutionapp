@@ -74,6 +74,24 @@ export const useNotifications = () => {
     }
   };
 
+  const deleteNotification = async (notificationId: string) => {
+    if (!me?.user_id) return;
+
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+
+    try {
+      const { error } = await supabase
+        .from('user_notifications')
+        .delete()
+        .match({ notification_id: notificationId, user_id: me.user_id });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error(error);
+      fetchNotifications();
+    }
+  };
+
   const refresh = () => {
     setRefreshing(true);
     fetchNotifications();
@@ -87,6 +105,7 @@ export const useNotifications = () => {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     unreadCount: notifications.filter((n) => !n.is_read).length,
   };
 };
