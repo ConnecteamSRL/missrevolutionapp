@@ -39,7 +39,7 @@ const AppEntryPoint: React.FC = () => {
   const isLoggedIn: boolean = !!session;
   const isAppReady = !isConfigLoading && !isAuthLoading;
 
-  useNotificationRouting(isAppReady, isLoggedIn);
+  // useNotificationRouting(isAppReady, isLoggedIn);
 
   const updateRequired = useMemo(() => {
     if (!config?.min_supported_version) return false;
