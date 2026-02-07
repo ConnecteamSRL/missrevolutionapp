@@ -10,6 +10,7 @@ import { AppConfigProvider, useAppConfig } from '@/src/contexts/AppConfigContext
 import { UserProvider } from '@/src/contexts/UserContext';
 import { useSupabaseAuth } from '@/src/hooks/core/useSupabaseAuth';
 import { useAuthStore } from '@/src/store/authStore';
+import { useNotificationRouting } from '@/src/hooks/core/useNotificationRouting';
 
 import { MaintenanceScreen } from '@/src/components/screens/MaintenanceScreen';
 import { isUpdateNeeded } from '@/src/lib/versionCheck';
@@ -37,6 +38,8 @@ const AppEntryPoint: React.FC = () => {
 
   const isLoggedIn: boolean = !!session;
   const isAppReady = !isConfigLoading && !isAuthLoading;
+
+  useNotificationRouting(isAppReady, isLoggedIn);
 
   const updateRequired = useMemo(() => {
     if (!config?.min_supported_version) return false;
