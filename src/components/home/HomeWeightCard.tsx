@@ -26,10 +26,12 @@ const HomeWeightCard: React.FC<Props> = ({
     switch (obj) {
       case 'dimagrimento':
         return 'Perdita Peso';
-      case 'massa_muscolare':
+      case 'costruzione_muscolare':
         return 'Massa Muscolare';
       case 'mantenimento':
         return 'Mantenimento';
+      case '8_settimane_shock':
+        return '8 Settimane Shock';
       default:
         return obj;
     }
