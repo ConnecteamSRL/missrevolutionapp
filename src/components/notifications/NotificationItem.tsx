@@ -1,21 +1,21 @@
 import React from 'react';
-import { StyleSheet, Text, View, Dimensions } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Extrapolation,
   FadeIn,
+  interpolate,
+  interpolateColor,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
-  runOnJS,
-  interpolate,
-  interpolateColor,
-  Extrapolation,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Bell, Trash2, Eye } from 'lucide-react-native';
+import { Bell, Eye, Trash2 } from 'lucide-react-native';
 import { colors, GraphitFonts } from '@/src/theme';
 import { NotificationItem as NotificationItemType } from '@/src/types/notification.types';
 
@@ -50,7 +50,17 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
   };
 
   const handlePress = () => {
-    router.push('/');
+    try {
+      if (item.data?.route) {
+        router.push(item.data.route as any);
+      } else {
+        router.push('/');
+      }
+    } catch (error) {
+      console.error(error);
+      router.replace('/');
+      return;
+    }
   };
 
   const panGesture = Gesture.Pan()
