@@ -41,6 +41,7 @@ export type MeDetailed = {
     display_name: string | null;
     current_objective: Enums<'fitness_objective'>;
   };
+  notifications_to_read: number;
   user_id: string;
   permissions: string[];
 };
