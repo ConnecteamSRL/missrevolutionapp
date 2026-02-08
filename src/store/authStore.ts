@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { AuthSession, AuthUser } from '../types/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OneSignal } from 'react-native-onesignal';
+import { clearPendingRoute } from '../lib/onesignalClickHandler';
 
 interface AuthState {
   session: AuthSession;
@@ -29,5 +30,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ session: null, user: null, isLoading: false });
     console.log('Signing out from OneSignal');
     OneSignal.logout();
+    clearPendingRoute();
   },
 }));

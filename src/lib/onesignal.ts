@@ -1,4 +1,5 @@
 import { LogLevel, OneSignal } from 'react-native-onesignal';
+import { registerNotificationClickHandler } from './onesignalClickHandler';
 
 const APP_ID = 'd094b9fe-d1d1-4d90-83b8-a8c3bb8aca85';
 
@@ -11,6 +12,7 @@ export function initOneSignalOnce() {
 
   OneSignal.Debug.setLogLevel(__DEV__ ? LogLevel.Verbose : LogLevel.None);
   OneSignal.initialize(APP_ID);
+  registerNotificationClickHandler();
 
   didInit = true;
 }
