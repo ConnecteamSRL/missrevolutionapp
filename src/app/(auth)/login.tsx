@@ -122,7 +122,7 @@ const LoginScreen: React.FC = () => {
               placeholder="Password"
               placeholderTextColor={'#9CA3AF'}
               autoCapitalize="none"
-              style={styles.input}
+              style={[styles.input, styles.secureInput]}
               editable={!loading}
               returnKeyType="done"
               onSubmitEditing={Keyboard.dismiss}
@@ -188,6 +188,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     fontSize: 16,
     fontFamily: GraphitFonts.GraphitRegular,
+  },
+  secureInput: {
+    ...(Platform.OS === 'android' && { fontFamily: undefined }),
   },
   forgotPassword: {
     textAlign: 'right',

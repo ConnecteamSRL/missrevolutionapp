@@ -101,7 +101,7 @@ export default function RegisterScreen() {
               placeholder="Password (min 6 caratteri)"
               autoCapitalize="none"
               secureTextEntry
-              style={styles.input}
+              style={[styles.input, styles.secureInput]}
               editable={!loading}
             />
 
@@ -111,7 +111,7 @@ export default function RegisterScreen() {
               placeholder="Conferma password"
               autoCapitalize="none"
               secureTextEntry
-              style={styles.input}
+              style={[styles.input, styles.secureInput]}
               editable={!loading}
             />
 
@@ -181,6 +181,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     fontSize: 16,
     fontFamily: GraphitFonts.GraphitRegular,
+  },
+  secureInput: {
+    ...(Platform.OS === 'android' && { fontFamily: undefined }),
   },
 
   button: {
