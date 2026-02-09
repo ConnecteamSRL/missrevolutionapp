@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -14,6 +14,7 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useUser } from '@/src/contexts/UserContext';
 import { supabase } from '@/src/lib/supabase';
 import { useGymEditorial } from '@/src/hooks/content/useGymEditorial';
+import { getCachedBannerUri } from '@/src/utils/bannerCache';
 
 const VIDEO_EXTENSIONS = ['.mp4'];
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
@@ -31,6 +32,9 @@ export default function HomeBannerComponent() {
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [cachedUri, setCachedUri] = useState<string | null>(null);
+  const [isCaching, setIsCaching] = useState(false);
+  const cacheRequestRef = useRef(0);
 
   const armImage = require('../../../assets/images/misc/arm.png');
 
@@ -46,7 +50,22 @@ export default function HomeBannerComponent() {
     return getMediaType(config.banner_key);
   }, [config?.banner_key]);
 
-  const player = useVideoPlayer(mediaType === 'video' && bannerUrl ? bannerUrl : null, (p) => {
+  useEffect(() => {
+    if (!config?.banner_key || !bannerUrl) {
+      setCachedUri(null);
+      return;
+    }
+    const requestId = ++cacheRequestRef.current;
+    setIsCaching(true);
+    getCachedBannerUri(config.banner_key, bannerUrl).then((uri) => {
+      if (requestId === cacheRequestRef.current) {
+        setCachedUri(uri);
+        setIsCaching(false);
+      }
+    });
+  }, [config?.banner_key, bannerUrl]);
+
+  const player = useVideoPlayer(mediaType === 'video' && cachedUri ? cachedUri : null, (p) => {
     p.loop = true;
     p.muted = true;
     p.play();
@@ -75,7 +94,8 @@ export default function HomeBannerComponent() {
   const isVideoBanner = mediaType === 'video';
   const isLoading =
     isConfigLoading ||
-    (isImageBanner && !!bannerUrl && isImageLoading) ||
+    isCaching ||
+    (isImageBanner && !!cachedUri && isImageLoading) ||
     (isVideoBanner && !isVideoReady);
 
   const renderTextContent = () => (
@@ -86,7 +106,7 @@ export default function HomeBannerComponent() {
   );
 
   const renderBannerContent = () => {
-    if (isVideoBanner && bannerUrl && player) {
+    if (isVideoBanner && cachedUri && player) {
       return (
         <View style={homeStyle.bannerFull}>
           <VideoView
@@ -112,10 +132,10 @@ export default function HomeBannerComponent() {
       );
     }
 
-    if (isImageBanner && bannerUrl) {
+    if (isImageBanner && cachedUri) {
       return (
         <ImageBackground
-          source={{ uri: bannerUrl }}
+          source={{ uri: cachedUri }}
           style={homeStyle.bannerFull}
           imageStyle={homeStyle.bannerImageCover}
           onLoadStart={() => setIsImageLoading(true)}
