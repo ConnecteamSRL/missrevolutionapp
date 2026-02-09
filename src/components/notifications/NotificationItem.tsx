@@ -50,6 +50,9 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
   };
 
   const handlePress = () => {
+    if (!item.is_read) {
+      onMarkAsRead(item.id);
+    }
     try {
       if (item.data?.route) {
         router.push(item.data.route as any);
