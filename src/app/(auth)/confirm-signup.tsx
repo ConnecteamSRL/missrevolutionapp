@@ -15,6 +15,7 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import OtpBoxesInput from '@components/auth/OtpBoxesInput';
 import { supabase } from '@/src/lib/supabase';
 import { colors, GraphitFonts } from '@/src/theme';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
 
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 const RESEND_COOLDOWN_SEC = 60;
@@ -103,39 +104,41 @@ export default function ConfirmSignupScreen() {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text style={styles.title}>Conferma email</Text>
-        <Text style={styles.subtitle}>Inserisci il codice ricevuto su {email || '—'}.</Text>
+        <ResponsiveContainer maxWidth={480}>
+          <Text style={styles.title}>Conferma email</Text>
+          <Text style={styles.subtitle}>Inserisci il codice ricevuto su {email || '—'}.</Text>
 
-        <Text style={styles.hint}>
-          Nota: se questa email era già registrata, potrebbe non arrivare un nuovo codice. In quel
-          caso, torna al login.
-        </Text>
+          <Text style={styles.hint}>
+            Nota: se questa email era già registrata, potrebbe non arrivare un nuovo codice. In quel
+            caso, torna al login.
+          </Text>
 
-        <View style={styles.form}>
-          <OtpBoxesInput value={otpTrim} onChange={setOtp} disabled={loading} />
+          <View style={styles.form}>
+            <OtpBoxesInput value={otpTrim} onChange={setOtp} disabled={loading} />
 
-          <TouchableOpacity
-            disabled={!otpValid || loading}
-            onPress={onVerify}
-            style={[styles.button, (!otpValid || loading) && styles.buttonDisabled]}
-          >
-            <Text style={styles.buttonText}>{loading ? 'Verifica...' : 'Conferma'}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              disabled={!otpValid || loading}
+              onPress={onVerify}
+              style={[styles.button, (!otpValid || loading) && styles.buttonDisabled]}
+            >
+              <Text style={styles.buttonText}>{loading ? 'Verifica...' : 'Conferma'}</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            disabled={loading || cooldown > 0}
-            onPress={onResend}
-            style={styles.linkBtn}
-          >
-            <Text style={styles.linkText}>
-              {cooldown > 0 ? `Reinvia tra ${cooldown}s` : 'Non hai ricevuto il codice? Reinvia'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              disabled={loading || cooldown > 0}
+              onPress={onResend}
+              style={styles.linkBtn}
+            >
+              <Text style={styles.linkText}>
+                {cooldown > 0 ? `Reinvia tra ${cooldown}s` : 'Non hai ricevuto il codice? Reinvia'}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity disabled={loading} onPress={goToLoginHard} style={styles.linkBtn}>
-            <Text style={styles.linkText}>Torna al login</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity disabled={loading} onPress={goToLoginHard} style={styles.linkBtn}>
+              <Text style={styles.linkText}>Torna al login</Text>
+            </TouchableOpacity>
+          </View>
+        </ResponsiveContainer>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

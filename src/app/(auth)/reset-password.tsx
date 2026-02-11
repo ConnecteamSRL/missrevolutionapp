@@ -17,6 +17,7 @@ import OtpBoxesInput from '@components/auth/OtpBoxesInput';
 import { supabase } from '@/src/lib/supabase';
 import { useAuthStore } from '@/src/store/authStore';
 import { colors, GraphitFonts } from '@/src/theme';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
 
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 
@@ -100,48 +101,50 @@ export default function ResetPasswordScreen() {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Text style={styles.title}>Nuova Password</Text>
-        <Text style={styles.subtitle}>
-          Inserisci il codice ricevuto via email e imposta la tua nuova password.
-        </Text>
+        <ResponsiveContainer maxWidth={480}>
+          <Text style={styles.title}>Nuova Password</Text>
+          <Text style={styles.subtitle}>
+            Inserisci il codice ricevuto via email e imposta la tua nuova password.
+          </Text>
 
-        <View style={styles.form}>
-          <OtpBoxesInput value={otpTrim} onChange={setOtp} disabled={loading} />
+          <View style={styles.form}>
+            <OtpBoxesInput value={otpTrim} onChange={setOtp} disabled={loading} />
 
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Nuova Password"
-            secureTextEntry
-            autoCapitalize="none"
-            style={[styles.input, styles.secureInput]}
-            editable={!loading}
-          />
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Nuova Password"
+              secureTextEntry
+              autoCapitalize="none"
+              style={[styles.input, styles.secureInput]}
+              editable={!loading}
+            />
 
-          <TextInput
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder="Conferma Password"
-            secureTextEntry
-            autoCapitalize="none"
-            style={[styles.input, styles.secureInput]}
-            editable={!loading}
-          />
+            <TextInput
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Conferma Password"
+              secureTextEntry
+              autoCapitalize="none"
+              style={[styles.input, styles.secureInput]}
+              editable={!loading}
+            />
 
-          <TouchableOpacity
-            onPress={onReset}
-            disabled={!canSubmit}
-            style={[styles.button, !canSubmit && styles.buttonDisabled]}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Aggiornamento...' : 'Imposta Password'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onReset}
+              disabled={!canSubmit}
+              style={[styles.button, !canSubmit && styles.buttonDisabled]}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? 'Aggiornamento...' : 'Imposta Password'}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={onCancel} disabled={loading} style={styles.cancelButton}>
-            <Text style={styles.cancelText}>Annulla</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity onPress={onCancel} disabled={loading} style={styles.cancelButton}>
+              <Text style={styles.cancelText}>Annulla</Text>
+            </TouchableOpacity>
+          </View>
+        </ResponsiveContainer>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

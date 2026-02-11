@@ -5,6 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import HeaderTabComponent from '@components/tab/HeaderTabComponent';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
+import { useResponsive } from '@/src/hooks/core/useResponsive';
 
 import HomeIcon from '@components/ui/icons/HomeIcon';
 import NutritionIcon from '@components/ui/icons/NutritionIcon';
@@ -12,11 +14,6 @@ import WorkoutIcon from '@components/ui/icons/WorkoutIcon';
 import ProgressIcon from '@components/ui/icons/ProgressIcon';
 
 type SvgIconComponent = React.FC<{ color: string; size: number }>;
-
-const BASE_HEIGHT = 80;
-const ICON_SIZE = 24;
-const BASE_FONT_SIZE = 12;
-const ICON_TEXT_GAP = 8;
 
 const LABELS: Record<string, string> = {
   '(home)': 'Home',
@@ -42,18 +39,14 @@ const FONT_INACTIVE: string | undefined = Platform.select({
   android: 'Poppins_400Regular',
 });
 
-function IconWithIndicator({
-  IconComponent,
-  color,
-}: {
-  IconComponent: SvgIconComponent;
-  color: string;
-}) {
-  return <IconComponent color={color} size={ICON_SIZE} />;
-}
-
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { sp } = useResponsive();
+
+  const BASE_HEIGHT = sp(80);
+  const ICON_SIZE = sp(24);
+  const BASE_FONT_SIZE = sp(12);
+  const ICON_TEXT_GAP = sp(8);
 
   const bottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, 10) : insets.bottom;
 
@@ -64,7 +57,9 @@ export default function TabsLayout() {
       <BackgroundGradientComponent />
 
       <View style={{ paddingTop: insets.top + 8 }}>
-        <HeaderTabComponent />
+        <ResponsiveContainer>
+          <HeaderTabComponent />
+        </ResponsiveContainer>
       </View>
 
       <Tabs
@@ -99,7 +94,7 @@ export default function TabsLayout() {
           } as TextStyle,
           tabBarIcon: ({ color }) => {
             const IconComponent = ICONS[route.name];
-            return <IconWithIndicator IconComponent={IconComponent} color={color} />;
+            return <IconComponent color={color} size={ICON_SIZE} />;
           },
           tabBarLabel: ({ focused, color }) => (
             <Text

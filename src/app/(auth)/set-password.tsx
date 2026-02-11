@@ -23,6 +23,7 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import { colors, GraphitFonts } from '@/src/theme';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
 import { useAuthStore } from '@/src/store/authStore';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
 
 const SetPasswordScreen: React.FC = () => {
   const { signOut } = useAuthStore();
@@ -203,61 +204,63 @@ const SetPasswordScreen: React.FC = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
         >
-          <View style={styles.logoContainer}>
-            <Image source={logo} style={styles.logo} contentFit="contain" />
-          </View>
+          <ResponsiveContainer maxWidth={480}>
+            <View style={styles.logoContainer}>
+              <Image source={logo} style={styles.logo} contentFit="contain" />
+            </View>
 
-          <Text style={styles.title}>Benvenuto!</Text>
-          <Text style={styles.subtitle}>
-            Completa la configurazione del tuo account impostando una password sicura.
-          </Text>
+            <Text style={styles.title}>Benvenuto!</Text>
+            <Text style={styles.subtitle}>
+              Completa la configurazione del tuo account impostando una password sicura.
+            </Text>
 
-          <View style={styles.form}>
-            <TextInput
-              onChange={handlePasswordChange}
-              value={password}
-              secureTextEntry
-              placeholder="Nuova Password (min. 6 caratteri)"
-              placeholderTextColor="#999"
-              autoCapitalize="none"
-              style={[styles.input, styles.secureInput]}
-              editable={!loading && tokensValid}
-              returnKeyType="next"
-              blurOnSubmit={false}
-            />
+            <View style={styles.form}>
+              <TextInput
+                onChange={handlePasswordChange}
+                value={password}
+                secureTextEntry
+                placeholder="Nuova Password (min. 6 caratteri)"
+                placeholderTextColor="#999"
+                autoCapitalize="none"
+                style={[styles.input, styles.secureInput]}
+                editable={!loading && tokensValid}
+                returnKeyType="next"
+                blurOnSubmit={false}
+              />
 
-            <TextInput
-              onChange={handleConfirmPasswordChange}
-              value={confirmPassword}
-              secureTextEntry
-              placeholder="Conferma Password"
-              placeholderTextColor="#999"
-              autoCapitalize="none"
-              style={[styles.input, styles.secureInput]}
-              editable={!loading && tokensValid}
-              returnKeyType="done"
-              onSubmitEditing={Keyboard.dismiss}
-            />
+              <TextInput
+                onChange={handleConfirmPasswordChange}
+                value={confirmPassword}
+                secureTextEntry
+                placeholder="Conferma Password"
+                placeholderTextColor="#999"
+                autoCapitalize="none"
+                style={[styles.input, styles.secureInput]}
+                editable={!loading && tokensValid}
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
 
-            <TouchableOpacity
-              onPress={handleSetPassword}
-              disabled={!isValid || loading || !tokensValid}
-              style={[
-                styles.button,
-                (!isValid || loading || !tokensValid) && styles.buttonDisabled,
-              ]}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Attivazione...' : 'Conferma e Inizia'}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSetPassword}
+                disabled={!isValid || loading || !tokensValid}
+                style={[
+                  styles.button,
+                  (!isValid || loading || !tokensValid) && styles.buttonDisabled,
+                ]}
+              >
+                <Text style={styles.buttonText}>
+                  {loading ? 'Attivazione...' : 'Conferma e Inizia'}
+                </Text>
+              </TouchableOpacity>
 
-            {!tokensValid && !isInitializing && (
-              <Text style={styles.errorText}>
-                Sessione mancante. Riprova cliccando il link nella mail.
-              </Text>
-            )}
-          </View>
+              {!tokensValid && !isInitializing && (
+                <Text style={styles.errorText}>
+                  Sessione mancante. Riprova cliccando il link nella mail.
+                </Text>
+              )}
+            </View>
+          </ResponsiveContainer>
         </KeyboardAvoidingView>
       </DismissKeyboardView>
     </SafeAreaView>

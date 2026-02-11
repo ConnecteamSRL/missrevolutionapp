@@ -15,6 +15,7 @@ import { Image } from 'expo-image';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import { supabase } from '@/src/lib/supabase';
 import { colors, GraphitFonts } from '@/src/theme';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -54,42 +55,46 @@ export default function ForgotPasswordScreen() {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.logoContainer}>
-          <Image source={logo} style={styles.logo} contentFit="contain" />
-        </View>
+        <ResponsiveContainer maxWidth={480}>
+          <View style={styles.logoContainer}>
+            <Image source={logo} style={styles.logo} contentFit="contain" />
+          </View>
 
-        <Text style={styles.title}>Recupero Password</Text>
-        <Text style={styles.subtitle}>
-          Inserisci la tua email. Ti invieremo un codice per reimpostare la password.
-        </Text>
+          <Text style={styles.title}>Recupero Password</Text>
+          <Text style={styles.subtitle}>
+            Inserisci la tua email. Ti invieremo un codice per reimpostare la password.
+          </Text>
 
-        <View style={styles.form}>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={styles.input}
-            editable={!loading}
-          />
+          <View style={styles.form}>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Email"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              style={styles.input}
+              editable={!loading}
+            />
 
-          <TouchableOpacity
-            onPress={handleResetRequest}
-            disabled={!email || loading}
-            style={[styles.button, (!email || loading) && styles.buttonDisabled]}
-          >
-            <Text style={styles.buttonText}>{loading ? 'Invio in corso...' : 'Invia Codice'}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleResetRequest}
+              disabled={!email || loading}
+              style={[styles.button, (!email || loading) && styles.buttonDisabled]}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? 'Invio in corso...' : 'Invia Codice'}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            disabled={loading}
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <Text style={styles.backButtonText}>Torna al Login</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              disabled={loading}
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
+              <Text style={styles.backButtonText}>Torna al Login</Text>
+            </TouchableOpacity>
+          </View>
+        </ResponsiveContainer>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

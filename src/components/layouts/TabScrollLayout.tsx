@@ -1,21 +1,22 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
+import { useResponsive } from '@/src/hooks/core/useResponsive';
 
 interface TabScrollLayoutProps {
   children: React.ReactNode;
 }
 
 const TabScrollLayout: React.FC<TabScrollLayoutProps> = ({ children }) => {
-  const insets = useSafeAreaInsets();
+  const { sp } = useResponsive();
 
   return (
     <ScrollView
       contentContainerStyle={{
-        paddingTop: 8,
+        paddingTop: sp(8),
       }}
     >
-      {children}
+      <ResponsiveContainer>{children}</ResponsiveContainer>
     </ScrollView>
   );
 };

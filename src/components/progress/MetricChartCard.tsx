@@ -1,10 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { GraphitFonts } from '@/src/theme';
-
-const screenWidth = Dimensions.get('window').width;
+import { useResponsive } from '@/src/hooks/core/useResponsive';
 
 const UI = {
   miniCardBg: '#FFE7F1',
@@ -18,7 +17,6 @@ const UI = {
 
 const PAGE_PAD = 16;
 const CARD_PAD = 16;
-const CHART_MIN_WIDTH = screenWidth - PAGE_PAD * 2 - CARD_PAD * 2;
 const CHART_HEIGHT = 240;
 
 export type ChartDataKey = 'weight_kg' | 'lean_mass_kg' | 'fat_mass_kg' | 'visceral_fat_level';
@@ -52,13 +50,17 @@ export const MetricChartCard: React.FC<{
   disabledMessage?: string;
 }> = ({ cfg, series, index, disabledMessage }) => {
   const [selected, setSelected] = useState<SelectedPoint>(null);
+  const { screenWidth, contentMaxWidth } = useResponsive();
 
   const points = series.data.length;
 
+  const effectiveWidth = Math.min(screenWidth, contentMaxWidth);
+  const chartMinWidth = effectiveWidth - PAGE_PAD * 2 - CARD_PAD * 2;
+
   const chartWidth = useMemo(() => {
     const POINT_PX = 44;
-    return Math.max(CHART_MIN_WIDTH, points * POINT_PX);
-  }, [points]);
+    return Math.max(chartMinWidth, points * POINT_PX);
+  }, [points, chartMinWidth]);
 
   const chartData = useMemo(
     () => ({

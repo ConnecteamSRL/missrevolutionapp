@@ -5,6 +5,8 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import BackArrowButtonComponent from '@components/core/BackArrowButtonComponent';
 import { colors, GraphitFonts } from '@/src/theme';
 import NotificationButton from '@components/tab/NotificationButton';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
+import { useResponsive } from '@/src/hooks/core/useResponsive';
 
 interface ContentScreenLayoutProps {
   children: React.ReactNode;
@@ -17,21 +19,25 @@ export default function ContentScreenLayout({
   title,
   showNotificationButton,
 }: ContentScreenLayoutProps) {
+  const { sp } = useResponsive();
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { padding: sp(16) }]}>
       <BackgroundGradientComponent />
-      <View style={[styles.header]}>
-        <BackArrowButtonComponent />
-        <Text style={styles.title}>{title ?? 'Contenuto'}</Text>
-        {showNotificationButton && <NotificationButton />}
-      </View>
-      {children}
+      <ResponsiveContainer>
+        <View style={[styles.header]}>
+          <BackArrowButtonComponent />
+          <Text style={styles.title}>{title ?? 'Contenuto'}</Text>
+          {showNotificationButton && <NotificationButton />}
+        </View>
+        {children}
+      </ResponsiveContainer>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 16 },
+  container: { flex: 1, backgroundColor: '#fff' },
   title: {
     fontSize: 16,
     fontFamily: GraphitFonts.GraphitRegular,

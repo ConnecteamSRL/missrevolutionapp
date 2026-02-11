@@ -17,6 +17,7 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import { supabase } from '@/src/lib/supabase';
 import { colors, GraphitFonts } from '@/src/theme';
 import { DismissKeyboardView } from '@components/layouts/DismissKeyboardView';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
 
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 
@@ -75,68 +76,70 @@ export default function RegisterScreen() {
           style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.logoContainer}>
-            <Image source={logo} style={styles.logo} contentFit="contain" />
-          </View>
-
-          <Text style={styles.title}>Crea account</Text>
-          <Text style={styles.subtitle}>
-            Inserisci email e password, poi conferma con il codice OTP.
-          </Text>
-
-          <View style={styles.form}>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              style={styles.input}
-              editable={!loading}
-            />
-
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password (min 6 caratteri)"
-              autoCapitalize="none"
-              secureTextEntry
-              style={[styles.input, styles.secureInput]}
-              editable={!loading}
-            />
-
-            <TextInput
-              value={password2}
-              onChangeText={setPassword2}
-              placeholder="Conferma password"
-              autoCapitalize="none"
-              secureTextEntry
-              style={[styles.input, styles.secureInput]}
-              editable={!loading}
-            />
-
-            <TouchableOpacity
-              disabled={!isValid || loading}
-              onPress={onSubmit}
-              style={[styles.button, (!isValid || loading) && styles.buttonDisabled]}
-            >
-              <Text style={styles.buttonText}>{loading ? 'Creazione...' : 'Crea account'}</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>oppure</Text>
-              <View style={styles.dividerLine} />
+          <ResponsiveContainer maxWidth={480}>
+            <View style={styles.logoContainer}>
+              <Image source={logo} style={styles.logo} contentFit="contain" />
             </View>
 
-            <TouchableOpacity
-              style={styles.secondarySection}
-              disabled={loading}
-              onPress={goToLoginHard}
-            >
-              <Text style={styles.secondaryButtonText}>Hai già un account? Accedi</Text>
-            </TouchableOpacity>
-          </View>
+            <Text style={styles.title}>Crea account</Text>
+            <Text style={styles.subtitle}>
+              Inserisci email e password, poi conferma con il codice OTP.
+            </Text>
+
+            <View style={styles.form}>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Email"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                style={styles.input}
+                editable={!loading}
+              />
+
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password (min 6 caratteri)"
+                autoCapitalize="none"
+                secureTextEntry
+                style={[styles.input, styles.secureInput]}
+                editable={!loading}
+              />
+
+              <TextInput
+                value={password2}
+                onChangeText={setPassword2}
+                placeholder="Conferma password"
+                autoCapitalize="none"
+                secureTextEntry
+                style={[styles.input, styles.secureInput]}
+                editable={!loading}
+              />
+
+              <TouchableOpacity
+                disabled={!isValid || loading}
+                onPress={onSubmit}
+                style={[styles.button, (!isValid || loading) && styles.buttonDisabled]}
+              >
+                <Text style={styles.buttonText}>{loading ? 'Creazione...' : 'Crea account'}</Text>
+              </TouchableOpacity>
+
+              <View style={styles.dividerContainer}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>oppure</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <TouchableOpacity
+                style={styles.secondarySection}
+                disabled={loading}
+                onPress={goToLoginHard}
+              >
+                <Text style={styles.secondaryButtonText}>Hai già un account? Accedi</Text>
+              </TouchableOpacity>
+            </View>
+          </ResponsiveContainer>
         </KeyboardAvoidingView>
       </DismissKeyboardView>
     </SafeAreaView>

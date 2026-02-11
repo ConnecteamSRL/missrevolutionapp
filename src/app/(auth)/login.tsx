@@ -20,6 +20,7 @@ import { supabase } from '@/src/lib/supabase';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import { colors, GraphitFonts } from '@/src/theme';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
+import ResponsiveContainer from '@components/layouts/ResponsiveContainer';
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -92,64 +93,66 @@ const LoginScreen: React.FC = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
         >
-          <View style={styles.logoContainer}>
-            <Image source={logo} style={styles.logo} contentFit="contain" />
-          </View>
+          <ResponsiveContainer maxWidth={480}>
+            <View style={styles.logoContainer}>
+              <Image source={logo} style={styles.logo} contentFit="contain" />
+            </View>
 
-          <Text style={styles.title}>Accedi</Text>
-          <Text style={styles.subtitle}>
-            Bentornato! Inserisci le tue credenziali per continuare.
-          </Text>
-
-          <View style={styles.form}>
-            <TextInput
-              onChange={handleEmailChange}
-              value={email}
-              placeholder="Email"
-              autoCapitalize="none"
-              style={styles.input}
-              placeholderTextColor={'#9CA3AF'}
-              keyboardType="email-address"
-              editable={!loading}
-              returnKeyType="next"
-              onSubmitEditing={() => Keyboard.dismiss()}
-            />
-
-            <TextInput
-              onChange={handlePasswordChange}
-              value={password}
-              secureTextEntry
-              placeholder="Password"
-              placeholderTextColor={'#9CA3AF'}
-              autoCapitalize="none"
-              style={[styles.input, styles.secureInput]}
-              editable={!loading}
-              returnKeyType="done"
-              onSubmitEditing={Keyboard.dismiss}
-            />
-
-            <TouchableOpacity onPress={handleForgotPassword} disabled={loading}>
-              <Text style={styles.forgotPassword}>Hai dimenticato la password?</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={signInWithEmail}
-              disabled={!isValid || loading}
-              style={[styles.button, (!isValid || loading) && styles.buttonDisabled]}
-            >
-              <Text style={styles.buttonText}>{loading ? 'Accesso in corso...' : 'Accedi'}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* FOOTER PRIVACY POLICY */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Continuando, accetti la nostra{' '}
-              <Text style={styles.linkText} onPress={handleOpenPrivacy}>
-                Privacy Policy
-              </Text>
+            <Text style={styles.title}>Accedi</Text>
+            <Text style={styles.subtitle}>
+              Bentornato! Inserisci le tue credenziali per continuare.
             </Text>
-          </View>
+
+            <View style={styles.form}>
+              <TextInput
+                onChange={handleEmailChange}
+                value={email}
+                placeholder="Email"
+                autoCapitalize="none"
+                style={styles.input}
+                placeholderTextColor={'#9CA3AF'}
+                keyboardType="email-address"
+                editable={!loading}
+                returnKeyType="next"
+                onSubmitEditing={() => Keyboard.dismiss()}
+              />
+
+              <TextInput
+                onChange={handlePasswordChange}
+                value={password}
+                secureTextEntry
+                placeholder="Password"
+                placeholderTextColor={'#9CA3AF'}
+                autoCapitalize="none"
+                style={[styles.input, styles.secureInput]}
+                editable={!loading}
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
+
+              <TouchableOpacity onPress={handleForgotPassword} disabled={loading}>
+                <Text style={styles.forgotPassword}>Hai dimenticato la password?</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={signInWithEmail}
+                disabled={!isValid || loading}
+                style={[styles.button, (!isValid || loading) && styles.buttonDisabled]}
+              >
+                <Text style={styles.buttonText}>{loading ? 'Accesso in corso...' : 'Accedi'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* FOOTER PRIVACY POLICY */}
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                Continuando, accetti la nostra{' '}
+                <Text style={styles.linkText} onPress={handleOpenPrivacy}>
+                  Privacy Policy
+                </Text>
+              </Text>
+            </View>
+          </ResponsiveContainer>
         </KeyboardAvoidingView>
       </DismissKeyboardView>
     </SafeAreaView>
