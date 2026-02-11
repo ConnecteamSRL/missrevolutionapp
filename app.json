@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.connecteam.missrevolution",
       "icon": "assets/revolution.icon",
       "config": {
@@ -40,7 +40,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.automatiko.missrevolution",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
-      "versionCode": 4
+      "versionCode": 5
     },
     "plugins": [
       "expo-router",
