@@ -188,6 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     fontSize: 16,
     fontFamily: GraphitFonts.GraphitRegular,
+    color: colors.text,
   },
   secureInput: {
     ...(Platform.OS === 'android' && { fontFamily: undefined }),
