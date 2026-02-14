@@ -3,8 +3,13 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import NotificationIcon from '@components/ui/icons/NotificationIcon';
 import { colors } from '@/src/theme';
 import { router } from 'expo-router';
+import { useUser } from '@/src/contexts/UserContext';
 
 export default function NotificationButton() {
+  const { me } = useUser();
+
+  const hasNotification = (me?.notifications_to_read || 0) > 0;
+
   return (
     <TouchableOpacity
       style={styles.button}
@@ -13,7 +18,7 @@ export default function NotificationButton() {
     >
       <View style={styles.iconWrapper}>
         <NotificationIcon color={'#6A717A'} size={25} />
-        {<View style={styles.badge} />}
+        {hasNotification && <View style={styles.badge} />}
       </View>
     </TouchableOpacity>
   );

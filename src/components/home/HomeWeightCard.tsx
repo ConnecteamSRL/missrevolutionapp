@@ -26,10 +26,12 @@ const HomeWeightCard: React.FC<Props> = ({
     switch (obj) {
       case 'dimagrimento':
         return 'Perdita Peso';
-      case 'massa_muscolare':
+      case 'costruzione_muscolare':
         return 'Massa Muscolare';
       case 'mantenimento':
         return 'Mantenimento';
+      case '8_settimane_shock':
+        return '8 Settimane Shock';
       default:
         return obj;
     }
@@ -64,12 +66,9 @@ const HomeWeightCard: React.FC<Props> = ({
       </View>
 
       <TouchableOpacity onPress={handleCtaPress} activeOpacity={0.92} style={styles.ctaButton}>
-        <View style={styles.ctaSideSpacer} />
-        <View style={styles.ctaTextWrapper}>
-          <Text style={styles.ctaText} numberOfLines={1} ellipsizeMode="tail">
-            {ctaLabel}
-          </Text>
-        </View>
+        <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+          {ctaLabel}
+        </Text>
         <View style={styles.ctaIconCircle} pointerEvents="none">
           <ArrowRight color="#fff" size={18} />
         </View>
@@ -134,25 +133,18 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.white,
     borderRadius: 60,
-    paddingHorizontal: 12,
+    paddingLeft: CIRCLE_SIZE + 12,
+    paddingRight: 8,
     paddingVertical: 8,
     minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  ctaSideSpacer: {
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-  },
-  ctaTextWrapper: {
-    flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
   },
   ctaText: {
+    flex: 1,
     fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
+    fontSize: 15,
     color: '#000',
     textAlign: 'center',
   },
@@ -163,6 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ED5192',
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 8,
   },
 });
 

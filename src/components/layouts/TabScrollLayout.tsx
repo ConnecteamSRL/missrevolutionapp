@@ -13,7 +13,6 @@ const TabScrollLayout: React.FC<TabScrollLayoutProps> = ({ children }) => {
     <ScrollView
       contentContainerStyle={{
         paddingTop: 8,
-        paddingBottom: insets.bottom + 16,
       }}
     >
       {children}

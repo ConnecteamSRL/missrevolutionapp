@@ -114,7 +114,7 @@ export default function ResetPasswordScreen() {
             placeholder="Nuova Password"
             secureTextEntry
             autoCapitalize="none"
-            style={styles.input}
+            style={[styles.input, styles.secureInput]}
             editable={!loading}
           />
 
@@ -124,7 +124,7 @@ export default function ResetPasswordScreen() {
             placeholder="Conferma Password"
             secureTextEntry
             autoCapitalize="none"
-            style={styles.input}
+            style={[styles.input, styles.secureInput]}
             editable={!loading}
           />
 
@@ -175,6 +175,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: GraphitFonts.GraphitRegular,
     color: colors.text,
+  },
+  secureInput: {
+    ...(Platform.OS === 'android' && { fontFamily: undefined }),
   },
   button: {
     alignItems: 'center',

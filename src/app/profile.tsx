@@ -15,8 +15,10 @@ import { useAppUserProfile } from '@/src/hooks/core/useAppUserProfile';
 import { MaterialIcons } from '@expo/vector-icons';
 import MembershipsSection from '@components/core/MembershipsSection';
 import { logout } from '@/src/hooks/auth/useLogout';
+import { useRouter } from 'expo-router';
 
 export default function Profile() {
+  const router = useRouter();
   const { me } = useUser();
   const userId = me?.profile.user_id;
   const { data, loading } = useAppUserProfile(userId);
@@ -118,17 +120,28 @@ export default function Profile() {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
+            onPress={() => router.push('/privacy-policy')}
+            style={styles.actionButton}
+            activeOpacity={0.8}
+          >
+            <View style={styles.actionRow}>
+              <MaterialIcons name="privacy-tip" size={20} color="#1F1F1F" />
+              <Text style={styles.actionText}>Privacy Policy</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={handleSignOut}
             disabled={signOutLoading}
-            style={[styles.logoutButton, signOutLoading && { opacity: 0.7 }]}
+            style={[styles.actionButton, signOutLoading && { opacity: 0.7 }]}
             activeOpacity={0.8}
           >
             {signOutLoading ? (
               <ActivityIndicator size="small" color={'#C388F0'} />
             ) : (
-              <View style={styles.logoutRow}>
-                <MaterialIcons name="logout" size={20} color="#1F1F1F" />
-                <Text style={styles.logoutText}>Logout</Text>
+              <View style={styles.actionRow}>
+                <MaterialIcons name="logout" size={20} color="#D32F2F" />
+                <Text style={[styles.actionText, styles.logoutText]}>Logout</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -220,12 +233,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonContainer: {
-    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 10,
+    gap: 12,
   },
-  logoutButton: {
+  actionButton: {
     backgroundColor: '#FFFFFF',
     borderRadius: 60,
     paddingVertical: 12,
@@ -233,15 +246,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoutRow: {
+  actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     columnGap: 8,
   },
-  logoutText: {
+  actionText: {
     fontSize: 16,
     fontFamily: GraphitFonts.GraphitBold,
     color: '#1F1F1F',
+  },
+  logoutText: {
+    color: '#D32F2F',
   },
 });

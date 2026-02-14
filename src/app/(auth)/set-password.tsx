@@ -220,7 +220,7 @@ const SetPasswordScreen: React.FC = () => {
               placeholder="Nuova Password (min. 6 caratteri)"
               placeholderTextColor="#999"
               autoCapitalize="none"
-              style={styles.input}
+              style={[styles.input, styles.secureInput]}
               editable={!loading && tokensValid}
               returnKeyType="next"
               blurOnSubmit={false}
@@ -233,7 +233,7 @@ const SetPasswordScreen: React.FC = () => {
               placeholder="Conferma Password"
               placeholderTextColor="#999"
               autoCapitalize="none"
-              style={styles.input}
+              style={[styles.input, styles.secureInput]}
               editable={!loading && tokensValid}
               returnKeyType="done"
               onSubmitEditing={Keyboard.dismiss}
@@ -299,6 +299,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: GraphitFonts.GraphitRegular,
     color: colors.text,
+  },
+  secureInput: {
+    ...(Platform.OS === 'android' && { fontFamily: undefined }),
   },
   button: {
     alignItems: 'center',

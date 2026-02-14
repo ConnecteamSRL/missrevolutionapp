@@ -471,27 +471,36 @@ export type Database = {
         Row: {
           created_at: string;
           max_carbs_100g: number | null;
+          max_carbs_serving: number | null;
           max_fat_100g: number | null;
+          max_fat_serving: number | null;
           max_sugar_100g: number | null;
           min_protein_100g: number | null;
+          min_protein_serving: number | null;
           objective: Database['public']['Enums']['fitness_objective'];
           updated_at: string;
         };
         Insert: {
           created_at?: string;
           max_carbs_100g?: number | null;
+          max_carbs_serving?: number | null;
           max_fat_100g?: number | null;
+          max_fat_serving?: number | null;
           max_sugar_100g?: number | null;
           min_protein_100g?: number | null;
+          min_protein_serving?: number | null;
           objective: Database['public']['Enums']['fitness_objective'];
           updated_at?: string;
         };
         Update: {
           created_at?: string;
           max_carbs_100g?: number | null;
+          max_carbs_serving?: number | null;
           max_fat_100g?: number | null;
+          max_fat_serving?: number | null;
           max_sugar_100g?: number | null;
           min_protein_100g?: number | null;
+          min_protein_serving?: number | null;
           objective?: Database['public']['Enums']['fitness_objective'];
           updated_at?: string;
         };
@@ -500,18 +509,21 @@ export type Database = {
       gym_editorial_configs: {
         Row: {
           banner_key: string | null;
+          banner_video_key: string | null;
           created_at: string;
           gym_id: string;
           updated_at: string;
         };
         Insert: {
           banner_key?: string | null;
+          banner_video_key?: string | null;
           created_at?: string;
           gym_id: string;
           updated_at?: string;
         };
         Update: {
           banner_key?: string | null;
+          banner_video_key?: string | null;
           created_at?: string;
           gym_id?: string;
           updated_at?: string;
@@ -2103,6 +2115,10 @@ export type Database = {
       };
       bootstrap_current_user: { Args: never; Returns: undefined };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
+      ensure_video_master_category: {
+        Args: { p_gym_id: string };
+        Returns: string;
+      };
       expire_overdue_surveys: { Args: never; Returns: undefined };
       faq_categories_resequence: { Args: never; Returns: Json };
       faqs_resequence: { Args: { p_category_id?: string }; Returns: Json };
@@ -2170,14 +2186,17 @@ export type Database = {
         Args: { p_assignment_id: string };
         Returns: boolean;
       };
+      sync_all_memberships_and_roles: { Args: never; Returns: undefined };
       sync_all_user_member_roles: { Args: never; Returns: undefined };
       sync_auth_ban_from_app_users: { Args: never; Returns: undefined };
       sync_user_member_role: { Args: { p_user_id: string }; Returns: undefined };
+      sync_user_membership_statuses: { Args: never; Returns: undefined };
       update_youtube_live_statuses: { Args: never; Returns: undefined };
       user_has_active_membership: {
         Args: { p_user_id: string };
         Returns: boolean;
       };
+      video_category_page: { Args: { p_category_id: string }; Returns: Json };
     };
     Enums: {
       app_role:
@@ -2190,11 +2209,20 @@ export type Database = {
         | 'user';
       chat_sender_type: 'user' | 'operator' | 'bot';
       conversation_status: 'active' | 'waiting_operator' | 'archived';
-      fitness_objective: 'dimagrimento' | 'massa_muscolare' | 'mantenimento';
+      fitness_objective:
+        | 'dimagrimento'
+        | 'costruzione_muscolare'
+        | 'mantenimento'
+        | '8_settimane_shock';
       flow_status_enum: 'in_flow' | 'out_of_flow' | 'no_checkup';
       gender_enum: 'maschio' | 'femmina' | 'non_binario' | 'altro' | 'non_dichiarato';
       membership_status: 'pending' | 'active' | 'expired';
-      menstrual_cycle_enum: 'regolare' | 'irregolare' | 'non_applicabile' | 'non_dichiarato';
+      menstrual_cycle_enum:
+        | 'regolare'
+        | 'irregolare'
+        | 'non_applicabile'
+        | 'non_dichiarato'
+        | 'menopausa';
       notification_status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
       survey_assignment_status: 'PENDING' | 'COMPLETED' | 'EXPIRED';
       user_notification_delivery_status: 'pending' | 'sent' | 'error';
@@ -2430,11 +2458,22 @@ export const Constants = {
       ],
       chat_sender_type: ['user', 'operator', 'bot'],
       conversation_status: ['active', 'waiting_operator', 'archived'],
-      fitness_objective: ['dimagrimento', 'massa_muscolare', 'mantenimento'],
+      fitness_objective: [
+        'dimagrimento',
+        'costruzione_muscolare',
+        'mantenimento',
+        '8_settimane_shock',
+      ],
       flow_status_enum: ['in_flow', 'out_of_flow', 'no_checkup'],
       gender_enum: ['maschio', 'femmina', 'non_binario', 'altro', 'non_dichiarato'],
       membership_status: ['pending', 'active', 'expired'],
-      menstrual_cycle_enum: ['regolare', 'irregolare', 'non_applicabile', 'non_dichiarato'],
+      menstrual_cycle_enum: [
+        'regolare',
+        'irregolare',
+        'non_applicabile',
+        'non_dichiarato',
+        'menopausa',
+      ],
       notification_status: ['draft', 'scheduled', 'sent', 'cancelled'],
       survey_assignment_status: ['PENDING', 'COMPLETED', 'EXPIRED'],
       user_notification_delivery_status: ['pending', 'sent', 'error'],

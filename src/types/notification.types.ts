@@ -5,5 +5,9 @@ export type NotificationItem = {
   sent_at: string;
   read_at: string | null;
   is_read: boolean;
-  data: Record<string, any>;
+  data: NotificationData;
 };
+
+export interface NotificationData {
+  route: string;
+}
