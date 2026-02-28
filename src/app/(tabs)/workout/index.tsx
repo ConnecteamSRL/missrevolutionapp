@@ -52,7 +52,7 @@ export default function WorkoutIndex() {
     liveHook.fetchLiveEvents?.();
   }, [workouts, liveHook]);
 
-  const keyExtractor = useCallback((item: Workout) => item.id, []);
+  const keyExtractor = useCallback((item: Workout) => String(item.id), []);
 
   const renderItem = useCallback(
     ({ item, index }: { item: Workout; index: number }) => (

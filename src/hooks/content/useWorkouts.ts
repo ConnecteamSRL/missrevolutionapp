@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Tables } from '@mr-types/database.types';
 
-export type Workout = Tables<'workout_plans'>;
+export type Workout = Tables<'v_my_workouts'>;
 
 export function useMyWorkouts() {
   const [data, setData] = useState<Workout[]>([]);
@@ -64,5 +64,5 @@ const getMyWorkouts = async (): Promise<Workout[]> => {
     throw error;
   }
 
-  return (data ?? []) as Workout[];
+  return data ?? [];
 };

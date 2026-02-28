@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Tables } from '@mr-types/database.types';
 
-export type Recipe = Tables<'recipes'>;
+export type Recipe = Tables<'v_my_recipes'>;
 
 const UI_GENERIC_ERROR = 'Si è verificato un errore. Riprova.';
 
@@ -66,5 +66,5 @@ const getMyRecipes = async (): Promise<Recipe[]> => {
     throw error;
   }
 
-  return (data ?? []) as Recipe[];
+  return data ?? [];
 };

@@ -34,7 +34,7 @@ export default function RecipesListSection() {
     recipes.refetch?.();
   }, [recipes]);
 
-  const keyExtractor = useCallback((item: Recipe) => item.id, []);
+  const keyExtractor = useCallback((item: Recipe) => String(item.id), []);
 
   const renderRecipeItem = useCallback(({ item, index }: { item: Recipe; index: number }) => {
     return (

@@ -1,15 +1,6 @@
-import React, { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Linking,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import VideoSearchBar from '@components/video/VideoSearchBar';
 import CategoryItem from '@components/video/CategoryItem';
@@ -21,8 +12,19 @@ import { useVideoPage } from '@/src/hooks/content/useVideoPage';
 
 export default function VideoCategoryScreen() {
   const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
-  const { data, loading, refreshing, refresh, error } = useVideoPage(categoryId);
+  const { data, loading, refreshing, refresh, refetch, error } = useVideoPage(categoryId);
   const [searchText, setSearchText] = useState('');
+  const isFirstFocus = useRef(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false;
+        return;
+      }
+      refetch();
+    }, [refetch]),
+  );
 
   const handleBreadcrumbPress = (item: VideoBreadcrumbItem) => {
     if (item.slug === 'master') {
@@ -38,20 +40,7 @@ export default function VideoCategoryScreen() {
   };
 
   const handleVideoPress = (video: VideoItem) => {
-    Alert.alert(
-      'Apertura Vimeo',
-      'Stai per essere reindirizzato su Vimeo per guardare il video. Vuoi procedere?',
-      [
-        {
-          text: 'Annulla',
-          style: 'cancel',
-        },
-        {
-          text: 'Apri',
-          onPress: () => Linking.openURL(`https://vimeo.com/${video.vimeo_id}`),
-        },
-      ],
-    );
+    router.push({ pathname: '/(video)/[videoId]', params: { videoId: video.id } });
   };
 
   const filteredData = useMemo(() => {

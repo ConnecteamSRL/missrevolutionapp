@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Tables } from '@mr-types/database.types';
 
-export type DietPlan = Tables<'diet_plans'>;
+export type DietPlan = Tables<'v_my_diets'>;
 
 export function useMyCurrentDiet() {
   const [data, setData] = useState<DietPlan | null>(null);
@@ -26,7 +26,7 @@ export function useMyCurrentDiet() {
       if (error) throw error;
 
       if (reqId === reqIdRef.current) {
-        setData(data as DietPlan | null);
+        setData(data ?? null);
       }
     } catch (e: any) {
       console.error(e);
