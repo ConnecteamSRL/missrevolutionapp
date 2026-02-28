@@ -22,7 +22,9 @@ export default function ContentScreenLayout({
       <BackgroundGradientComponent />
       <View style={[styles.header]}>
         <BackArrowButtonComponent />
-        <Text style={styles.title}>{title ?? 'Contenuto'}</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {title ?? 'Contenuto'}
+        </Text>
         {showNotificationButton && <NotificationButton />}
       </View>
       {children}
@@ -37,6 +39,7 @@ const styles = StyleSheet.create({
     fontFamily: GraphitFonts.GraphitRegular,
     color: colors.text,
     marginRight: 'auto',
+    flexShrink: 1,
   },
   header: {
     display: 'flex',

@@ -3,6 +3,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { VideoItem } from '@mr-types/video.types';
 import Badge from '@components/ui/Badge';
 import { GraphitFonts } from '@/src/theme';
+import { colors } from '@/src/theme/colors';
 import ClockIcon from '@components/ui/icons/ClockIcon';
 import { Check } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -11,17 +12,6 @@ type Props = {
   video: VideoItem;
   categoryName: string;
   onPress?: (video: VideoItem) => void;
-};
-
-const CARD_COLORS = ['#CCAEE3', '#FE61A2', '#A9D982', '#FFD48F', '#9ED8F7', '#F3B3E6'];
-const CATEGORY_COLOR_MAP: Record<string, string> = {};
-
-const getCategoryColor = (categoryName: string) => {
-  if (!CATEGORY_COLOR_MAP[categoryName]) {
-    const nextIndex = Object.keys(CATEGORY_COLOR_MAP).length % CARD_COLORS.length;
-    CATEGORY_COLOR_MAP[categoryName] = CARD_COLORS[nextIndex];
-  }
-  return CATEGORY_COLOR_MAP[categoryName];
 };
 
 const formatDuration = (seconds: number | null) => {
@@ -35,7 +25,6 @@ const formatDuration = (seconds: number | null) => {
 };
 
 export default function VideoCard({ video, categoryName, onPress }: Props) {
-  const backgroundColor = getCategoryColor(categoryName);
   const formattedDuration = formatDuration(video.duration_seconds ?? null);
   const scale = useSharedValue(1);
 
@@ -60,7 +49,7 @@ export default function VideoCard({ video, categoryName, onPress }: Props) {
   return (
     <Animated.View style={[animatedStyle]}>
       <TouchableOpacity
-        style={[styles.card, { backgroundColor }]}
+        style={styles.card}
         activeOpacity={0.9}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -134,6 +123,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 12,
     marginBottom: 16,
+    backgroundColor: colors.primary,
   },
   thumbnailWrapper: {
     borderRadius: 16,

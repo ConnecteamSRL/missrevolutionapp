@@ -294,7 +294,7 @@ export default function VideoDetailScreen() {
                   ) : progressPercent > 0 ? (
                     <View style={styles.progressBadge}>
                       <Check size={16} color={colors.secondary} />
-                      <Text style={styles.progressText}>In corso {progressPercent}%</Text>
+                      <Text style={styles.progressText}>In corso</Text>
                     </View>
                   ) : null}
                 </View>
