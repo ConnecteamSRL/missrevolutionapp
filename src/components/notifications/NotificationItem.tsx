@@ -2,6 +2,7 @@ import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  cancelAnimation,
   Extrapolation,
   FadeIn,
   interpolate,
@@ -69,7 +70,8 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
     .onStart(() => {
-      pressed.value = withTiming(0, { duration: 100 });
+      cancelAnimation(pressed);
+      pressed.value = 0;
     })
     .onUpdate((event) => {
       translateX.value = event.translationX;
@@ -91,10 +93,17 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
 
   const tapGesture = Gesture.Tap()
     .onBegin(() => {
+      cancelAnimation(pressed);
       pressed.value = withTiming(1, { duration: 100 });
     })
-    .onFinalize(() => {
-      pressed.value = withTiming(0, { duration: 150 });
+    .onFinalize((_, success) => {
+      cancelAnimation(pressed);
+      if (success) {
+        pressed.value = withTiming(0, { duration: 150 });
+      } else {
+        // Immediate reset when gesture is cancelled (e.g. scroll takes over)
+        pressed.value = 0;
+      }
     })
     .onEnd(() => {
       runOnJS(handlePress)();
