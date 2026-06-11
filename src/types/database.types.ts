@@ -471,36 +471,27 @@ export type Database = {
         Row: {
           created_at: string;
           max_carbs_100g: number | null;
-          max_carbs_serving: number | null;
           max_fat_100g: number | null;
-          max_fat_serving: number | null;
           max_sugar_100g: number | null;
           min_protein_100g: number | null;
-          min_protein_serving: number | null;
           objective: Database['public']['Enums']['fitness_objective'];
           updated_at: string;
         };
         Insert: {
           created_at?: string;
           max_carbs_100g?: number | null;
-          max_carbs_serving?: number | null;
           max_fat_100g?: number | null;
-          max_fat_serving?: number | null;
           max_sugar_100g?: number | null;
           min_protein_100g?: number | null;
-          min_protein_serving?: number | null;
           objective: Database['public']['Enums']['fitness_objective'];
           updated_at?: string;
         };
         Update: {
           created_at?: string;
           max_carbs_100g?: number | null;
-          max_carbs_serving?: number | null;
           max_fat_100g?: number | null;
-          max_fat_serving?: number | null;
           max_sugar_100g?: number | null;
           min_protein_100g?: number | null;
-          min_protein_serving?: number | null;
           objective?: Database['public']['Enums']['fitness_objective'];
           updated_at?: string;
         };
@@ -509,21 +500,18 @@ export type Database = {
       gym_editorial_configs: {
         Row: {
           banner_key: string | null;
-          banner_video_key: string | null;
           created_at: string;
           gym_id: string;
           updated_at: string;
         };
         Insert: {
           banner_key?: string | null;
-          banner_video_key?: string | null;
           created_at?: string;
           gym_id: string;
           updated_at?: string;
         };
         Update: {
           banner_key?: string | null;
-          banner_video_key?: string | null;
           created_at?: string;
           gym_id?: string;
           updated_at?: string;
@@ -591,67 +579,70 @@ export type Database = {
       };
       medical_anamnesis: {
         Row: {
-          allergies_intolerances: string | null;
           availability_schedule: string | null;
           birth_place: string | null;
           created_at: string;
-          current_medications: string | null;
-          diseases: string | null;
-          frequent_aliments: string | null;
+          food_allergies_desc: string | null;
+          frequent_disorders: string[];
+          frequent_disorders_other_desc: string | null;
           hard_fat_loss_body_area: string | null;
+          has_food_allergies: boolean;
+          has_medical_conditions: boolean;
+          has_physical_limitations: boolean;
           height_cm: number | null;
           id: string;
           menstrual_cycle: Database['public']['Enums']['menstrual_cycle_enum'] | null;
-          note: string | null;
-          physical_issues: string | null;
+          physical_limitations_desc: string | null;
+          primary_goal: Database['public']['Enums']['primary_goal_enum'] | null;
           sport_experience: string | null;
-          thyroid_issues: string | null;
           updated_at: string;
           user_id: string;
           weight_at_20_kg: number | null;
-          weight_kg: number | null;
+          weight_current_kg: number | null;
         };
         Insert: {
-          allergies_intolerances?: string | null;
           availability_schedule?: string | null;
           birth_place?: string | null;
           created_at?: string;
-          current_medications?: string | null;
-          diseases?: string | null;
-          frequent_aliments?: string | null;
+          food_allergies_desc?: string | null;
+          frequent_disorders?: string[];
+          frequent_disorders_other_desc?: string | null;
           hard_fat_loss_body_area?: string | null;
+          has_food_allergies?: boolean;
+          has_medical_conditions?: boolean;
+          has_physical_limitations?: boolean;
           height_cm?: number | null;
           id?: string;
           menstrual_cycle?: Database['public']['Enums']['menstrual_cycle_enum'] | null;
-          note?: string | null;
-          physical_issues?: string | null;
+          physical_limitations_desc?: string | null;
+          primary_goal?: Database['public']['Enums']['primary_goal_enum'] | null;
           sport_experience?: string | null;
-          thyroid_issues?: string | null;
           updated_at?: string;
           user_id: string;
           weight_at_20_kg?: number | null;
-          weight_kg?: number | null;
+          weight_current_kg?: number | null;
         };
         Update: {
-          allergies_intolerances?: string | null;
           availability_schedule?: string | null;
           birth_place?: string | null;
           created_at?: string;
-          current_medications?: string | null;
-          diseases?: string | null;
-          frequent_aliments?: string | null;
+          food_allergies_desc?: string | null;
+          frequent_disorders?: string[];
+          frequent_disorders_other_desc?: string | null;
           hard_fat_loss_body_area?: string | null;
+          has_food_allergies?: boolean;
+          has_medical_conditions?: boolean;
+          has_physical_limitations?: boolean;
           height_cm?: number | null;
           id?: string;
           menstrual_cycle?: Database['public']['Enums']['menstrual_cycle_enum'] | null;
-          note?: string | null;
-          physical_issues?: string | null;
+          physical_limitations_desc?: string | null;
+          primary_goal?: Database['public']['Enums']['primary_goal_enum'] | null;
           sport_experience?: string | null;
-          thyroid_issues?: string | null;
           updated_at?: string;
           user_id?: string;
           weight_at_20_kg?: number | null;
-          weight_kg?: number | null;
+          weight_current_kg?: number | null;
         };
         Relationships: [
           {
@@ -1655,7 +1646,9 @@ export type Database = {
           gym_id: string;
           id: string;
           is_active: boolean;
+          position: number;
           published_at: string | null;
+          source_video_url: string | null;
           thumbnail_url: string | null;
           title: string;
           updated_at: string;
@@ -1670,7 +1663,9 @@ export type Database = {
           gym_id: string;
           id?: string;
           is_active?: boolean;
+          position?: number;
           published_at?: string | null;
+          source_video_url?: string | null;
           thumbnail_url?: string | null;
           title: string;
           updated_at?: string;
@@ -1685,7 +1680,9 @@ export type Database = {
           gym_id?: string;
           id?: string;
           is_active?: boolean;
+          position?: number;
           published_at?: string | null;
+          source_video_url?: string | null;
           thumbnail_url?: string | null;
           title?: string;
           updated_at?: string;
@@ -2061,27 +2058,31 @@ export type Database = {
       };
       v_user_anamnesis: {
         Row: {
-          allergies_intolerances: string | null;
           anamnesis_id: string | null;
+          availability_schedule: string | null;
           birth_date: string | null;
           birth_place: string | null;
           created_at: string | null;
-          current_medications: string | null;
-          diseases: string | null;
           first_name: string | null;
-          frequent_aliments: string | null;
+          food_allergies_desc: string | null;
+          frequent_disorders: string[] | null;
+          frequent_disorders_other_desc: string | null;
           gym_id: string | null;
           hard_fat_loss_body_area: string | null;
+          has_food_allergies: boolean | null;
+          has_medical_conditions: boolean | null;
+          has_physical_limitations: boolean | null;
           height_cm: number | null;
           last_name: string | null;
           menstrual_cycle: Database['public']['Enums']['menstrual_cycle_enum'] | null;
-          note: string | null;
           phone_number: string | null;
-          thyroid_issues: string | null;
+          physical_limitations_desc: string | null;
+          primary_goal: Database['public']['Enums']['primary_goal_enum'] | null;
+          sport_experience: string | null;
           updated_at: string | null;
           user_id: string | null;
           weight_at_20_kg: number | null;
-          weight_kg: number | null;
+          weight_current_kg: number | null;
         };
         Relationships: [
           {
@@ -2115,10 +2116,6 @@ export type Database = {
       };
       bootstrap_current_user: { Args: never; Returns: undefined };
       custom_access_token_hook: { Args: { event: Json }; Returns: Json };
-      ensure_video_master_category: {
-        Args: { p_gym_id: string };
-        Returns: string;
-      };
       expire_overdue_surveys: { Args: never; Returns: undefined };
       faq_categories_resequence: { Args: never; Returns: Json };
       faqs_resequence: { Args: { p_category_id?: string }; Returns: Json };
@@ -2186,17 +2183,14 @@ export type Database = {
         Args: { p_assignment_id: string };
         Returns: boolean;
       };
-      sync_all_memberships_and_roles: { Args: never; Returns: undefined };
       sync_all_user_member_roles: { Args: never; Returns: undefined };
       sync_auth_ban_from_app_users: { Args: never; Returns: undefined };
       sync_user_member_role: { Args: { p_user_id: string }; Returns: undefined };
-      sync_user_membership_statuses: { Args: never; Returns: undefined };
       update_youtube_live_statuses: { Args: never; Returns: undefined };
       user_has_active_membership: {
         Args: { p_user_id: string };
         Returns: boolean;
       };
-      video_category_page: { Args: { p_category_id: string }; Returns: Json };
     };
     Enums: {
       app_role:
@@ -2220,10 +2214,17 @@ export type Database = {
       menstrual_cycle_enum:
         | 'regolare'
         | 'irregolare'
+        | 'menopausa'
         | 'non_applicabile'
         | 'non_dichiarato'
-        | 'menopausa';
+        | 'in_menopausa'
+        | 'preferisco_non_specificare';
       notification_status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
+      primary_goal_enum:
+        | 'perdita_di_grasso'
+        | 'tonificazione'
+        | 'rimodellamento'
+        | 'benessere_generale';
       survey_assignment_status: 'PENDING' | 'COMPLETED' | 'EXPIRED';
       user_notification_delivery_status: 'pending' | 'sent' | 'error';
       user_notification_read_status: 'unread' | 'read';
@@ -2470,11 +2471,19 @@ export const Constants = {
       menstrual_cycle_enum: [
         'regolare',
         'irregolare',
+        'menopausa',
         'non_applicabile',
         'non_dichiarato',
-        'menopausa',
+        'in_menopausa',
+        'preferisco_non_specificare',
       ],
       notification_status: ['draft', 'scheduled', 'sent', 'cancelled'],
+      primary_goal_enum: [
+        'perdita_di_grasso',
+        'tonificazione',
+        'rimodellamento',
+        'benessere_generale',
+      ],
       survey_assignment_status: ['PENDING', 'COMPLETED', 'EXPIRED'],
       user_notification_delivery_status: ['pending', 'sent', 'error'],
       user_notification_read_status: ['unread', 'read'],

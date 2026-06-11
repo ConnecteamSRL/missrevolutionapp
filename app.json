@@ -2,12 +2,10 @@
   "expo": {
     "name": "Miss Revolution",
     "slug": "miss-revolution",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "missrevolution",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.connecteam.missrevolution",
@@ -31,12 +29,7 @@
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
-      "navigationBar": {
-        "backgroundColor": "transparent",
-        "position": "absolute"
-      },
       "softwareKeyboardLayoutMode": "resize",
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.automatiko.missrevolution",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
@@ -228,7 +221,8 @@
           "supportsBackgroundPlayback": false,
           "supportsPictureInPicture": false
         }
-      ]
+      ],
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

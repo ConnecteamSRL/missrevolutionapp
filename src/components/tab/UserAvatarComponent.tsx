@@ -14,7 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { SaveFormat } from 'expo-image-manipulator';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { Buffer } from 'buffer';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/src/theme';
@@ -346,8 +346,11 @@ async function makeSquareJpegBytesUnderMaxBytes(args: {
     lastUri = out.uri;
 
     const b64 = out.base64 ?? '';
-    const buf = Buffer.from(b64, 'base64');
-    const bytes = new Uint8Array(buf);
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) {
+      bytes[i] = bin.charCodeAt(i);
+    }
 
     lastBytes = bytes;
 

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Tables } from '@mr-types/database.types';
 
-export type Workout = Tables<'workout_plans'>;
+export type Workout = Tables<'v_my_workouts'>;
 
 export function useWorkoutById(workoutId?: string | null) {
   const [data, setData] = useState<Workout | null>(null);
@@ -33,7 +33,7 @@ export function useWorkoutById(workoutId?: string | null) {
         setError(null);
 
         const { data, error } = await supabase
-          .from('workout_plans')
+          .from('v_my_workouts')
           .select('*')
           .eq('id', workoutId)
           .single();
@@ -41,7 +41,7 @@ export function useWorkoutById(workoutId?: string | null) {
         if (error) throw error;
 
         if (reqId === reqIdRef.current) {
-          setData((data ?? null) as Workout | null);
+          setData(data ?? null);
         }
       } catch (e: any) {
         console.error(e);

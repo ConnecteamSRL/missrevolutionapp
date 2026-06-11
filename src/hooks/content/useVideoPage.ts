@@ -13,48 +13,51 @@ export function useVideoPage(categoryId?: string) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPage = useCallback(async () => {
-    if (isUserLoading) return;
-    if (!gymId) {
-      setError("Nessuna palestra associata all'utente.");
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      setError(null);
-      let targetId = categoryId;
-
-      if (!targetId) {
-        const { data: masterData, error: masterError } = await supabase
-          .from('video_categories')
-          .select('id')
-          .eq('gym_id', gymId)
-          .eq('slug', 'master')
-          .single();
-
-        if (masterError || !masterData) throw new Error('Categoria Master non trovata');
-        targetId = masterData.id;
+  const fetchPage = useCallback(
+    async (silent = false) => {
+      if (isUserLoading) return;
+      if (!gymId) {
+        setError("Nessuna palestra associata all'utente.");
+        setLoading(false);
+        setRefreshing(false);
+        return;
       }
 
-      const { data: rpcData, error: rpcError } = await supabase.rpc('video_category_page', {
-        p_category_id: targetId,
-      });
+      if (!silent) setLoading(true);
 
-      if (rpcError) throw rpcError;
+      try {
+        setError(null);
+        let targetId = categoryId;
 
-      setData(rpcData as VideoPageData);
-    } catch (err) {
-      console.error(err);
-      setError('Impossibile caricare i contenuti video.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [categoryId, gymId, isUserLoading]);
+        if (!targetId) {
+          const { data: masterData, error: masterError } = await supabase
+            .from('video_categories')
+            .select('id')
+            .eq('gym_id', gymId)
+            .eq('slug', 'master')
+            .single();
+
+          if (masterError || !masterData) throw new Error('Categoria Master non trovata');
+          targetId = masterData.id;
+        }
+
+        const { data: rpcData, error: rpcError } = await supabase.rpc('video_category_page', {
+          p_category_id: targetId,
+        });
+
+        if (rpcError) throw rpcError;
+
+        setData(rpcData as VideoPageData);
+      } catch (err) {
+        console.error(err);
+        if (!silent) setError('Impossibile caricare i contenuti video.');
+      } finally {
+        if (!silent) setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [categoryId, gymId, isUserLoading],
+  );
 
   useEffect(() => {
     fetchPage();
@@ -65,5 +68,7 @@ export function useVideoPage(categoryId?: string) {
     await fetchPage();
   };
 
-  return { data, loading, refreshing, error, refresh };
+  const refetch = useCallback(() => fetchPage(true), [fetchPage]);
+
+  return { data, loading, refreshing, error, refresh, refetch };
 }

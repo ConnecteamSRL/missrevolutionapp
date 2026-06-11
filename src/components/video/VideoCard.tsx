@@ -3,24 +3,15 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { VideoItem } from '@mr-types/video.types';
 import Badge from '@components/ui/Badge';
 import { GraphitFonts } from '@/src/theme';
+import { colors } from '@/src/theme/colors';
 import ClockIcon from '@components/ui/icons/ClockIcon';
+import { Check } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 type Props = {
   video: VideoItem;
   categoryName: string;
   onPress?: (video: VideoItem) => void;
-};
-
-const CARD_COLORS = ['#CCAEE3', '#FE61A2', '#A9D982', '#FFD48F', '#9ED8F7', '#F3B3E6'];
-const CATEGORY_COLOR_MAP: Record<string, string> = {};
-
-const getCategoryColor = (categoryName: string) => {
-  if (!CATEGORY_COLOR_MAP[categoryName]) {
-    const nextIndex = Object.keys(CATEGORY_COLOR_MAP).length % CARD_COLORS.length;
-    CATEGORY_COLOR_MAP[categoryName] = CARD_COLORS[nextIndex];
-  }
-  return CATEGORY_COLOR_MAP[categoryName];
 };
 
 const formatDuration = (seconds: number | null) => {
@@ -34,7 +25,6 @@ const formatDuration = (seconds: number | null) => {
 };
 
 export default function VideoCard({ video, categoryName, onPress }: Props) {
-  const backgroundColor = getCategoryColor(categoryName);
   const formattedDuration = formatDuration(video.duration_seconds ?? null);
   const scale = useSharedValue(1);
 
@@ -59,7 +49,7 @@ export default function VideoCard({ video, categoryName, onPress }: Props) {
   return (
     <Animated.View style={[animatedStyle]}>
       <TouchableOpacity
-        style={[styles.card, { backgroundColor }]}
+        style={styles.card}
         activeOpacity={0.9}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -90,6 +80,29 @@ export default function VideoCard({ video, categoryName, onPress }: Props) {
               <Text style={styles.playIcon}>▶</Text>
             </View>
           </View>
+
+          {video.completed_at && (
+            <View style={styles.completedBadge}>
+              <Check size={14} color="#fff" strokeWidth={3} />
+            </View>
+          )}
+
+          {!video.completed_at &&
+            video.playback_position != null &&
+            video.playback_position > 0 &&
+            video.duration_seconds != null &&
+            video.duration_seconds > 0 && (
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.min(100, Math.round((video.playback_position / video.duration_seconds) * 100))}%`,
+                    },
+                  ]}
+                />
+              </View>
+            )}
         </View>
 
         <View style={styles.content}>
@@ -110,6 +123,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 12,
     marginBottom: 16,
+    backgroundColor: colors.primary,
   },
   thumbnailWrapper: {
     borderRadius: 16,
@@ -165,6 +179,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFFFFF',
     fontFamily: GraphitFonts.GraphitRegular,
+  },
+  completedBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressBarTrack: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#ED5192',
+    borderRadius: 2,
   },
   content: {
     flexDirection: 'column',

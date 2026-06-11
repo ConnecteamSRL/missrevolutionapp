@@ -31,6 +31,11 @@ export interface VideoItem {
   free: boolean;
   is_active: boolean;
   published_at: string | null;
+  source_video_url: string | null;
+  description: string | null;
+  position: number;
+  playback_position: number | null;
+  completed_at: string | null;
 }
 
 export interface VideoPageData {
