@@ -10,6 +10,7 @@ import { AppConfigProvider, useAppConfig } from '@/src/contexts/AppConfigContext
 import { UserProvider } from '@/src/contexts/UserContext';
 import { useSupabaseAuth } from '@/src/hooks/core/useSupabaseAuth';
 import { useAuthStore } from '@/src/store/authStore';
+import { useContentTextSizeStore } from '@/src/store/contentTextSizeStore';
 import { useNotificationRouting } from '@/src/hooks/core/useNotificationRouting';
 
 import { MaintenanceScreen } from '@/src/components/screens/MaintenanceScreen';
@@ -88,6 +89,8 @@ const AppEntryPoint: React.FC = () => {
         <Stack.Screen name="survey/[surveyId]" />
         <Stack.Screen name="(workout)/[workoutId]" />
         <Stack.Screen name="(recipe)/[recipeId]" />
+        <Stack.Screen name="(diet)/[dietId]" />
+        <Stack.Screen name="archive/[contentType]" />
         <Stack.Screen name="(chat)/chat" />
       </Stack.Protected>
 
@@ -100,6 +103,13 @@ const AppEntryPoint: React.FC = () => {
 };
 
 export default function RootLayout(): React.ReactElement {
+  // Restores the persisted content text size while the splash screen is
+  // still up (app readiness waits on config + auth network calls, so the
+  // AsyncStorage read completes well before any content card can render).
+  useEffect(() => {
+    useContentTextSizeStore.getState().hydrate();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

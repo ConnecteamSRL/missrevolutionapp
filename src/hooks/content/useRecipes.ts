@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Tables } from '@mr-types/database.types';
 
-export type Recipe = Tables<'v_my_recipes'>;
+export type Recipe = Tables<'v_my_recipes_all_phases'>;
 
 const UI_GENERIC_ERROR = 'Si è verificato un errore. Riprova.';
 
 export function useMyRecipes() {
   const [data, setData] = useState<Recipe[]>([]);
+  const [otherPhases, setOtherPhases] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +27,8 @@ export function useMyRecipes() {
       const res = await getMyRecipes();
 
       if (reqId === reqIdRef.current) {
-        setData(res);
+        setData(res.filter((r) => r.is_current === true));
+        setOtherPhases(res.filter((r) => r.is_current !== true));
       }
     } catch (e: any) {
       console.error('useMyRecipes error', e);
@@ -47,6 +49,7 @@ export function useMyRecipes() {
 
   return {
     data,
+    otherPhases,
     loading,
     refreshing,
     error,
@@ -57,7 +60,7 @@ export function useMyRecipes() {
 
 const getMyRecipes = async (): Promise<Recipe[]> => {
   const { data, error } = await supabase
-    .from('v_my_recipes')
+    .from('v_my_recipes_all_phases')
     .select('*')
     .order('title', { ascending: true });
 

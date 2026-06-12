@@ -1,19 +1,18 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { RefreshControlProps, ScrollView } from 'react-native';
 
 interface TabScrollLayoutProps {
   children: React.ReactNode;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
 }
 
-const TabScrollLayout: React.FC<TabScrollLayoutProps> = ({ children }) => {
-  const insets = useSafeAreaInsets();
-
+const TabScrollLayout: React.FC<TabScrollLayoutProps> = ({ children, refreshControl }) => {
   return (
     <ScrollView
       contentContainerStyle={{
         paddingTop: 8,
       }}
+      refreshControl={refreshControl}
     >
       {children}
     </ScrollView>

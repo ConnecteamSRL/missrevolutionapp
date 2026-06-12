@@ -12,10 +12,14 @@ import { useLocalSearchParams } from 'expo-router';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import HtmlBadgeCard from '@components/core/HtmlBadgeCard';
+import DocumentsSection from '@components/core/DocumentsSection';
+import PhaseInfoBanner from '@components/core/PhaseInfoBanner';
 
 import { GraphitFonts } from '@/src/theme';
 import { confirmOpenExternalUrl } from '@/src/utils/openExternalLink.utils';
 import { useRecipeById } from '@/src/hooks/content/useRecipeById';
+import { formatObjective } from '@/src/utils/objective.utils';
+import { useUser } from '@/src/contexts/UserContext';
 
 type Params = {
   id?: string | string[];
@@ -39,6 +43,9 @@ export default function RecipeDetailScreen() {
 
   const { data, loading, error, refetch } = useRecipeById(recipeId);
   const screenTitle = routeTitle ?? data?.title ?? 'Ricetta';
+
+  const { me } = useUser();
+  const hasPhase = !!me?.profile?.current_objective;
 
   const confirmOpenUrl = useCallback((url: string) => {
     confirmOpenExternalUrl(url);
@@ -92,12 +99,26 @@ export default function RecipeDetailScreen() {
             </View>
           )}
 
+          {data && data.is_current === false && (
+            <PhaseInfoBanner
+              message={
+                hasPhase
+                  ? `Questa ricetta appartiene alla fase ${formatObjective(data.objective)}, diversa dalla tua fase attuale.`
+                  : `Questa ricetta appartiene alla fase ${formatObjective(data.objective)}.`
+              }
+            />
+          )}
+
           <HtmlBadgeCard
             badgeText="Ricetta"
             html={data?.html_content}
             selectable
             onOpenUrl={confirmOpenUrl}
+            showTextSizeButton
+            enableImageViewer
           />
+
+          <DocumentsSection assignmentId={recipeId} />
         </ScrollView>
       </ContentScreenLayout>
     </View>

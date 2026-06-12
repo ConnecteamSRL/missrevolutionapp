@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Enums } from '@mr-types/database.types';
 import { colors, GraphitFonts } from '@/src/theme';
+import { formatObjective } from '@/src/utils/objective.utils';
 import BalanceIcon from '@components/ui/icons/BalanceIcon';
 import DartIcon from '@components/ui/icons/DartIcon';
 import ArrowRight from '@components/ui/icons/ArrowRight';
@@ -21,21 +22,6 @@ const HomeWeightCard: React.FC<Props> = ({
   ctaLabel = 'Visualizza tutti i progressi',
 }) => {
   const router = useRouter();
-
-  const formatObjective = (obj: Enums<'fitness_objective'>) => {
-    switch (obj) {
-      case 'dimagrimento':
-        return 'Perdita Peso';
-      case 'costruzione_muscolare':
-        return 'Massa Muscolare';
-      case 'mantenimento':
-        return 'Mantenimento';
-      case '8_settimane_shock':
-        return '8 Settimane Shock';
-      default:
-        return obj;
-    }
-  };
 
   const handleCtaPress = () => {
     router.push('/progress');

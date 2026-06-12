@@ -15,6 +15,7 @@ import { GraphitFonts } from '@/src/theme';
 import { useUser } from '@/src/contexts/UserContext';
 import { useMyRecipes, type Recipe } from '@/src/hooks/content/useRecipes';
 import ArrowCircleRight from '@components/ui/icons/ArrowCircleRightIcon';
+import OtherPhasesLink from '@components/core/OtherPhasesLink';
 
 const UI_GENERIC_ERROR = 'Si è verificato un errore. Riprova.';
 
@@ -33,6 +34,10 @@ export default function RecipesListSection() {
   const onRetry = useCallback(() => {
     recipes.refetch?.();
   }, [recipes]);
+
+  const openOtherPhases = useCallback(() => {
+    router.push({ pathname: '/archive/[contentType]', params: { contentType: 'recipes' } });
+  }, []);
 
   const keyExtractor = useCallback((item: Recipe) => String(item.id), []);
 
@@ -108,6 +113,15 @@ export default function RecipesListSection() {
         <View style={styles.emptyWrap}>
           <Text style={styles.emptyTitle}>Nessuna ricetta disponibile</Text>
         </View>
+      }
+      ListFooterComponent={
+        recipes.otherPhases.length > 0 ? (
+          <OtherPhasesLink
+            label="Ricette delle altre fasi"
+            count={recipes.otherPhases.length}
+            onPress={openOtherPhases}
+          />
+        ) : null
       }
     />
   );

@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Tables } from '@mr-types/database.types';
 
-export type Workout = Tables<'v_my_workouts_all_phases'>;
+export type DietPlan = Tables<'v_my_diets_all_phases'>;
 
-export function useWorkoutById(workoutId?: string | null) {
-  const [data, setData] = useState<Workout | null>(null);
+export function useDietById(dietId?: string | null) {
+  const [data, setData] = useState<DietPlan | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,10 +17,10 @@ export function useWorkoutById(workoutId?: string | null) {
       const reqId = ++reqIdRef.current;
 
       try {
-        if (!workoutId) {
+        if (!dietId) {
           if (reqId === reqIdRef.current) {
             setData(null);
-            setError('Workout non valido');
+            setError('Piano alimentare non valido');
             setLoading(false);
             setRefreshing(false);
           }
@@ -33,9 +33,9 @@ export function useWorkoutById(workoutId?: string | null) {
         setError(null);
 
         const { data, error } = await supabase
-          .from('v_my_workouts_all_phases')
+          .from('v_my_diets_all_phases')
           .select('*')
-          .eq('id', workoutId)
+          .eq('id', dietId)
           .maybeSingle();
 
         if (error) throw error;
@@ -43,7 +43,7 @@ export function useWorkoutById(workoutId?: string | null) {
         if (reqId === reqIdRef.current) {
           if (!data) {
             setData(null);
-            setError('Questo workout non è più disponibile.');
+            setError('Questo piano non è più disponibile.');
           } else {
             setData(data);
           }
@@ -51,7 +51,7 @@ export function useWorkoutById(workoutId?: string | null) {
       } catch (e: any) {
         console.error(e);
         if (reqId === reqIdRef.current) {
-          setError('Errore nel caricamento del workout. Riprova.');
+          setError('Errore nel caricamento del piano alimentare. Riprova.');
           setData(null);
         }
       } finally {
@@ -61,7 +61,7 @@ export function useWorkoutById(workoutId?: string | null) {
         }
       }
     },
-    [workoutId],
+    [dietId],
   );
 
   useEffect(() => {

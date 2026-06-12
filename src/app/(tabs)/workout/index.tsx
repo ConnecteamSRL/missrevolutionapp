@@ -14,8 +14,10 @@ import { router, Stack } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { GraphitFonts } from '@/src/theme';
 import { useMyWorkouts, type Workout } from '@/src/hooks/content/useWorkouts';
+import { useRefreshOnFocus } from '@/src/hooks/core/useRefreshOnFocus';
 import FitnessIcon from '@components/ui/icons/FitnessIcon';
 import ArrowCircleRight from '@components/ui/icons/ArrowCircleRightIcon';
+import OtherPhasesLink from '@components/core/OtherPhasesLink';
 import { useUser } from '@/src/contexts/UserContext';
 import { useYoutubeLiveEvents } from '@/src/hooks/content/useYoutubeLive';
 import YoutubeLiveCard from '@components/video/YoutubeLiveCard';
@@ -46,6 +48,21 @@ export default function WorkoutIndex() {
     workouts.refresh();
     liveHook.refresh();
   }, [workouts, liveHook]);
+
+  // Al focus si aggiorna in silenzio: niente spinner, i dati visibili restano
+  // finché non arriva la risposta nuova.
+  const onFocusRefresh = useCallback(() => {
+    workouts.refreshSilent();
+    void liveHook.fetchLiveEvents();
+  }, [workouts, liveHook]);
+
+  useRefreshOnFocus(onFocusRefresh);
+
+  const hasContent = workouts.data.length > 0 || workouts.otherPhases.length > 0;
+
+  const openOtherPhases = useCallback(() => {
+    router.push({ pathname: '/archive/[contentType]', params: { contentType: 'workouts' } });
+  }, []);
 
   const onRetry = useCallback(() => {
     workouts.refetch?.();
@@ -102,7 +119,7 @@ export default function WorkoutIndex() {
           <ActivityIndicator size="large" color={'#C388F0'} />
           <Text style={styles.centerText}>Caricamento...</Text>
         </View>
-      ) : pageError ? (
+      ) : pageError && !hasContent ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>Errore: {formatError(pageError)}</Text>
           <Pressable onPress={onRetry} style={styles.retryBtn}>
@@ -148,6 +165,15 @@ export default function WorkoutIndex() {
             <View style={styles.emptyWrap}>
               <Text style={styles.emptyTitle}>Nessun workout disponibile</Text>
             </View>
+          }
+          ListFooterComponent={
+            workouts.otherPhases.length > 0 ? (
+              <OtherPhasesLink
+                label="Workout delle altre fasi"
+                count={workouts.otherPhases.length}
+                onPress={openOtherPhases}
+              />
+            ) : null
           }
         />
       )}

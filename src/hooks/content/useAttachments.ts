@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Tables } from '@mr-types/database.types';
 
-export type Workout = Tables<'v_my_workouts_all_phases'>;
+export type Attachment = Tables<'v_my_attachments'>;
 
-export function useWorkoutById(workoutId?: string | null) {
-  const [data, setData] = useState<Workout | null>(null);
+export function useAttachments(assignmentId?: string | null) {
+  const [data, setData] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,10 +17,10 @@ export function useWorkoutById(workoutId?: string | null) {
       const reqId = ++reqIdRef.current;
 
       try {
-        if (!workoutId) {
+        if (!assignmentId) {
           if (reqId === reqIdRef.current) {
-            setData(null);
-            setError('Workout non valido');
+            setData([]);
+            setError(null);
             setLoading(false);
             setRefreshing(false);
           }
@@ -33,26 +33,22 @@ export function useWorkoutById(workoutId?: string | null) {
         setError(null);
 
         const { data, error } = await supabase
-          .from('v_my_workouts_all_phases')
+          .from('v_my_attachments')
           .select('*')
-          .eq('id', workoutId)
-          .maybeSingle();
+          .eq('assignment_id', assignmentId)
+          .order('sort_order', { ascending: true })
+          .order('created_at', { ascending: true });
 
         if (error) throw error;
 
         if (reqId === reqIdRef.current) {
-          if (!data) {
-            setData(null);
-            setError('Questo workout non è più disponibile.');
-          } else {
-            setData(data);
-          }
+          setData(data ?? []);
         }
       } catch (e: any) {
         console.error(e);
         if (reqId === reqIdRef.current) {
-          setError('Errore nel caricamento del workout. Riprova.');
-          setData(null);
+          setError(e?.message ?? 'Errore nel caricamento dei documenti');
+          setData([]);
         }
       } finally {
         if (reqId === reqIdRef.current) {
@@ -61,19 +57,22 @@ export function useWorkoutById(workoutId?: string | null) {
         }
       }
     },
-    [workoutId],
+    [assignmentId],
   );
 
   useEffect(() => {
     load(false);
   }, [load]);
 
+  const refetch = useCallback(() => load(false), [load]);
+  const refresh = useCallback(() => load(true), [load]);
+
   return {
     data,
     loading,
     refreshing,
     error,
-    refetch: () => load(false),
-    refresh: () => load(true),
+    refetch,
+    refresh,
   };
 }

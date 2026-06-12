@@ -5,6 +5,7 @@ import { GraphitFonts } from '@/src/theme';
 import BalanceIcon from '@components/ui/icons/BalanceIcon';
 import DartIcon from '@components/ui/icons/DartIcon';
 import { Enums } from '@mr-types/database.types';
+import { formatObjective } from '@/src/utils/objective.utils';
 
 const UI = {
   cardBg: '#FFD7E8',
@@ -14,22 +15,6 @@ const UI = {
   muted: '#545454',
   accent: '#ED5192',
   white: '#FFFFFF',
-};
-
-const formatObjective = (obj: Enums<'fitness_objective'> | null | undefined) => {
-  if (!obj) return '—';
-  switch (obj) {
-    case 'dimagrimento':
-      return 'Perdita Peso';
-    case 'costruzione_muscolare':
-      return 'Massa Muscolare';
-    case 'mantenimento':
-      return 'Mantenimento';
-    case '8_settimane_shock':
-      return '8 Settimane Shock';
-    default:
-      return obj;
-  }
 };
 
 const WeightSummaryCard: React.FC<{

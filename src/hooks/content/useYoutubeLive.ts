@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import type { Tables } from '@mr-types/database.types';
 
@@ -12,7 +12,11 @@ export const useYoutubeLiveEvents = (gymId: string | null | undefined) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
+  const reqIdRef = useRef(0);
+
   const fetchLiveEvents = useCallback(async () => {
+    const reqId = ++reqIdRef.current;
+
     if (!gymId) {
       setData(null);
       setLoading(false);
@@ -37,7 +41,9 @@ export const useYoutubeLiveEvents = (gymId: string | null | undefined) => {
       if (liveErr) throw liveErr;
 
       if (live) {
-        setData(live as YoutubeLiveEvent);
+        if (reqId === reqIdRef.current) {
+          setData(live as YoutubeLiveEvent);
+        }
         return;
       }
 
@@ -53,14 +59,20 @@ export const useYoutubeLiveEvents = (gymId: string | null | undefined) => {
 
       if (nextErr) throw nextErr;
 
-      setData((next ?? null) as YoutubeLiveEvent | null);
+      if (reqId === reqIdRef.current) {
+        setData((next ?? null) as YoutubeLiveEvent | null);
+      }
     } catch (e) {
-      setError(e);
-      setData(null);
       console.error(e);
+      if (reqId === reqIdRef.current) {
+        setError(e);
+        setData(null);
+      }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (reqId === reqIdRef.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, [gymId]);
 

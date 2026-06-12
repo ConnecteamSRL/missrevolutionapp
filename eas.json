@@ -32,5 +32,28 @@
         "EXPO_PUBLIC_APP_ENV": "production"
       }
     }
+  },
+  "submit": {
+    "staging": {
+      "ios": {
+        "ascAppId": "6758212694",
+        "appleTeamId": "93V425WR3A"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
+      }
+    },
+    "production": {
+      "ios": {
+        "ascAppId": "6758212694",
+        "appleTeamId": "93V425WR3A"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "production",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }

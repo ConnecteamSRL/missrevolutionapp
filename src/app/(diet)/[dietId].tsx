@@ -7,38 +7,40 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
-import { useLocalSearchParams } from 'expo-router';
-import { GraphitFonts } from '@/src/theme';
-import { useWorkoutById } from '@/src/hooks/content/useWorkoutById';
 import HtmlBadgeCard from '@components/core/HtmlBadgeCard';
 import DocumentsSection from '@components/core/DocumentsSection';
 import PhaseInfoBanner from '@components/core/PhaseInfoBanner';
+
+import { GraphitFonts } from '@/src/theme';
 import { confirmOpenExternalUrl } from '@/src/utils/openExternalLink.utils';
+import { useDietById } from '@/src/hooks/content/useDietById';
 import { formatObjective } from '@/src/utils/objective.utils';
 import { useUser } from '@/src/contexts/UserContext';
 
 type Params = {
   id?: string | string[];
   title?: string | string[];
-  workoutId?: string | string[];
+  dietId?: string | string[];
 };
 
 const pickFirst = (v: string | string[] | undefined) =>
   typeof v === 'string' ? v : Array.isArray(v) ? v[0] : undefined;
 
-export default function WorkoutDetailScreen() {
+export default function DietDetailScreen() {
   const params = useLocalSearchParams<Params>();
 
-  const workoutId = useMemo(
-    () => pickFirst(params.id) ?? pickFirst(params.workoutId),
-    [params.id, params.workoutId],
+  const dietId = useMemo(
+    () => pickFirst(params.id) ?? pickFirst(params.dietId),
+    [params.id, params.dietId],
   );
   const routeTitle = useMemo(() => pickFirst(params.title), [params.title]);
 
-  const { data, loading, error, refetch } = useWorkoutById(workoutId);
-  const screenTitle = routeTitle ?? data?.title ?? 'Workout';
+  const { data, loading, error, refetch } = useDietById(dietId);
+  const screenTitle = routeTitle ?? data?.title ?? 'Piano alimentare';
 
   const { me } = useUser();
   const hasPhase = !!me?.profile?.current_objective;
@@ -47,19 +49,13 @@ export default function WorkoutDetailScreen() {
     confirmOpenExternalUrl(url);
   }, []);
 
-  const openExternal = useCallback(() => {
-    const url = data?.external_url;
-    if (!url) return;
-    confirmOpenUrl(url);
-  }, [confirmOpenUrl, data?.external_url]);
-
-  if (!workoutId) {
+  if (!dietId) {
     return (
       <View style={styles.root}>
         <BackgroundGradientComponent />
         <ContentScreenLayout title={screenTitle}>
           <View style={styles.centered}>
-            <Text style={styles.emptyTitle}>Workout non trovato</Text>
+            <Text style={styles.emptyTitle}>Piano alimentare non trovato</Text>
             <Text style={styles.emptySubtitle}>
               Manca un identificativo valido per aprire il dettaglio.
             </Text>
@@ -105,14 +101,14 @@ export default function WorkoutDetailScreen() {
             <PhaseInfoBanner
               message={
                 hasPhase
-                  ? `Questo workout appartiene alla fase ${formatObjective(data.objective)}, diversa dalla tua fase attuale.`
-                  : `Questo workout appartiene alla fase ${formatObjective(data.objective)}.`
+                  ? `Questo piano appartiene alla fase ${formatObjective(data.objective)}, diversa dalla tua fase attuale.`
+                  : `Questo piano appartiene alla fase ${formatObjective(data.objective)}.`
               }
             />
           )}
 
           <HtmlBadgeCard
-            badgeText="Allenamento"
+            badgeText="Piano alimentare"
             html={data?.html_content}
             selectable
             onOpenUrl={confirmOpenUrl}
@@ -120,13 +116,7 @@ export default function WorkoutDetailScreen() {
             enableImageViewer
           />
 
-          <DocumentsSection assignmentId={workoutId} />
-
-          {!!data?.external_url && (
-            <TouchableOpacity style={styles.ctaButton} onPress={openExternal} activeOpacity={0.85}>
-              <Text style={styles.ctaButtonText}>Apri allenamento</Text>
-            </TouchableOpacity>
-          )}
+          <DocumentsSection assignmentId={dietId} />
         </ScrollView>
       </ContentScreenLayout>
     </View>
@@ -149,17 +139,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 16,
   },
-  bannerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  bannerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ED5192',
-  },
+  bannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bannerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ED5192' },
   statusTextError: {
     flex: 1,
     fontFamily: GraphitFonts.GraphitRegular,
@@ -177,24 +158,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FFD1E4',
   },
-  retryButtonText: {
-    color: '#ED5192',
-    fontSize: 14,
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-
-  ctaButton: {
-    backgroundColor: '#ED5192',
-    paddingVertical: 16,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  ctaButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
+  retryButtonText: { color: '#ED5192', fontSize: 14, fontFamily: GraphitFonts.GraphitBold },
 
   emptyTitle: {
     fontSize: 16,
