@@ -1968,6 +1968,18 @@ export type Database = {
           },
         ];
       };
+      v_my_attachments: {
+        Row: {
+          assignment_id: string | null;
+          content_type: string | null;
+          created_at: string | null;
+          display_name: string | null;
+          id: string | null;
+          object_path: string | null;
+          sort_order: number | null;
+        };
+        Relationships: [];
+      };
       v_my_diets: {
         Row: {
           created_at: string | null;
@@ -1990,6 +2002,21 @@ export type Database = {
           },
         ];
       };
+      v_my_diets_all_phases: {
+        Row: {
+          created_at: string | null;
+          description: string | null;
+          gym_id: string | null;
+          html_content: string | null;
+          id: string | null;
+          is_active: boolean | null;
+          is_current: boolean | null;
+          objective: Database['public']['Enums']['fitness_objective'] | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
+      };
       v_my_recipes: {
         Row: {
           created_at: string | null;
@@ -2011,6 +2038,21 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      v_my_recipes_all_phases: {
+        Row: {
+          created_at: string | null;
+          description: string | null;
+          gym_id: string | null;
+          html_content: string | null;
+          id: string | null;
+          is_active: boolean | null;
+          is_current: boolean | null;
+          objective: Database['public']['Enums']['fitness_objective'] | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
       };
       v_my_survey_assignments: {
         Row: {
@@ -2055,6 +2097,22 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      v_my_workouts_all_phases: {
+        Row: {
+          created_at: string | null;
+          description: string | null;
+          external_url: string | null;
+          gym_id: string | null;
+          html_content: string | null;
+          id: string | null;
+          is_active: boolean | null;
+          is_current: boolean | null;
+          objective: Database['public']['Enums']['fitness_objective'] | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
       };
       v_user_anamnesis: {
         Row: {

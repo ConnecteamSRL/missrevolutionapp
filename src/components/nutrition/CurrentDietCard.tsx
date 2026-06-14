@@ -1,15 +1,20 @@
 import React, { useCallback } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { useMyCurrentDiet } from '@/src/hooks/content/useMyCurrentDiet';
+import { type DietPlan } from '@/src/hooks/content/useMyCurrentDiet';
 import HtmlBadgeCard from '@components/core/HtmlBadgeCard';
+import DocumentsSection from '@components/core/DocumentsSection';
 import { confirmOpenExternalUrl } from '@/src/utils/openExternalLink.utils';
 
-export default function CurrentDietCard() {
+type Props = {
+  diet: DietPlan | null;
+  loading: boolean;
+  error: string | null;
+};
+
+export default function CurrentDietCard({ diet, loading, error }: Props) {
   const confirmOpenUrl = useCallback((url: string) => {
     confirmOpenExternalUrl(url);
   }, []);
-
-  const { data: diet, loading, error } = useMyCurrentDiet();
 
   if (loading) {
     return (
@@ -19,7 +24,7 @@ export default function CurrentDietCard() {
     );
   }
 
-  if (error) {
+  if (error && !diet) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorText}>Impossibile caricare il piano</Text>
@@ -38,7 +43,11 @@ export default function CurrentDietCard() {
         html={diet.html_content}
         selectable={true}
         onOpenUrl={(url) => confirmOpenUrl(url)}
+        showTextSizeButton
+        enableImageViewer
       />
+
+      {!!diet.id && <DocumentsSection assignmentId={diet.id} />}
     </View>
   );
 }

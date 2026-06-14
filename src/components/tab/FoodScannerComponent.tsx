@@ -1,7 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Alert,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,84 +10,416 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { SaveFormat } from 'expo-image-manipulator';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FoodIcon from '@components/ui/icons/FoodIcon';
 import BarCodeIcon from '@components/ui/icons/BarCodeIcon';
 import { colors, GraphitFonts } from '@/src/theme';
-import { ScanResponse } from '@mr-types/barcode.types';
+import { ScanCheck, ScanNutrient, ScanResponse, ScanStatus } from '@mr-types/barcode.types';
 import { useProductScanner } from '@/src/hooks/content/useProductScanner';
+
+// Colori verdetto (coerenti col resto dell'app)
+const ALLOWED_COLOR = '#4CAF50'; // Verde
+const REJECTED_COLOR = '#EF4444'; // Rosso
+const WARNING_COLOR = '#F59E0B'; // Ambra (non valutabile)
+
+type ScanMode = 'barcode' | 'photo';
+
+const NUTRIENT_ROWS: { key: ScanNutrient; label: string }[] = [
+  { key: 'carbs', label: 'Carboidrati' },
+  { key: 'fat', label: 'Grassi' },
+  { key: 'sugar', label: 'Zuccheri' },
+  { key: 'protein', label: 'Proteine' },
+];
+
+type SimpleStatus = Exclude<ScanStatus, 'ok' | 'not_evaluable'>;
+
+// Stati senza scheda prodotto: icona, titolo e messaggio di default.
+// Il messaggio reale, quando la edge function lo fornisce (campo `error`),
+// ha la precedenza -> testi/logica modificabili lato backend senza aggiornare l'app.
+const SIMPLE_STATES: Record<SimpleStatus, { icon: string; title: string; message: string }> = {
+  product_not_found: {
+    icon: '🔍',
+    title: 'Prodotto non trovato',
+    message:
+      'Questo prodotto non è presente nel nostro archivio. Puoi fotografare la sua tabella nutrizionale per analizzarlo lo stesso.',
+  },
+  no_objective: {
+    icon: '🎯',
+    title: 'Nessun obiettivo impostato',
+    message:
+      'Non risulta un obiettivo di fitness sul tuo profilo. Chiedi al tuo coach in palestra di impostarlo per usare lo scanner.',
+  },
+  invalid_barcode: {
+    icon: '❓',
+    title: 'Codice non riconosciuto',
+    message: 'Inquadra il codice a barre del prodotto e riprova.',
+  },
+  error: {
+    icon: '⚠️',
+    title: 'Si è verificato un problema',
+    message: 'Riprova più tardi.',
+  },
+};
+
+// Arrotonda a 1 decimale e usa la virgola italiana
+const formatNumber = (value: number): string =>
+  String(Math.round(value * 10) / 10).replace('.', ',');
+
+const formatGrams = (value: number | null | undefined): string =>
+  value == null ? '—' : `${formatNumber(value)} g`;
+
+const thresholdLabel = (check: ScanCheck): string =>
+  `${check.comparator === 'max' ? 'max' : 'min'} ${formatNumber(check.threshold)}g`;
+
+// Cattura -> ridimensiona/comprime -> base64. Tabelle: testo piccolo, non
+// scendere troppo come risoluzione; più tentativi per stare sotto un tetto di
+// dimensione (la edge function rifiuta payload troppo grandi).
+async function compressToBase64(uri: string): Promise<string> {
+  const attempts = [
+    { width: 1600, compress: 0.7 },
+    { width: 1280, compress: 0.6 },
+    { width: 1024, compress: 0.5 },
+  ];
+  let last = '';
+  for (const a of attempts) {
+    const ctx = ImageManipulator.ImageManipulator.manipulate(uri);
+    ctx.resize({ width: a.width });
+    const ref = await ctx.renderAsync();
+    const out = await ref.saveAsync({
+      format: SaveFormat.JPEG,
+      compress: a.compress,
+      base64: true,
+    });
+    const b64 = out.base64 ?? '';
+    last = b64;
+    if (b64.length > 0 && b64.length <= 4_500_000) return b64; // ~3.4 MB binari
+  }
+  return last;
+}
 
 export default function FoodScannerComponent() {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
 
   const [cameraVisible, setCameraVisible] = useState(false);
-  const [hasScanned, setHasScanned] = useState(false);
-
   const [resultVisible, setResultVisible] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResponse | null>(null);
-  const { scanProduct, isLoading } = useProductScanner();
+  const [scanMode, setScanMode] = useState<ScanMode>('barcode');
+  const [isCapturing, setIsCapturing] = useState(false);
+  const { scanProduct, scanProductPhoto, isLoading } = useProductScanner();
 
-  const handleOpenCamera = useCallback(async () => {
-    if (!permission || !permission.granted) {
-      const res = await requestPermission();
-      if (!res.granted) {
-        Alert.alert('Permesso negato', 'Non puoi aprire la fotocamera senza autorizzazione.');
-        return;
+  const cameraRef = useRef<CameraView>(null);
+  // Guard SINCRONO contro le scansioni multiple: la camera può emettere
+  // decine di eventi per frame e lo state React è asincrono.
+  const scanGuardRef = useRef(false);
+
+  const busy = isLoading || isCapturing;
+
+  const handleOpenCamera = useCallback(
+    async (mode?: ScanMode) => {
+      if (!permission || !permission.granted) {
+        const res = await requestPermission();
+        if (!res.granted) {
+          Alert.alert('Permesso negato', 'Non puoi aprire la fotocamera senza autorizzazione.');
+          return;
+        }
       }
-    }
-    setHasScanned(false);
-    setCameraVisible(true);
-  }, [permission, requestPermission]);
+      if (mode) setScanMode(mode);
+      scanGuardRef.current = false;
+      setCameraVisible(true);
+    },
+    [permission, requestPermission],
+  );
+
+  const switchMode = useCallback((mode: ScanMode) => {
+    scanGuardRef.current = false;
+    setScanMode(mode);
+  }, []);
 
   const handleBarcodeScanned = useCallback(
     async (result: { data: string; type: string }) => {
-      if (hasScanned || isLoading) return;
-      setHasScanned(true);
+      if (scanGuardRef.current) return;
+      scanGuardRef.current = true;
 
       const response = await scanProduct(result.data);
 
-      if (response) {
-        setScanResult(response);
-        setCameraVisible(false);
-        setResultVisible(true);
-      } else {
-        setTimeout(() => setHasScanned(false), 2000);
-      }
+      setScanResult(response);
+      setCameraVisible(false);
+      setResultVisible(true);
     },
-    [hasScanned, isLoading, scanProduct],
+    [scanProduct],
   );
 
-  const closeResult = () => {
+  const handleTakePhoto = useCallback(async () => {
+    if (busy || scanGuardRef.current || !cameraRef.current) return;
+    scanGuardRef.current = true;
+    setIsCapturing(true);
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
+      if (!photo?.uri) throw new Error('uri mancante');
+      const base64 = await compressToBase64(photo.uri);
+      if (!base64) throw new Error('base64 vuoto');
+      const response = await scanProductPhoto(base64);
+      setScanResult(response);
+      setCameraVisible(false);
+      setResultVisible(true);
+    } catch (err) {
+      if (__DEV__) console.error('Cattura foto fallita:', err);
+      setScanResult({
+        status: 'error',
+        is_allowed: null,
+        scan_mode: 'ocr',
+        error: 'Impossibile scattare la foto. Riprova.',
+      });
+      setCameraVisible(false);
+      setResultVisible(true);
+    } finally {
+      setIsCapturing(false);
+      scanGuardRef.current = false;
+    }
+  }, [busy, scanProductPhoto]);
+
+  const closeResult = useCallback(() => {
     setResultVisible(false);
     setScanResult(null);
-    setHasScanned(false);
+  }, []);
+
+  // Riapre la camera nella modalità corrente. Su iOS presentare un Modal mentre
+  // un altro si sta chiudendo può far fallire la presentazione: piccola attesa.
+  const handleScanAgain = useCallback(() => {
+    setResultVisible(false);
+    setScanResult(null);
+    setTimeout(() => {
+      void handleOpenCamera();
+    }, 400);
+  }, [handleOpenCamera]);
+
+  // Backup: dal "prodotto non trovato" passa alla modalità foto della tabella.
+  const handlePhotoBackup = useCallback(() => {
+    setResultVisible(false);
+    setScanResult(null);
+    setTimeout(() => {
+      void handleOpenCamera('photo');
+    }, 400);
+  }, [handleOpenCamera]);
+
+  // Tabella valori nutrizionali: colonne "per 100 g" / "per porzione",
+  // righe in rosso per i check falliti con la soglia violata accanto al valore.
+  const renderNutritionTable = (result: ScanResponse) => {
+    const nutritionalValues = result.nutritional_values;
+    if (!nutritionalValues) return null;
+
+    const checks = result.checks ?? [];
+    const servingDerived = nutritionalValues.per_serving?.derived === true;
+
+    let showDerivedNote = false;
+
+    const rows = NUTRIENT_ROWS.map(({ key, label }) => {
+      const failed100 = checks.find(
+        (c) => c.nutrient === key && c.basis === 'per_100g' && c.passed === false,
+      );
+      const failedServing = checks.find(
+        (c) => c.nutrient === key && c.basis === 'per_serving' && c.passed === false,
+      );
+      const isFailed = Boolean(failed100 || failedServing);
+
+      const value100 = nutritionalValues.per_100g?.[key];
+      const valueServing = nutritionalValues.per_serving?.[key];
+      const isDerived =
+        valueServing != null &&
+        (servingDerived ||
+          checks.some((c) => c.nutrient === key && c.basis === 'per_serving' && c.value_derived));
+      if (isDerived) showDerivedNote = true;
+
+      return (
+        <View key={key} style={[styles.tableRow, isFailed && styles.tableRowFailed]}>
+          <View style={styles.tableColLabel}>
+            <Text style={[styles.tableLabelText, isFailed && styles.tableTextFailed]}>{label}</Text>
+          </View>
+          <View style={styles.tableColValue}>
+            <Text style={[styles.tableValueText, isFailed && styles.tableTextFailed]}>
+              {formatGrams(value100)}
+            </Text>
+            {failed100 && <Text style={styles.thresholdText}>{thresholdLabel(failed100)}</Text>}
+          </View>
+          <View style={styles.tableColValue}>
+            <Text style={[styles.tableValueText, isFailed && styles.tableTextFailed]}>
+              {formatGrams(valueServing)}
+              {isDerived ? ' *' : ''}
+            </Text>
+            {failedServing && (
+              <Text style={styles.thresholdText}>{thresholdLabel(failedServing)}</Text>
+            )}
+          </View>
+        </View>
+      );
+    });
+
+    return (
+      <>
+        <View style={styles.tableContainer}>
+          <View style={styles.tableHeaderRow}>
+            <View style={styles.tableColLabel}>
+              <Text style={styles.tableHeaderText}>Valori</Text>
+            </View>
+            <View style={styles.tableColValue}>
+              <Text style={styles.tableHeaderText}>per 100 g</Text>
+            </View>
+            <View style={styles.tableColValue}>
+              <Text style={[styles.tableHeaderText, styles.tableHeaderRight]} numberOfLines={1}>
+                per porzione
+              </Text>
+            </View>
+          </View>
+          {rows}
+        </View>
+        {showDerivedNote && <Text style={styles.derivedNote}>* stimato dal peso porzione</Text>}
+      </>
+    );
+  };
+
+  // Stati con scheda prodotto: 'ok' (consentito/non adatto) e 'not_evaluable'
+  const renderProductResult = (result: ScanResponse) => {
+    const isOk = result.status === 'ok';
+    const allowed = result.is_allowed === true;
+    const isOcr = result.scan_mode === 'ocr';
+    const header = isOk
+      ? allowed
+        ? { color: ALLOWED_COLOR, icon: '✅', title: 'Prodotto Consentito' }
+        : { color: REJECTED_COLOR, icon: '🚫', title: 'Prodotto Non Adatto' }
+      : { color: WARNING_COLOR, icon: '⚠️', title: 'Non valutabile' };
+
+    const product = result.product;
+    const productName =
+      product?.name ?? result.product_name ?? (isOcr ? 'Valori dalla foto' : 'Prodotto senza nome');
+    // peso porzione normalizzato ("50 gr" → "50 g"), mostrato nella scheda prodotto
+    const servingGrams = product?.serving_quantity_g ?? null;
+    const servingLabel =
+      servingGrams != null
+        ? `${formatNumber(servingGrams)} g`
+        : (result.nutritional_values?.per_serving?.serving_size ?? product?.serving_size ?? null);
+    // motivi mostrati sia per il verdetto negativo sia per "non valutabile"
+    // (in quel caso dicono esattamente quale dato manca)
+    const showReasons = (isOk && !allowed) || !isOk;
+    const failedReasons = showReasons ? (result.reasons ?? []) : [];
+
+    return (
+      <View style={styles.resultCard}>
+        <View style={[styles.resultHeader, { backgroundColor: header.color }]}>
+          <Text style={styles.resultHeaderIcon}>{header.icon}</Text>
+          <Text style={styles.resultHeaderTitle}>{header.title}</Text>
+          {!isOk && (
+            <Text style={styles.resultHeaderSubtitle}>
+              Mancano alcuni dati nutrizionali necessari per dare un verdetto su questo prodotto.
+            </Text>
+          )}
+        </View>
+
+        <ScrollView style={styles.resultScroll} contentContainerStyle={styles.resultScrollContent}>
+          <View style={styles.productRow}>
+            {product?.image_url ? (
+              <Image
+                source={{ uri: product.image_url }}
+                style={styles.productImage}
+                contentFit="contain"
+              />
+            ) : (
+              <View style={[styles.productImage, styles.productImageFallback]}>
+                <FoodIcon size={28} color={colors.secondary} />
+              </View>
+            )}
+            <View style={styles.productInfo}>
+              <Text style={styles.productName} numberOfLines={2}>
+                {productName}
+              </Text>
+              {product?.brand ? <Text style={styles.productBrand}>{product.brand}</Text> : null}
+              {servingLabel ? (
+                <Text style={styles.productServing}>Porzione: {servingLabel}</Text>
+              ) : null}
+            </View>
+          </View>
+
+          {renderNutritionTable(result)}
+
+          {failedReasons.length > 0 && (
+            <View style={[styles.reasonsContainer, !isOk && styles.reasonsContainerWarning]}>
+              {failedReasons.map((reason, index) => (
+                <Text key={index} style={[styles.reasonText, !isOk && styles.reasonTextWarning]}>
+                  • {reason}
+                </Text>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+
+        <View style={styles.resultActions}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleScanAgain}>
+            <Text style={styles.primaryButtonText}>
+              {scanMode === 'photo' ? "Scatta un'altra foto" : 'Scansiona un altro'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={closeResult}>
+            <Text style={styles.secondaryButtonText}>Chiudi</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  // Stati senza prodotto: product_not_found / no_objective / invalid_barcode / error
+  const renderSimpleResult = (result: ScanResponse) => {
+    const info =
+      result.status in SIMPLE_STATES
+        ? SIMPLE_STATES[result.status as SimpleStatus]
+        : SIMPLE_STATES.error;
+    // messaggio dal backend se presente (thin client), altrimenti default locale
+    const message = result.error ?? info.message;
+    const isNotFound = result.status === 'product_not_found';
+
+    return (
+      <View style={styles.resultCard}>
+        <View style={styles.simpleBody}>
+          <Text style={styles.simpleIcon}>{info.icon}</Text>
+          <Text style={styles.simpleTitle}>{info.title}</Text>
+          <Text style={styles.simpleMessage}>{message}</Text>
+          {isNotFound && result.barcode ? (
+            <Text style={styles.simpleBarcode}>Codice scansionato: {result.barcode}</Text>
+          ) : null}
+        </View>
+
+        <View style={styles.resultActions}>
+          {isNotFound ? (
+            <>
+              <TouchableOpacity style={styles.primaryButton} onPress={handlePhotoBackup}>
+                <Text style={styles.primaryButtonText}>📷 Fotografa la tabella nutrizionale</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryButton} onPress={handleScanAgain}>
+                <Text style={styles.secondaryButtonText}>Riprova col codice</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity style={styles.primaryButton} onPress={handleScanAgain}>
+              <Text style={styles.primaryButtonText}>Riprova</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.secondaryButton} onPress={closeResult}>
+            <Text style={styles.secondaryButtonText}>Chiudi</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
   };
 
   const renderResultContent = () => {
     if (!scanResult) return null;
 
-    const isAllowed = scanResult.is_allowed;
-    const bgColor = isAllowed ? '#4CAF50' : '#EF4444'; // Verde : Rosso
-    const icon = isAllowed ? '✅' : '🚫';
-    const title = isAllowed ? 'Prodotto Consentito' : 'Prodotto Non Adatto';
-
-    return (
-      <View style={[styles.resultContainer, { backgroundColor: bgColor }]}>
-        <View style={styles.resultIconContainer}>
-          <Text style={{ fontSize: 60 }}>{icon}</Text>
-        </View>
-
-        <Text style={styles.resultTitle}>{title}</Text>
-        <Text style={styles.productName}>{scanResult.product_name}</Text>
-
-        <TouchableOpacity style={styles.resultButton} onPress={closeResult}>
-          <Text style={[styles.resultButtonText, { color: bgColor }]}>
-            {isAllowed ? 'Ottimo!' : 'Capito'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
+    if (scanResult.status === 'ok' || scanResult.status === 'not_evaluable') {
+      return renderProductResult(scanResult);
+    }
+    return renderSimpleResult(scanResult);
   };
 
   return (
@@ -96,7 +429,11 @@ export default function FoodScannerComponent() {
         <Text style={styles.title}>Scanner alimenti</Text>
       </View>
 
-      <TouchableOpacity style={styles.scanButton} activeOpacity={0.9} onPress={handleOpenCamera}>
+      <TouchableOpacity
+        style={styles.scanButton}
+        activeOpacity={0.9}
+        onPress={() => handleOpenCamera('barcode')}
+      >
         <View style={styles.buttonContent}>
           <BarCodeIcon size={18} color="#000" />
           <Text style={styles.scanButtonText}>Scansiona prodotto</Text>
@@ -111,19 +448,22 @@ export default function FoodScannerComponent() {
       >
         <View style={styles.cameraContainer}>
           <CameraView
+            ref={cameraRef}
             style={styles.camera}
             facing="back"
             barcodeScannerSettings={{
-              barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'],
+              barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128'],
             }}
-            onBarcodeScanned={handleBarcodeScanned}
+            onBarcodeScanned={scanMode === 'barcode' ? handleBarcodeScanned : undefined}
           />
 
-          {/* Overlay Caricamento durante la scansione */}
-          {isLoading && (
+          {/* Overlay Caricamento durante scansione / lettura */}
+          {busy && (
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="large" color="#ED5192" />
-              <Text style={{ color: 'white', marginTop: 10 }}>Analisi in corso...</Text>
+              <Text style={{ color: 'white', marginTop: 10 }}>
+                {scanMode === 'photo' ? 'Lettura della tabella…' : 'Analisi in corso…'}
+              </Text>
             </View>
           )}
 
@@ -136,14 +476,57 @@ export default function FoodScannerComponent() {
               },
             ]}
           >
-            {/* UI Camera esistente */}
-            {!isLoading && (
+            {!busy && (
               <>
                 <View style={styles.overlayTop}>
-                  <Text style={styles.overlayTitle}>Inquadra il codice a barre</Text>
+                  {/* Toggle modalità: barcode <-> foto tabella */}
+                  <View style={styles.modeToggle}>
+                    <TouchableOpacity
+                      style={[styles.modeChip, scanMode === 'barcode' && styles.modeChipActive]}
+                      onPress={() => switchMode('barcode')}
+                    >
+                      <Text
+                        style={[
+                          styles.modeChipText,
+                          scanMode === 'barcode' && styles.modeChipTextActive,
+                        ]}
+                      >
+                        Barcode
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.modeChip, scanMode === 'photo' && styles.modeChipActive]}
+                      onPress={() => switchMode('photo')}
+                    >
+                      <Text
+                        style={[
+                          styles.modeChipText,
+                          scanMode === 'photo' && styles.modeChipTextActive,
+                        ]}
+                      >
+                        Foto tabella
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.overlayTitle}>
+                    {scanMode === 'photo'
+                      ? 'Inquadra la tabella nutrizionale'
+                      : 'Inquadra il codice a barre'}
+                  </Text>
                 </View>
-                <View style={styles.scanFrame} />
+
+                <View style={[styles.scanFrame, scanMode === 'photo' && styles.scanFramePhoto]} />
+
                 <View style={styles.overlayBottom}>
+                  {scanMode === 'photo' && (
+                    <TouchableOpacity
+                      style={styles.shutterButton}
+                      onPress={handleTakePhoto}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.shutterInner} />
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     style={styles.closeButton}
                     onPress={() => setCameraVisible(false)}
@@ -157,7 +540,7 @@ export default function FoodScannerComponent() {
         </View>
       </Modal>
 
-      {/* --- Modale Risultato (Verde/Rosso) --- */}
+      {/* --- Modale Risultato --- */}
       <Modal
         visible={resultVisible}
         animationType="fade"
@@ -227,8 +610,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     justifyContent: 'space-between',
   },
-  overlayTop: { alignItems: 'center', marginTop: 12 },
+  overlayTop: { alignItems: 'center', marginTop: 12, gap: 14 },
   overlayTitle: { fontFamily: GraphitFonts.GraphitRegular, fontSize: 18, color: '#FFFFFF' },
+  modeToggle: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 999,
+    padding: 4,
+  },
+  modeChip: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  modeChipActive: { backgroundColor: '#ED5192' },
+  modeChipText: {
+    fontFamily: GraphitFonts.GraphitBold,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  modeChipTextActive: { color: '#FFFFFF' },
   scanFrame: {
     alignSelf: 'center',
     width: '100%',
@@ -238,7 +639,24 @@ const styles = StyleSheet.create({
     borderColor: '#ED5192',
     backgroundColor: 'transparent',
   },
-  overlayBottom: { alignItems: 'center' },
+  scanFramePhoto: { height: '45%' },
+  overlayBottom: { alignItems: 'center', gap: 18 },
+  shutterButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  shutterInner: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#FFFFFF',
+  },
   closeButton: {
     backgroundColor: 'rgba(237, 81, 146, 0.4)',
     paddingHorizontal: 24,
@@ -260,76 +678,192 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  resultContainer: {
+  resultCard: {
     width: '100%',
+    maxHeight: '85%',
     borderRadius: 24,
-    padding: 24,
-    alignItems: 'center',
+    backgroundColor: colors.white,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
   },
-  resultIconContainer: {
-    marginBottom: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 50,
-    padding: 10,
-  },
-  resultTitle: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 24,
-    color: '#FFFFFF',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  productName: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 18,
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  reasonsContainer: {
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    width: '100%',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  reasonsTitle: {
-    fontFamily: GraphitFonts.GraphitBold,
-    color: '#FFF',
-    marginBottom: 4,
-  },
-  reasonText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#FFF',
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  macrosContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: 24,
-  },
-  macroText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#FFF',
-    fontSize: 12,
-  },
-  resultButton: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 999,
-    width: '100%',
+  resultHeader: {
     alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 24,
   },
-  resultButtonText: {
+  resultHeaderIcon: { fontSize: 44, marginBottom: 8 },
+  resultHeaderTitle: {
+    fontFamily: GraphitFonts.GraphitBold,
+    fontSize: 22,
+    color: colors.white,
+    textAlign: 'center',
+  },
+  resultHeaderSubtitle: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.95)',
+    textAlign: 'center',
+    marginTop: 6,
+  },
+  resultScroll: { flexGrow: 0 },
+  resultScrollContent: { padding: 20 },
+  productRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  productImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: '#F7F2FA',
+  },
+  productImageFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  productInfo: { flex: 1 },
+  productName: {
     fontFamily: GraphitFonts.GraphitBold,
     fontSize: 16,
+    color: colors.text,
+  },
+  productBrand: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 13,
+    color: '#6B6B6B',
+    marginTop: 2,
+  },
+  productServing: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 12,
+    color: '#6B6B6B',
+    marginTop: 2,
+  },
+  tableContainer: {
+    marginTop: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.gray,
+    overflow: 'hidden',
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F7F2FA',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  tableHeaderText: {
+    fontFamily: GraphitFonts.GraphitBold,
+    fontSize: 12,
+    color: colors.text,
+  },
+  tableHeaderRight: { textAlign: 'right' },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray,
+  },
+  tableRowFailed: { backgroundColor: 'rgba(239, 68, 68, 0.08)' },
+  tableColLabel: { flex: 1.1, justifyContent: 'center' },
+  tableColValue: { flex: 1, alignItems: 'flex-end' },
+  tableLabelText: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 14,
+    color: colors.text,
+  },
+  tableValueText: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 14,
+    color: colors.text,
+  },
+  tableTextFailed: {
+    fontFamily: GraphitFonts.GraphitBold,
+    color: REJECTED_COLOR,
+  },
+  thresholdText: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 11,
+    color: REJECTED_COLOR,
+    marginTop: 2,
+  },
+  derivedNote: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 11,
+    color: '#6B6B6B',
+    marginTop: 8,
+  },
+  reasonsContainer: {
+    marginTop: 14,
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderRadius: 12,
+    padding: 12,
+  },
+  reasonsContainerWarning: { backgroundColor: 'rgba(245, 158, 11, 0.1)' },
+  reasonText: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 13,
+    color: '#B91C1C',
+    marginBottom: 4,
+  },
+  reasonTextWarning: { color: '#92400E' },
+  simpleBody: {
+    alignItems: 'center',
+    padding: 24,
+    paddingBottom: 8,
+  },
+  simpleIcon: { fontSize: 44, marginBottom: 12 },
+  simpleTitle: {
+    fontFamily: GraphitFonts.GraphitBold,
+    fontSize: 20,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  simpleMessage: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 14,
+    color: '#6B6B6B',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  simpleBarcode: {
+    fontFamily: GraphitFonts.GraphitRegular,
+    fontSize: 13,
+    color: colors.text,
+    marginTop: 10,
+  },
+  resultActions: {
+    padding: 20,
+    paddingTop: 8,
+    gap: 10,
+  },
+  primaryButton: {
+    backgroundColor: colors.secondary,
+    borderRadius: 999,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    fontFamily: GraphitFonts.GraphitBold,
+    fontSize: 16,
+    color: colors.white,
+  },
+  secondaryButton: {
+    borderRadius: 999,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontFamily: GraphitFonts.GraphitBold,
+    fontSize: 15,
+    color: '#6B6B6B',
   },
 });

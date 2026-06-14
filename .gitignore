@@ -41,3 +41,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Chiave service account Google Play (mai committare)
+google-service-account.json

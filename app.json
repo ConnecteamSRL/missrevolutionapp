@@ -2,7 +2,7 @@
   "expo": {
     "name": "Miss Revolution",
     "slug": "miss-revolution",
-    "version": "1.2.0",
+    "version": "1.2.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "missrevolution",
@@ -20,9 +20,10 @@
       },
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification"],
-        "NSLocationWhenInUseUsageDescription": "L'app potrebbe utilizzare la posizione per migliorare l'esperienza utente tramite servizi di terze parti."
+        "NSLocationWhenInUseUsageDescription": "L'app potrebbe utilizzare la posizione per migliorare l'esperienza utente tramite servizi di terze parti.",
+        "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "3"
+      "buildNumber": "11"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,7 +34,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.automatiko.missrevolution",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
-      "versionCode": 5
+      "versionCode": 8
     },
     "plugins": [
       "expo-router",
@@ -195,7 +196,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i barcode dei prodotti.",
+          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i barcode dei prodotti e fotografare le tabelle nutrizionali.",
           "microphonePermission": "Permetti $(PRODUCT_NAME) di accedere al microfono",
           "recordAudioAndroid": true
         }

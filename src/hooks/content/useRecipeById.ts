@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { Tables } from '@mr-types/database.types';
 
-export type Recipe = Tables<'v_my_recipes'>;
+export type Recipe = Tables<'v_my_recipes_all_phases'>;
 
 const UI_GENERIC_ERROR = 'Si è verificato un errore. Riprova.';
 
@@ -35,15 +35,20 @@ export function useRecipeById(recipeId?: string | null) {
         setError(null);
 
         const { data, error } = await supabase
-          .from('v_my_recipes')
+          .from('v_my_recipes_all_phases')
           .select('*')
           .eq('id', recipeId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 
         if (reqId === reqIdRef.current) {
-          setData(data ?? null);
+          if (!data) {
+            setData(null);
+            setError('Questa ricetta non è più disponibile.');
+          } else {
+            setData(data);
+          }
         }
       } catch (e: any) {
         console.error('useRecipeById error', e);
