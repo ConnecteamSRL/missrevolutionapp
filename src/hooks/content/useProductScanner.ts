@@ -34,8 +34,38 @@ export const useProductScanner = () => {
     }
   };
 
+  // Modalità foto: invia l'immagine (base64) alla edge function nutrition-photo-scanner.
+  // La function legge la tabella nutrizionale via OpenRouter e ritorna la STESSA
+  // ScanResponse del barcode (stesso confronto con le regole, stessa UI).
+  const scanProductPhoto = async (imageBase64: string): Promise<ScanResponse> => {
+    setIsLoading(true);
+
+    try {
+      const appVersion = Constants.expoConfig?.version;
+
+      const { data, error } = await supabase.functions.invoke('nutrition-photo-scanner', {
+        body: appVersion
+          ? { image_base64: imageBase64, app_version: appVersion }
+          : { image_base64: imageBase64 },
+      });
+
+      if (error || !data) {
+        if (__DEV__) console.error('Supabase Function Error:', error);
+        return ERROR_RESPONSE;
+      }
+
+      return data as ScanResponse;
+    } catch (err) {
+      if (__DEV__) console.error('Errore scanner foto:', err);
+      return ERROR_RESPONSE;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     scanProduct,
+    scanProductPhoto,
     isLoading,
   };
 };

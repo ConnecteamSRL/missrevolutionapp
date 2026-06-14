@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { SaveFormat } from 'expo-image-manipulator';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FoodIcon from '@components/ui/icons/FoodIcon';
@@ -23,6 +25,8 @@ const ALLOWED_COLOR = '#4CAF50'; // Verde
 const REJECTED_COLOR = '#EF4444'; // Rosso
 const WARNING_COLOR = '#F59E0B'; // Ambra (non valutabile)
 
+type ScanMode = 'barcode' | 'photo';
+
 const NUTRIENT_ROWS: { key: ScanNutrient; label: string }[] = [
   { key: 'carbs', label: 'Carboidrati' },
   { key: 'fat', label: 'Grassi' },
@@ -32,12 +36,15 @@ const NUTRIENT_ROWS: { key: ScanNutrient; label: string }[] = [
 
 type SimpleStatus = Exclude<ScanStatus, 'ok' | 'not_evaluable'>;
 
-// Stati senza scheda prodotto: icona, titolo e messaggio
+// Stati senza scheda prodotto: icona, titolo e messaggio di default.
+// Il messaggio reale, quando la edge function lo fornisce (campo `error`),
+// ha la precedenza -> testi/logica modificabili lato backend senza aggiornare l'app.
 const SIMPLE_STATES: Record<SimpleStatus, { icon: string; title: string; message: string }> = {
   product_not_found: {
     icon: '🔍',
     title: 'Prodotto non trovato',
-    message: 'Questo prodotto non è presente nel nostro archivio. Prova a scansionarlo di nuovo.',
+    message:
+      'Questo prodotto non è presente nel nostro archivio. Puoi fotografare la sua tabella nutrizionale per analizzarlo lo stesso.',
   },
   no_objective: {
     icon: '🎯',
@@ -67,6 +74,32 @@ const formatGrams = (value: number | null | undefined): string =>
 const thresholdLabel = (check: ScanCheck): string =>
   `${check.comparator === 'max' ? 'max' : 'min'} ${formatNumber(check.threshold)}g`;
 
+// Cattura -> ridimensiona/comprime -> base64. Tabelle: testo piccolo, non
+// scendere troppo come risoluzione; più tentativi per stare sotto un tetto di
+// dimensione (la edge function rifiuta payload troppo grandi).
+async function compressToBase64(uri: string): Promise<string> {
+  const attempts = [
+    { width: 1600, compress: 0.7 },
+    { width: 1280, compress: 0.6 },
+    { width: 1024, compress: 0.5 },
+  ];
+  let last = '';
+  for (const a of attempts) {
+    const ctx = ImageManipulator.ImageManipulator.manipulate(uri);
+    ctx.resize({ width: a.width });
+    const ref = await ctx.renderAsync();
+    const out = await ref.saveAsync({
+      format: SaveFormat.JPEG,
+      compress: a.compress,
+      base64: true,
+    });
+    const b64 = out.base64 ?? '';
+    last = b64;
+    if (b64.length > 0 && b64.length <= 4_500_000) return b64; // ~3.4 MB binari
+  }
+  return last;
+}
+
 export default function FoodScannerComponent() {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
@@ -74,23 +107,37 @@ export default function FoodScannerComponent() {
   const [cameraVisible, setCameraVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResponse | null>(null);
-  const { scanProduct, isLoading } = useProductScanner();
+  const [scanMode, setScanMode] = useState<ScanMode>('barcode');
+  const [isCapturing, setIsCapturing] = useState(false);
+  const { scanProduct, scanProductPhoto, isLoading } = useProductScanner();
 
+  const cameraRef = useRef<CameraView>(null);
   // Guard SINCRONO contro le scansioni multiple: la camera può emettere
   // decine di eventi per frame e lo state React è asincrono.
   const scanGuardRef = useRef(false);
 
-  const handleOpenCamera = useCallback(async () => {
-    if (!permission || !permission.granted) {
-      const res = await requestPermission();
-      if (!res.granted) {
-        Alert.alert('Permesso negato', 'Non puoi aprire la fotocamera senza autorizzazione.');
-        return;
+  const busy = isLoading || isCapturing;
+
+  const handleOpenCamera = useCallback(
+    async (mode?: ScanMode) => {
+      if (!permission || !permission.granted) {
+        const res = await requestPermission();
+        if (!res.granted) {
+          Alert.alert('Permesso negato', 'Non puoi aprire la fotocamera senza autorizzazione.');
+          return;
+        }
       }
-    }
+      if (mode) setScanMode(mode);
+      scanGuardRef.current = false;
+      setCameraVisible(true);
+    },
+    [permission, requestPermission],
+  );
+
+  const switchMode = useCallback((mode: ScanMode) => {
     scanGuardRef.current = false;
-    setCameraVisible(true);
-  }, [permission, requestPermission]);
+    setScanMode(mode);
+  }, []);
 
   const handleBarcodeScanned = useCallback(
     async (result: { data: string; type: string }) => {
@@ -106,18 +153,56 @@ export default function FoodScannerComponent() {
     [scanProduct],
   );
 
+  const handleTakePhoto = useCallback(async () => {
+    if (busy || scanGuardRef.current || !cameraRef.current) return;
+    scanGuardRef.current = true;
+    setIsCapturing(true);
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
+      if (!photo?.uri) throw new Error('uri mancante');
+      const base64 = await compressToBase64(photo.uri);
+      if (!base64) throw new Error('base64 vuoto');
+      const response = await scanProductPhoto(base64);
+      setScanResult(response);
+      setCameraVisible(false);
+      setResultVisible(true);
+    } catch (err) {
+      if (__DEV__) console.error('Cattura foto fallita:', err);
+      setScanResult({
+        status: 'error',
+        is_allowed: null,
+        scan_mode: 'ocr',
+        error: 'Impossibile scattare la foto. Riprova.',
+      });
+      setCameraVisible(false);
+      setResultVisible(true);
+    } finally {
+      setIsCapturing(false);
+      scanGuardRef.current = false;
+    }
+  }, [busy, scanProductPhoto]);
+
   const closeResult = useCallback(() => {
     setResultVisible(false);
     setScanResult(null);
   }, []);
 
+  // Riapre la camera nella modalità corrente. Su iOS presentare un Modal mentre
+  // un altro si sta chiudendo può far fallire la presentazione: piccola attesa.
   const handleScanAgain = useCallback(() => {
     setResultVisible(false);
     setScanResult(null);
-    // su iOS presentare un Modal mentre un altro si sta chiudendo può far
-    // fallire la presentazione del secondo: piccola attesa tra i due
     setTimeout(() => {
       void handleOpenCamera();
+    }, 400);
+  }, [handleOpenCamera]);
+
+  // Backup: dal "prodotto non trovato" passa alla modalità foto della tabella.
+  const handlePhotoBackup = useCallback(() => {
+    setResultVisible(false);
+    setScanResult(null);
+    setTimeout(() => {
+      void handleOpenCamera('photo');
     }, 400);
   }, [handleOpenCamera]);
 
@@ -200,6 +285,7 @@ export default function FoodScannerComponent() {
   const renderProductResult = (result: ScanResponse) => {
     const isOk = result.status === 'ok';
     const allowed = result.is_allowed === true;
+    const isOcr = result.scan_mode === 'ocr';
     const header = isOk
       ? allowed
         ? { color: ALLOWED_COLOR, icon: '✅', title: 'Prodotto Consentito' }
@@ -207,7 +293,8 @@ export default function FoodScannerComponent() {
       : { color: WARNING_COLOR, icon: '⚠️', title: 'Non valutabile' };
 
     const product = result.product;
-    const productName = product?.name ?? result.product_name ?? 'Prodotto senza nome';
+    const productName =
+      product?.name ?? result.product_name ?? (isOcr ? 'Valori dalla foto' : 'Prodotto senza nome');
     // peso porzione normalizzato ("50 gr" → "50 g"), mostrato nella scheda prodotto
     const servingGrams = product?.serving_quantity_g ?? null;
     const servingLabel =
@@ -270,7 +357,9 @@ export default function FoodScannerComponent() {
 
         <View style={styles.resultActions}>
           <TouchableOpacity style={styles.primaryButton} onPress={handleScanAgain}>
-            <Text style={styles.primaryButtonText}>Scansiona un altro</Text>
+            <Text style={styles.primaryButtonText}>
+              {scanMode === 'photo' ? "Scatta un'altra foto" : 'Scansiona un altro'}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryButton} onPress={closeResult}>
             <Text style={styles.secondaryButtonText}>Chiudi</Text>
@@ -286,22 +375,36 @@ export default function FoodScannerComponent() {
       result.status in SIMPLE_STATES
         ? SIMPLE_STATES[result.status as SimpleStatus]
         : SIMPLE_STATES.error;
+    // messaggio dal backend se presente (thin client), altrimenti default locale
+    const message = result.error ?? info.message;
+    const isNotFound = result.status === 'product_not_found';
 
     return (
       <View style={styles.resultCard}>
         <View style={styles.simpleBody}>
           <Text style={styles.simpleIcon}>{info.icon}</Text>
           <Text style={styles.simpleTitle}>{info.title}</Text>
-          <Text style={styles.simpleMessage}>{info.message}</Text>
-          {result.status === 'product_not_found' && result.barcode ? (
+          <Text style={styles.simpleMessage}>{message}</Text>
+          {isNotFound && result.barcode ? (
             <Text style={styles.simpleBarcode}>Codice scansionato: {result.barcode}</Text>
           ) : null}
         </View>
 
         <View style={styles.resultActions}>
-          <TouchableOpacity style={styles.primaryButton} onPress={handleScanAgain}>
-            <Text style={styles.primaryButtonText}>Riprova</Text>
-          </TouchableOpacity>
+          {isNotFound ? (
+            <>
+              <TouchableOpacity style={styles.primaryButton} onPress={handlePhotoBackup}>
+                <Text style={styles.primaryButtonText}>📷 Fotografa la tabella nutrizionale</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryButton} onPress={handleScanAgain}>
+                <Text style={styles.secondaryButtonText}>Riprova col codice</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity style={styles.primaryButton} onPress={handleScanAgain}>
+              <Text style={styles.primaryButtonText}>Riprova</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.secondaryButton} onPress={closeResult}>
             <Text style={styles.secondaryButtonText}>Chiudi</Text>
           </TouchableOpacity>
@@ -326,7 +429,11 @@ export default function FoodScannerComponent() {
         <Text style={styles.title}>Scanner alimenti</Text>
       </View>
 
-      <TouchableOpacity style={styles.scanButton} activeOpacity={0.9} onPress={handleOpenCamera}>
+      <TouchableOpacity
+        style={styles.scanButton}
+        activeOpacity={0.9}
+        onPress={() => handleOpenCamera('barcode')}
+      >
         <View style={styles.buttonContent}>
           <BarCodeIcon size={18} color="#000" />
           <Text style={styles.scanButtonText}>Scansiona prodotto</Text>
@@ -341,19 +448,22 @@ export default function FoodScannerComponent() {
       >
         <View style={styles.cameraContainer}>
           <CameraView
+            ref={cameraRef}
             style={styles.camera}
             facing="back"
             barcodeScannerSettings={{
               barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128'],
             }}
-            onBarcodeScanned={handleBarcodeScanned}
+            onBarcodeScanned={scanMode === 'barcode' ? handleBarcodeScanned : undefined}
           />
 
-          {/* Overlay Caricamento durante la scansione */}
-          {isLoading && (
+          {/* Overlay Caricamento durante scansione / lettura */}
+          {busy && (
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="large" color="#ED5192" />
-              <Text style={{ color: 'white', marginTop: 10 }}>Analisi in corso...</Text>
+              <Text style={{ color: 'white', marginTop: 10 }}>
+                {scanMode === 'photo' ? 'Lettura della tabella…' : 'Analisi in corso…'}
+              </Text>
             </View>
           )}
 
@@ -366,14 +476,57 @@ export default function FoodScannerComponent() {
               },
             ]}
           >
-            {/* UI Camera esistente */}
-            {!isLoading && (
+            {!busy && (
               <>
                 <View style={styles.overlayTop}>
-                  <Text style={styles.overlayTitle}>Inquadra il codice a barre</Text>
+                  {/* Toggle modalità: barcode <-> foto tabella */}
+                  <View style={styles.modeToggle}>
+                    <TouchableOpacity
+                      style={[styles.modeChip, scanMode === 'barcode' && styles.modeChipActive]}
+                      onPress={() => switchMode('barcode')}
+                    >
+                      <Text
+                        style={[
+                          styles.modeChipText,
+                          scanMode === 'barcode' && styles.modeChipTextActive,
+                        ]}
+                      >
+                        Barcode
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.modeChip, scanMode === 'photo' && styles.modeChipActive]}
+                      onPress={() => switchMode('photo')}
+                    >
+                      <Text
+                        style={[
+                          styles.modeChipText,
+                          scanMode === 'photo' && styles.modeChipTextActive,
+                        ]}
+                      >
+                        Foto tabella
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.overlayTitle}>
+                    {scanMode === 'photo'
+                      ? 'Inquadra la tabella nutrizionale'
+                      : 'Inquadra il codice a barre'}
+                  </Text>
                 </View>
-                <View style={styles.scanFrame} />
+
+                <View style={[styles.scanFrame, scanMode === 'photo' && styles.scanFramePhoto]} />
+
                 <View style={styles.overlayBottom}>
+                  {scanMode === 'photo' && (
+                    <TouchableOpacity
+                      style={styles.shutterButton}
+                      onPress={handleTakePhoto}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.shutterInner} />
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     style={styles.closeButton}
                     onPress={() => setCameraVisible(false)}
@@ -457,8 +610,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     justifyContent: 'space-between',
   },
-  overlayTop: { alignItems: 'center', marginTop: 12 },
+  overlayTop: { alignItems: 'center', marginTop: 12, gap: 14 },
   overlayTitle: { fontFamily: GraphitFonts.GraphitRegular, fontSize: 18, color: '#FFFFFF' },
+  modeToggle: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 999,
+    padding: 4,
+  },
+  modeChip: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  modeChipActive: { backgroundColor: '#ED5192' },
+  modeChipText: {
+    fontFamily: GraphitFonts.GraphitBold,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  modeChipTextActive: { color: '#FFFFFF' },
   scanFrame: {
     alignSelf: 'center',
     width: '100%',
@@ -468,7 +639,24 @@ const styles = StyleSheet.create({
     borderColor: '#ED5192',
     backgroundColor: 'transparent',
   },
-  overlayBottom: { alignItems: 'center' },
+  scanFramePhoto: { height: '45%' },
+  overlayBottom: { alignItems: 'center', gap: 18 },
+  shutterButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  shutterInner: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#FFFFFF',
+  },
   closeButton: {
     backgroundColor: 'rgba(237, 81, 146, 0.4)',
     paddingHorizontal: 24,

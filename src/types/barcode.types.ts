@@ -46,6 +46,7 @@ export interface ScanNutritionalValues {
 export interface ScanResponse {
   status: ScanStatus;
   is_allowed: boolean | null; // null quando non c'è verdetto (not_evaluable e stati non-ok)
+  scan_mode?: 'barcode' | 'ocr'; // sorgente: barcode (OpenFoodFacts) o ocr (foto)
   barcode?: string;
   product_name?: string | null; // top-level (retrocompatibilità)
   user_objective?: string; // es. 'dimagrimento'
