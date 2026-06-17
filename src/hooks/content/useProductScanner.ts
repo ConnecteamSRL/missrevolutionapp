@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Constants from 'expo-constants';
-import { ScanResponse } from '@mr-types/barcode.types';
+import { ScanNutrients, ScanResponse } from '@mr-types/barcode.types';
 import { supabase } from '@/src/lib/supabase';
 
 const ERROR_RESPONSE: ScanResponse = { status: 'error', is_allowed: null };
@@ -63,9 +63,49 @@ export const useProductScanner = () => {
     }
   };
 
+  // Ricalcolo del verdetto con un peso porzione scelto dall'utente (primo
+  // inserimento quando manca la porzione, oppure "mezza barretta"). Rimanda i
+  // SOLI valori per 100g già ricevuti: la edge function non rilegge OpenFoodFacts
+  // né rifà l'OCR, applica la stessa valutazione e ritorna la stessa ScanResponse.
+  const recomputeWithGrams = async (params: {
+    per100: ScanNutrients;
+    grams: number;
+    scanMode?: 'barcode' | 'ocr';
+    servingSizeRaw?: string | null;
+  }): Promise<ScanResponse> => {
+    setIsLoading(true);
+
+    try {
+      const appVersion = Constants.expoConfig?.version;
+
+      const { data, error } = await supabase.functions.invoke('scan-recompute', {
+        body: {
+          per_100g: params.per100,
+          serving_grams: params.grams,
+          scan_mode: params.scanMode ?? 'barcode',
+          serving_size_raw: params.servingSizeRaw ?? null,
+          ...(appVersion ? { app_version: appVersion } : {}),
+        },
+      });
+
+      if (error || !data) {
+        if (__DEV__) console.error('Supabase Function Error:', error);
+        return ERROR_RESPONSE;
+      }
+
+      return data as ScanResponse;
+    } catch (err) {
+      if (__DEV__) console.error('Errore ricalcolo porzione:', err);
+      return ERROR_RESPONSE;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     scanProduct,
     scanProductPhoto,
+    recomputeWithGrams,
     isLoading,
   };
 };
