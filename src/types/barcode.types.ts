@@ -46,6 +46,9 @@ export interface ScanNutritionalValues {
 export interface ScanResponse {
   status: ScanStatus;
   is_allowed: boolean | null; // null quando non c'è verdetto (not_evaluable e stati non-ok)
+  // true quando manca SOLO il peso porzione (ma abbiamo i 100g e l'obiettivo usa
+  // soglie per porzione): l'app chiede i grammi invece di mandare alla foto.
+  needs_serving_grams?: boolean;
   scan_mode?: 'barcode' | 'ocr'; // sorgente: barcode (OpenFoodFacts) o ocr (foto)
   barcode?: string;
   product_name?: string | null; // top-level (retrocompatibilità)
