@@ -12,6 +12,7 @@ import {
 import RenderHTML, {
   CustomBlockRenderer,
   DomVisitorCallbacks,
+  MixedStyleDeclaration,
   MixedStyleRecord,
   useInternalRenderer,
 } from 'react-native-render-html';
@@ -84,11 +85,56 @@ const extractImageSources = (html: string): string[] => {
   return sources;
 };
 
+// Staff often compose content by pasting from Word/Google Docs/PDF, which
+// carries hard-coded inline `color`/`background-color` (dark or even white
+// text, white backgrounds). The render engine applies them verbatim, so the
+// text looks black, or disappears on the pink card. We keep only the brand
+// pink (#ED5192) — the single color the backoffice editor offers — and drop
+// every other inline color/background; the text then falls back to the clean
+// app default (#1F1F1F). See also the matching paste cleanup in the backoffice
+// editor (editor-config.util.ts).
+const BRAND_PINK = '#ed5192';
+const isBrandPinkColor = (value: string): boolean => {
+  const v = value.trim().toLowerCase().replace(/\s+/g, '');
+  return (
+    v === BRAND_PINK ||
+    v === `${BRAND_PINK}ff` ||
+    v === 'rgb(237,81,146)' ||
+    v === 'rgba(237,81,146,1)'
+  );
+};
+const sanitizeInlineStyle = (style: string): string =>
+  style
+    .split(';')
+    .map((decl): string | null => {
+      const i = decl.indexOf(':');
+      if (i === -1) return null;
+      const prop = decl.slice(0, i).trim().toLowerCase();
+      const value = decl.slice(i + 1).trim();
+      if (!prop || !value) return null;
+      if (prop === 'background' || prop === 'background-color') return null;
+      if (prop === 'color' && !isBrandPinkColor(value)) return null;
+      return `${prop}: ${value}`;
+    })
+    .filter((decl): decl is string => decl !== null)
+    .join('; ');
+
 const domVisitors: DomVisitorCallbacks = {
   onElement(element) {
     // Legacy content: images without an explicit width keep filling the card.
     if (element.tagName === 'img' && !element.attribs.width) {
       element.attribs.width = '100%';
+    }
+    // Strip foreign inline colors/backgrounds coming from pasted content.
+    if (element.attribs?.style) {
+      const cleaned = sanitizeInlineStyle(element.attribs.style);
+      if (cleaned) element.attribs.style = cleaned;
+      else delete element.attribs.style;
+    }
+    // Legacy <font color>/<font bgcolor> from old pastes.
+    if (element.tagName === 'font') {
+      delete element.attribs.color;
+      delete element.attribs.bgcolor;
     }
   },
 };
@@ -221,6 +267,17 @@ export default function HtmlContent({
   // proportionally; images and hr are intentionally left untouched.
   const tagsStyles = useMemo<MixedStyleRecord>(() => {
     const s = (value: number) => Math.round(value * multiplier);
+    // The editor only produces <h3>, but pasted content can carry any heading
+    // level: style them all like the brand H3 so they never fall back to plain
+    // body text.
+    const heading: MixedStyleDeclaration = {
+      marginTop: s(8),
+      marginBottom: s(10),
+      color: '#ED5192',
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: s(24),
+      lineHeight: s(24),
+    };
     return {
       body: {
         color: '#1F1F1F',
@@ -255,14 +312,12 @@ export default function HtmlContent({
         marginTop: 10,
         marginBottom: 12,
       },
-      h3: {
-        marginTop: s(8),
-        marginBottom: s(10),
-        color: '#ED5192',
-        fontFamily: GraphitFonts.GraphitBold,
-        fontSize: s(24),
-        lineHeight: s(24),
-      },
+      h1: heading,
+      h2: heading,
+      h3: heading,
+      h4: heading,
+      h5: heading,
+      h6: heading,
     };
   }, [multiplier, cw]);
 
