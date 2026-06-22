@@ -14,7 +14,9 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useChat } from '@/src/hooks/core/useChat';
 import { ChatBubble } from '@components/chat/ChatBubble';
 import { ChatInput } from '@components/chat/ChatInput';
+import ChatPinnedBanner from '@components/chat/ChatPinnedBanner';
 import { useUser } from '@/src/contexts/UserContext';
+import { useGymEditorial } from '@/src/hooks/content/useGymEditorial';
 import { useLocalSearchParams } from 'expo-router';
 
 export default function ChatScreen() {
@@ -30,6 +32,14 @@ export default function ChatScreen() {
 
   const { messages, loading, sending, error, sendMessage } = useChat(gymId, userId);
   const hasAutoSentRef = useRef(false);
+
+  // Banner "messaggio fissato" per-palestra (config in gym_editorial_configs):
+  // mostrato solo se abilitato dallo staff e con HTML non vuoto.
+  const { config: editorial } = useGymEditorial(gymId || undefined);
+  const pinnedHtml =
+    editorial?.pinned_message_enabled && editorial.pinned_message_html?.trim()
+      ? editorial.pinned_message_html
+      : null;
 
   useEffect(() => {
     if (initialMessage && !hasAutoSentRef.current && !loading && gymId && userId) {
@@ -114,6 +124,7 @@ export default function ChatScreen() {
         keyboardVerticalOffset={0}
       >
         <View style={styles.contentContainer}>
+          {pinnedHtml && <ChatPinnedBanner html={pinnedHtml} />}
           <View style={styles.listContainer}>
             {loading ? (
               <View style={styles.centerContainer}>
