@@ -191,6 +191,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 16,
+    // Lista invertita: con pochi messaggi tienili attaccati sotto il banner
+    // (lo spazio vuoto va in fondo, sopra l'input) invece di farli "galleggiare"
+    // in basso lasciando un grande vuoto sotto il banner. Con molti messaggi
+    // il contenuto supera l'altezza e flexGrow/justifyContent non hanno effetto.
+    flexGrow: 1,
+    justifyContent: 'flex-end',
   },
   infoText: {
     marginTop: 12,
