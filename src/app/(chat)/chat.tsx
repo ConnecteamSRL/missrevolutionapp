@@ -19,6 +19,19 @@ import { useUser } from '@/src/contexts/UserContext';
 import { useGymEditorial } from '@/src/hooks/content/useGymEditorial';
 import { useLocalSearchParams } from 'expo-router';
 
+// True se l'HTML ha testo (o immagini) realmente visibile, non solo tag o
+// spazi vuoti (es. "<p></p>", "<p><br></p>", "&nbsp;"): evita di renderizzare
+// il banner come box vuoto quando il contenuto è vuoto.
+const hasVisibleHtml = (html?: string | null): boolean => {
+  if (!html) return false;
+  if (/<img\b/i.test(html)) return true;
+  const text = html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+  return text.length > 0;
+};
+
 export default function ChatScreen() {
   const { me, isUserLoading } = useUser();
   const insets = useSafeAreaInsets();
@@ -34,10 +47,11 @@ export default function ChatScreen() {
   const hasAutoSentRef = useRef(false);
 
   // Banner "messaggio fissato" per-palestra (config in gym_editorial_configs):
-  // mostrato solo se abilitato dallo staff e con HTML non vuoto.
+  // mostrato solo se abilitato dallo staff E con contenuto VISIBILE (non solo
+  // tag/whitespace vuoti tipo "<p></p>"), così il box non resta vuoto in cima.
   const { config: editorial } = useGymEditorial(gymId || undefined);
   const pinnedHtml =
-    editorial?.pinned_message_enabled && editorial.pinned_message_html?.trim()
+    editorial?.pinned_message_enabled && hasVisibleHtml(editorial.pinned_message_html)
       ? editorial.pinned_message_html
       : null;
 

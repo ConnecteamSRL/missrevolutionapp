@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { LayoutChangeEvent, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { GraphitFonts } from '@/src/theme';
+import { LayoutChangeEvent, StyleSheet, useWindowDimensions, View } from 'react-native';
 import HtmlContent from '@components/ui/HtmlContent';
 
 type Props = {
@@ -13,8 +12,9 @@ const HORIZONTAL_CHROME = 60;
 /**
  * Banner "messaggio fissato" mostrato in cima alla schermata chat quando lo
  * staff lo abilita dal backoffice (config per-palestra in gym_editorial_configs).
- * Riusa HtmlContent — stesso renderer/contratto HTML delle schede — con
- * scalableText/enableImageViewer disattivati (è un avviso, non una scheda).
+ * Nessuna intestazione fissa: il contenuto è interamente controllato dallo
+ * staff (HtmlContent — stesso renderer/contratto delle schede). Il box si
+ * adatta al contenuto; chi lo monta (chat.tsx) garantisce html non vuoto.
  */
 export default function ChatPinnedBanner({ html }: Props) {
   const { width: windowWidth } = useWindowDimensions();
@@ -29,10 +29,6 @@ export default function ChatPinnedBanner({ html }: Props) {
 
   return (
     <View style={styles.banner}>
-      <View style={styles.header}>
-        <Text style={styles.pin}>📌</Text>
-        <Text style={styles.headerText}>Messaggio fissato</Text>
-      </View>
       <View onLayout={onContentLayout}>
         <HtmlContent
           html={html}
@@ -52,24 +48,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FFD1E4',
     paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 6,
+    paddingTop: 12,
+    // HtmlContent's last paragraph already carries a ~10px bottom margin, so a
+    // small bottom padding keeps short (1-line) banners visually balanced.
+    paddingBottom: 2,
     marginBottom: 12,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 2,
-  },
-  pin: {
-    fontSize: 13,
-  },
-  headerText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 12,
-    color: '#ED5192',
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
   },
 });
