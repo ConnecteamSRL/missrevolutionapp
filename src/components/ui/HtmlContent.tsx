@@ -119,18 +119,53 @@ const sanitizeInlineStyle = (style: string): string =>
     .filter((decl): decl is string => decl !== null)
     .join('; ');
 
-// react-native-render-html 6.x resolves inline `style` colors at parse time, and
-// mutating attribs.style from domVisitors does NOT reliably take effect — so
-// pasted dark colors kept rendering black. We strip them from the HTML STRING
-// before RenderHTML ever parses it: parser-independent and guaranteed. Keeps the
-// brand pink (handled by sanitizeInlineStyle), drops every other color/background
-// and legacy <font color>/<font bgcolor>.
+// On the React Native build, inline `style` colors are NOT applied by the
+// renderer (react-native-render-html's inline css-processing path is effectively
+// a no-op on-device), while stylesheet styles — tagsStyles/classesStyles — DO
+// apply (e.g. the body text correctly renders #1F1F1F from tagsStyles). So we
+// cannot rely on inline color for anything: this strips EVERY inline color and
+// background from pasted content, and re-expresses the single allowed brand
+// color (#ED5192) as a `mr-pink` CSS class served via classesStyles (the
+// reliable stylesheet path, which also wins over the tag color on <strong>).
+// Also drops legacy <font color>/<font bgcolor>. Runs on the HTML string before
+// RenderHTML parses it. Operates per opening tag so it can move color -> class.
 const stripPastedColorsFromHtml = (html: string): string =>
   html
-    .replace(/style=("|')([\s\S]*?)\1/gi, (_m, q: string, body: string) => {
-      const cleaned = sanitizeInlineStyle(body);
-      return cleaned ? `style=${q}${cleaned}${q}` : '';
-    })
+    .replace(
+      /<([a-zA-Z][\w-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g,
+      (whole: string, tag: string, attrs: string) => {
+        const styleMatch = attrs.match(/\sstyle=("|')([\s\S]*?)\1/i);
+        if (!styleMatch) return whole;
+        let pink = false;
+        const kept = styleMatch[2]
+          .split(';')
+          .map((decl): string | null => {
+            const i = decl.indexOf(':');
+            if (i === -1) return null;
+            const prop = decl.slice(0, i).trim().toLowerCase();
+            const value = decl.slice(i + 1).trim();
+            if (!prop || !value) return null;
+            if (prop === 'background' || prop === 'background-color') return null;
+            if (prop === 'color') {
+              // inline color is a no-op on RN; brand pink is re-applied via class
+              if (isBrandPinkColor(value)) pink = true;
+              return null;
+            }
+            return `${prop}: ${value}`;
+          })
+          .filter((decl): decl is string => decl !== null)
+          .join('; ');
+        let newAttrs = attrs.replace(/\sstyle=("|')[\s\S]*?\1/i, '');
+        if (kept) newAttrs += ` style="${kept}"`;
+        if (pink) {
+          const classMatch = newAttrs.match(/\sclass=("|')([\s\S]*?)\1/i);
+          newAttrs = classMatch
+            ? newAttrs.replace(/\sclass=("|')[\s\S]*?\1/i, ` class="${classMatch[2]} mr-pink"`)
+            : `${newAttrs} class="mr-pink"`;
+        }
+        return `<${tag}${newAttrs}>`;
+      },
+    )
     .replace(/(<font\b[^>]*?)\s+color=("|')[\s\S]*?\2/gi, '$1')
     .replace(/(<font\b[^>]*?)\s+bgcolor=("|')[\s\S]*?\2/gi, '$1');
 
@@ -349,6 +384,9 @@ export default function HtmlContent({
         marginTop: 0,
         marginBottom: Math.round(10 * multiplier),
       },
+      // Brand pink served via a stylesheet class (inline color is a no-op on
+      // RN). stripPastedColorsFromHtml tags brand-pink elements with this class.
+      'mr-pink': { color: '#ED5192' },
     }),
     [multiplier],
   );

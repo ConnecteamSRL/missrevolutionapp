@@ -23,7 +23,7 @@
         "NSLocationWhenInUseUsageDescription": "L'app potrebbe utilizzare la posizione per migliorare l'esperienza utente tramite servizi di terze parti.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "24"
+      "buildNumber": "25"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +34,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.automatiko.missrevolution",
       "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
-      "versionCode": 11
+      "versionCode": 12
     },
     "plugins": [
       "expo-router",
