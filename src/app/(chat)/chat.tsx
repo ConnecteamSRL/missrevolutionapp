@@ -17,6 +17,7 @@ import { ChatInput } from '@components/chat/ChatInput';
 import ChatPinnedBanner from '@components/chat/ChatPinnedBanner';
 import { useUser } from '@/src/contexts/UserContext';
 import { useGymEditorial } from '@/src/hooks/content/useGymEditorial';
+import { useChatUnread } from '@/src/contexts/ChatUnreadContext';
 import { useLocalSearchParams } from 'expo-router';
 
 // True se l'HTML ha testo (o immagini) realmente visibile, non solo tag o
@@ -61,6 +62,13 @@ export default function ChatScreen() {
       sendMessage(initialMessage);
     }
   }, [initialMessage, loading, gymId, userId, sendMessage]);
+
+  // Aprire la chat = leggere i messaggi dello staff: azzera il badge e marca
+  // read_at. Si rilancia ad ogni nuovo messaggio mentre la chat è aperta.
+  const { markChatRead } = useChatUnread();
+  useEffect(() => {
+    void markChatRead();
+  }, [markChatRead, messages.length]);
 
   const formatDateLabel = useCallback((dateStr: string) => {
     const date = new Date(dateStr);

@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { AppConfigProvider, useAppConfig } from '@/src/contexts/AppConfigContext';
 import { UserProvider } from '@/src/contexts/UserContext';
+import { ChatUnreadProvider } from '@/src/contexts/ChatUnreadContext';
 import { useSupabaseAuth } from '@/src/hooks/core/useSupabaseAuth';
 import { useAuthStore } from '@/src/store/authStore';
 import { useContentTextSizeStore } from '@/src/store/contentTextSizeStore';
@@ -116,8 +117,10 @@ export default function RootLayout(): React.ReactElement {
         <ActionSheetProvider>
           <AppConfigProvider>
             <UserProvider>
-              <StatusBar style="dark" />
-              <AppEntryPoint />
+              <ChatUnreadProvider>
+                <StatusBar style="dark" />
+                <AppEntryPoint />
+              </ChatUnreadProvider>
             </UserProvider>
           </AppConfigProvider>
         </ActionSheetProvider>
