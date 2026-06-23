@@ -119,6 +119,21 @@ const sanitizeInlineStyle = (style: string): string =>
     .filter((decl): decl is string => decl !== null)
     .join('; ');
 
+// react-native-render-html 6.x resolves inline `style` colors at parse time, and
+// mutating attribs.style from domVisitors does NOT reliably take effect — so
+// pasted dark colors kept rendering black. We strip them from the HTML STRING
+// before RenderHTML ever parses it: parser-independent and guaranteed. Keeps the
+// brand pink (handled by sanitizeInlineStyle), drops every other color/background
+// and legacy <font color>/<font bgcolor>.
+const stripPastedColorsFromHtml = (html: string): string =>
+  html
+    .replace(/style=("|')([\s\S]*?)\1/gi, (_m, q: string, body: string) => {
+      const cleaned = sanitizeInlineStyle(body);
+      return cleaned ? `style=${q}${cleaned}${q}` : '';
+    })
+    .replace(/(<font\b[^>]*?)\s+color=("|')[\s\S]*?\2/gi, '$1')
+    .replace(/(<font\b[^>]*?)\s+bgcolor=("|')[\s\S]*?\2/gi, '$1');
+
 const domVisitors: DomVisitorCallbacks = {
   onElement(element) {
     // Legacy content: images without an explicit width keep filling the card.
@@ -225,7 +240,10 @@ export default function HtmlContent({
   const level = useContentTextSizeStore((s) => s.level);
   const multiplier = scalableText ? CONTENT_TEXT_SIZE_MULTIPLIERS[level] : 1;
 
-  const source = useMemo(() => ({ html: normalizeHtml(html ?? '') }), [html]);
+  const source = useMemo(
+    () => ({ html: stripPastedColorsFromHtml(normalizeHtml(html ?? '')) }),
+    [html],
+  );
 
   const [viewer, setViewer] = useState({ visible: false, index: 0 });
 
