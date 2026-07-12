@@ -8,6 +8,7 @@ export type CheckupHistoryItem = {
   lean_mass_kg: number | null;
   fat_mass_kg: number | null;
   visceral_fat_level: number | null;
+  photos_enabled: boolean;
 };
 
 export const useCheckupHistory = (userId: string | undefined) => {
@@ -42,7 +43,8 @@ export const useCheckupHistory = (userId: string | undefined) => {
           weight_kg,
           lean_mass_kg,
           fat_mass_kg,
-          visceral_fat_level
+          visceral_fat_level,
+          photos_enabled
         `,
           )
           .eq('user_id', userId)

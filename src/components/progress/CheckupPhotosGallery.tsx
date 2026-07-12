@@ -147,11 +147,21 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
   const [viewerVisible, setViewerVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const orderedCheckups = useMemo(
-    () => [...checkups].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)),
+  const enabledCheckups = useMemo(
+    () =>
+      [...checkups]
+        .filter((checkup) => checkup.photos_enabled)
+        .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)),
     [checkups],
   );
-  const previewPhotos = useMemo(() => photos.filter((photo) => photo.signedUrl), [photos]);
+  const enabledIds = useMemo(
+    () => new Set(enabledCheckups.map((checkup) => checkup.id)),
+    [enabledCheckups],
+  );
+  const previewPhotos = useMemo(
+    () => photos.filter((photo) => photo.signedUrl && enabledIds.has(photo.checkup_id)),
+    [photos, enabledIds],
+  );
   const viewerImages = useMemo(
     () => previewPhotos.map((photo) => ({ uri: photo.signedUrl! })),
     [previewPhotos],
@@ -231,6 +241,10 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
     ]);
   };
 
+  if (enabledCheckups.length === 0) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Foto check-up</Text>
@@ -246,16 +260,7 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      {!isLoading && orderedCheckups.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>
-            Non ci sono ancora check-up. Potrai aggiungere le foto dopo la creazione da parte dello
-            staff.
-          </Text>
-        </View>
-      ) : null}
-
-      {orderedCheckups.map((checkup) => (
+      {enabledCheckups.map((checkup) => (
         <View key={checkup.id} style={styles.checkupCard}>
           <Text style={styles.checkupTitle}>Check-up del {formatDate(checkup.created_at)}</Text>
 
@@ -419,18 +424,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     color: UI.danger,
     fontFamily: GraphitFonts.GraphitMedium,
-  },
-  emptyCard: {
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: UI.border,
-    backgroundColor: UI.miniCardBg,
-  },
-  emptyText: {
-    color: UI.muted,
-    lineHeight: 19,
-    fontFamily: GraphitFonts.GraphitRegular,
   },
   checkupCard: {
     marginBottom: 16,
