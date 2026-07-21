@@ -12,6 +12,7 @@ import {
 import RenderHTML, {
   CustomBlockRenderer,
   DomVisitorCallbacks,
+  MixedStyleDeclaration,
   MixedStyleRecord,
   useInternalRenderer,
 } from 'react-native-render-html';
@@ -84,11 +85,106 @@ const extractImageSources = (html: string): string[] => {
   return sources;
 };
 
+// Staff often compose content by pasting from Word/Google Docs/PDF, which
+// carries hard-coded inline `color`/`background-color` (dark or even white
+// text, white backgrounds). The render engine applies them verbatim, so the
+// text looks black, or disappears on the pink card. We keep only the brand
+// pink (#ED5192) — the single color the backoffice editor offers — and drop
+// every other inline color/background; the text then falls back to the clean
+// app default (#1F1F1F). See also the matching paste cleanup in the backoffice
+// editor (editor-config.util.ts).
+const BRAND_PINK = '#ed5192';
+const isBrandPinkColor = (value: string): boolean => {
+  const v = value.trim().toLowerCase().replace(/\s+/g, '');
+  return (
+    v === BRAND_PINK ||
+    v === `${BRAND_PINK}ff` ||
+    v === 'rgb(237,81,146)' ||
+    v === 'rgba(237,81,146,1)'
+  );
+};
+const sanitizeInlineStyle = (style: string): string =>
+  style
+    .split(';')
+    .map((decl): string | null => {
+      const i = decl.indexOf(':');
+      if (i === -1) return null;
+      const prop = decl.slice(0, i).trim().toLowerCase();
+      const value = decl.slice(i + 1).trim();
+      if (!prop || !value) return null;
+      if (prop === 'background' || prop === 'background-color') return null;
+      if (prop === 'color' && !isBrandPinkColor(value)) return null;
+      return `${prop}: ${value}`;
+    })
+    .filter((decl): decl is string => decl !== null)
+    .join('; ');
+
+// On the React Native build, inline `style` colors are NOT applied by the
+// renderer (react-native-render-html's inline css-processing path is effectively
+// a no-op on-device), while stylesheet styles — tagsStyles/classesStyles — DO
+// apply (e.g. the body text correctly renders #1F1F1F from tagsStyles). So we
+// cannot rely on inline color for anything: this strips EVERY inline color and
+// background from pasted content, and re-expresses the single allowed brand
+// color (#ED5192) as a `mr-pink` CSS class served via classesStyles (the
+// reliable stylesheet path, which also wins over the tag color on <strong>).
+// Also drops legacy <font color>/<font bgcolor>. Runs on the HTML string before
+// RenderHTML parses it. Operates per opening tag so it can move color -> class.
+const stripPastedColorsFromHtml = (html: string): string =>
+  html
+    .replace(
+      /<([a-zA-Z][\w-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/g,
+      (whole: string, tag: string, attrs: string) => {
+        const styleMatch = attrs.match(/\sstyle=("|')([\s\S]*?)\1/i);
+        if (!styleMatch) return whole;
+        let pink = false;
+        const kept = styleMatch[2]
+          .split(';')
+          .map((decl): string | null => {
+            const i = decl.indexOf(':');
+            if (i === -1) return null;
+            const prop = decl.slice(0, i).trim().toLowerCase();
+            const value = decl.slice(i + 1).trim();
+            if (!prop || !value) return null;
+            if (prop === 'background' || prop === 'background-color') return null;
+            if (prop === 'color') {
+              // inline color is a no-op on RN; brand pink is re-applied via class
+              if (isBrandPinkColor(value)) pink = true;
+              return null;
+            }
+            return `${prop}: ${value}`;
+          })
+          .filter((decl): decl is string => decl !== null)
+          .join('; ');
+        let newAttrs = attrs.replace(/\sstyle=("|')[\s\S]*?\1/i, '');
+        if (kept) newAttrs += ` style="${kept}"`;
+        if (pink) {
+          const classMatch = newAttrs.match(/\sclass=("|')([\s\S]*?)\1/i);
+          newAttrs = classMatch
+            ? newAttrs.replace(/\sclass=("|')[\s\S]*?\1/i, ` class="${classMatch[2]} mr-pink"`)
+            : `${newAttrs} class="mr-pink"`;
+        }
+        return `<${tag}${newAttrs}>`;
+      },
+    )
+    .replace(/(<font\b[^>]*?)\s+color=("|')[\s\S]*?\2/gi, '$1')
+    .replace(/(<font\b[^>]*?)\s+bgcolor=("|')[\s\S]*?\2/gi, '$1');
+
 const domVisitors: DomVisitorCallbacks = {
   onElement(element) {
     // Legacy content: images without an explicit width keep filling the card.
     if (element.tagName === 'img' && !element.attribs.width) {
       element.attribs.width = '100%';
+    }
+    // Strip foreign inline colors/backgrounds coming from pasted content.
+    if (element.attribs?.style) {
+      const cleaned = sanitizeInlineStyle(element.attribs.style);
+      if (cleaned) element.attribs.style = cleaned;
+      else delete element.attribs.style;
+    }
+    // Legacy <font color>/<font bgcolor> from old pastes.
+    if (element.tagName === 'font') {
+      delete element.attribs.color;
+      delete element.attribs.bgcolor;
     }
   },
 };
@@ -179,7 +275,10 @@ export default function HtmlContent({
   const level = useContentTextSizeStore((s) => s.level);
   const multiplier = scalableText ? CONTENT_TEXT_SIZE_MULTIPLIERS[level] : 1;
 
-  const source = useMemo(() => ({ html: normalizeHtml(html ?? '') }), [html]);
+  const source = useMemo(
+    () => ({ html: stripPastedColorsFromHtml(normalizeHtml(html ?? '')) }),
+    [html],
+  );
 
   const [viewer, setViewer] = useState({ visible: false, index: 0 });
 
@@ -221,6 +320,17 @@ export default function HtmlContent({
   // proportionally; images and hr are intentionally left untouched.
   const tagsStyles = useMemo<MixedStyleRecord>(() => {
     const s = (value: number) => Math.round(value * multiplier);
+    // The editor only produces <h3>, but pasted content can carry any heading
+    // level: style them all like the brand H3 so they never fall back to plain
+    // body text.
+    const heading: MixedStyleDeclaration = {
+      marginTop: s(8),
+      marginBottom: s(10),
+      color: '#ED5192',
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: s(24),
+      lineHeight: s(24),
+    };
     return {
       body: {
         color: '#1F1F1F',
@@ -255,14 +365,12 @@ export default function HtmlContent({
         marginTop: 10,
         marginBottom: 12,
       },
-      h3: {
-        marginTop: s(8),
-        marginBottom: s(10),
-        color: '#ED5192',
-        fontFamily: GraphitFonts.GraphitBold,
-        fontSize: s(24),
-        lineHeight: s(24),
-      },
+      h1: heading,
+      h2: heading,
+      h3: heading,
+      h4: heading,
+      h5: heading,
+      h6: heading,
     };
   }, [multiplier, cw]);
 
@@ -276,6 +384,9 @@ export default function HtmlContent({
         marginTop: 0,
         marginBottom: Math.round(10 * multiplier),
       },
+      // Brand pink served via a stylesheet class (inline color is a no-op on
+      // RN). stripPastedColorsFromHtml tags brand-pink elements with this class.
+      'mr-pink': { color: '#ED5192' },
     }),
     [multiplier],
   );

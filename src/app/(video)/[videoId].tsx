@@ -13,6 +13,7 @@ import { Check, CircleCheck, Clock, Video } from 'lucide-react-native';
 
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
+import DocumentsSection from '@components/core/DocumentsSection';
 import Badge from '@components/ui/Badge';
 
 import { colors, GraphitFonts } from '@/src/theme';
@@ -299,6 +300,8 @@ export default function VideoDetailScreen() {
                   ) : null}
                 </View>
               </View>
+
+              <DocumentsSection assignmentId={video.id} />
             </>
           )}
         </ScrollView>

@@ -1097,6 +1097,7 @@ export type Database = {
           id: string;
           lean_mass_kg: number | null;
           notes: string | null;
+          photos_enabled: boolean;
           updated_at: string;
           user_id: string;
           visceral_fat_level: number | null;
@@ -1109,6 +1110,7 @@ export type Database = {
           id?: string;
           lean_mass_kg?: number | null;
           notes?: string | null;
+          photos_enabled?: boolean;
           updated_at?: string;
           user_id: string;
           visceral_fat_level?: number | null;
@@ -1121,6 +1123,7 @@ export type Database = {
           id?: string;
           lean_mass_kg?: number | null;
           notes?: string | null;
+          photos_enabled?: boolean;
           updated_at?: string;
           user_id?: string;
           visceral_fat_level?: number | null;

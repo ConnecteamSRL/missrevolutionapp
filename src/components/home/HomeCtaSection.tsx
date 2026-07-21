@@ -5,9 +5,11 @@ import SurveyCtaIcon from '@components/ui/icons/SurveyCtaIcon';
 import FaqCtaIcon from '@components/ui/icons/FaqCtaIcon';
 import VideoCtaIcon from '@components/ui/icons/VideoCtaIcon';
 import { useRouter } from 'expo-router';
+import { useChatUnread } from '@/src/contexts/ChatUnreadContext';
 
 export default function HomeCtaSection() {
   const router = useRouter();
+  const { unreadCount } = useChatUnread();
   return (
     <View style={styles.gridContainer}>
       <View style={styles.row}>
@@ -44,6 +46,7 @@ export default function HomeCtaSection() {
             gradientColors={['#FFCDBF', '#FFCDBF']}
             icon={<ChatCtaIcon size={20} />}
             onPress={() => router.push('/(chat)/chat')}
+            badgeCount={unreadCount}
           />
         </View>
       </View>

@@ -8,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { AppConfigProvider, useAppConfig } from '@/src/contexts/AppConfigContext';
 import { UserProvider } from '@/src/contexts/UserContext';
+import { ChatUnreadProvider } from '@/src/contexts/ChatUnreadContext';
 import { useSupabaseAuth } from '@/src/hooks/core/useSupabaseAuth';
 import { useAuthStore } from '@/src/store/authStore';
 import { useContentTextSizeStore } from '@/src/store/contentTextSizeStore';
@@ -81,6 +82,7 @@ const AppEntryPoint: React.FC = () => {
         <Stack.Screen name="video/index" />
         <Stack.Screen name="video/[categoryId]" />
         <Stack.Screen name="(video)/[videoId]" />
+        <Stack.Screen name="document-viewer" options={{ presentation: 'modal' }} />
         <Stack.Screen name="faq" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="profile" />
@@ -116,8 +118,10 @@ export default function RootLayout(): React.ReactElement {
         <ActionSheetProvider>
           <AppConfigProvider>
             <UserProvider>
-              <StatusBar style="dark" />
-              <AppEntryPoint />
+              <ChatUnreadProvider>
+                <StatusBar style="dark" />
+                <AppEntryPoint />
+              </ChatUnreadProvider>
             </UserProvider>
           </AppConfigProvider>
         </ActionSheetProvider>

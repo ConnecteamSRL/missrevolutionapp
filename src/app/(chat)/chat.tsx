@@ -14,8 +14,24 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useChat } from '@/src/hooks/core/useChat';
 import { ChatBubble } from '@components/chat/ChatBubble';
 import { ChatInput } from '@components/chat/ChatInput';
+import ChatPinnedBanner from '@components/chat/ChatPinnedBanner';
 import { useUser } from '@/src/contexts/UserContext';
+import { useGymEditorial } from '@/src/hooks/content/useGymEditorial';
+import { useChatUnread } from '@/src/contexts/ChatUnreadContext';
 import { useLocalSearchParams } from 'expo-router';
+
+// True se l'HTML ha testo (o immagini) realmente visibile, non solo tag o
+// spazi vuoti (es. "<p></p>", "<p><br></p>", "&nbsp;"): evita di renderizzare
+// il banner come box vuoto quando il contenuto è vuoto.
+const hasVisibleHtml = (html?: string | null): boolean => {
+  if (!html) return false;
+  if (/<img\b/i.test(html)) return true;
+  const text = html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .trim();
+  return text.length > 0;
+};
 
 export default function ChatScreen() {
   const { me, isUserLoading } = useUser();
@@ -31,12 +47,28 @@ export default function ChatScreen() {
   const { messages, loading, sending, error, sendMessage } = useChat(gymId, userId);
   const hasAutoSentRef = useRef(false);
 
+  // Banner "messaggio fissato" per-palestra (config in gym_editorial_configs):
+  // mostrato solo se abilitato dallo staff E con contenuto VISIBILE (non solo
+  // tag/whitespace vuoti tipo "<p></p>"), così il box non resta vuoto in cima.
+  const { config: editorial } = useGymEditorial(gymId || undefined);
+  const pinnedHtml =
+    editorial?.pinned_message_enabled && hasVisibleHtml(editorial.pinned_message_html)
+      ? editorial.pinned_message_html
+      : null;
+
   useEffect(() => {
     if (initialMessage && !hasAutoSentRef.current && !loading && gymId && userId) {
       hasAutoSentRef.current = true;
       sendMessage(initialMessage);
     }
   }, [initialMessage, loading, gymId, userId, sendMessage]);
+
+  // Aprire la chat = leggere i messaggi dello staff: azzera il badge e marca
+  // read_at. Si rilancia ad ogni nuovo messaggio mentre la chat è aperta.
+  const { markChatRead } = useChatUnread();
+  useEffect(() => {
+    void markChatRead();
+  }, [markChatRead, messages.length]);
 
   const formatDateLabel = useCallback((dateStr: string) => {
     const date = new Date(dateStr);
@@ -114,6 +146,7 @@ export default function ChatScreen() {
         keyboardVerticalOffset={0}
       >
         <View style={styles.contentContainer}>
+          {pinnedHtml && <ChatPinnedBanner html={pinnedHtml} />}
           <View style={styles.listContainer}>
             {loading ? (
               <View style={styles.centerContainer}>
@@ -166,6 +199,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 16,
+    // Lista invertita: con pochi messaggi tienili attaccati sotto il banner
+    // (lo spazio vuoto va in fondo, sopra l'input) invece di farli "galleggiare"
+    // in basso lasciando un grande vuoto sotto il banner. Con molti messaggi
+    // il contenuto supera l'altezza e flexGrow/justifyContent non hanno effetto.
+    flexGrow: 1,
+    justifyContent: 'flex-end',
   },
   infoText: {
     marginTop: 12,

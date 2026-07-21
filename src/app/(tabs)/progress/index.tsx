@@ -1,5 +1,12 @@
-import React, { useMemo } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useUser } from '@/src/contexts/UserContext';
 import { GraphitFonts } from '@/src/theme';
 import { CheckupPhotosGallery } from '@components/progress/CheckupPhotosGallery';
@@ -11,6 +18,8 @@ import {
   type Series,
 } from '@components/progress/MetricChartCard';
 import { CheckupHistoryItem, useCheckupHistory } from '@/src/hooks/progress/useCheckupHistory';
+import { useCheckupPhotos } from '@/src/hooks/progress/useCheckupPhotos';
+import { useRefreshOnFocus } from '@/src/hooks/core/useRefreshOnFocus';
 
 const UI = {
   background: '#FCF0FB',
@@ -72,7 +81,20 @@ const buildSeries = (history: CheckupHistoryItem[], key: ChartDataKey): Series =
 
 const ProgressScreen: React.FC = () => {
   const { me } = useUser();
-  const { history, isLoading, error } = useCheckupHistory(me?.user_id);
+  const {
+    history,
+    isLoading,
+    refreshing: historyRefreshing,
+    error,
+    refresh: refreshHistory,
+  } = useCheckupHistory(me?.user_id);
+  const checkupPhotos = useCheckupPhotos(me?.user_id);
+
+  const refresh = useCallback(() => {
+    void Promise.all([refreshHistory(), checkupPhotos.refresh()]);
+  }, [checkupPhotos, refreshHistory]);
+
+  useRefreshOnFocus(refresh);
 
   const objective = me?.profile?.current_objective ?? null;
 
@@ -94,6 +116,8 @@ const ProgressScreen: React.FC = () => {
     return out;
   }, [orderedHistory]);
 
+  const pageRefreshing = historyRefreshing || checkupPhotos.refreshing;
+
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -112,7 +136,13 @@ const ProgressScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl refreshing={pageRefreshing} onRefresh={refresh} tintColor="#C388F0" />
+      }
+    >
       <WeightSummaryCard lastWeight={lastWeight} objective={objective} />
 
       {chartConfigs.map((cfg, i) => (
@@ -125,7 +155,15 @@ const ProgressScreen: React.FC = () => {
         />
       ))}
 
-      <CheckupPhotosGallery userId={me?.user_id} />
+      <CheckupPhotosGallery
+        checkups={orderedHistory}
+        photos={checkupPhotos.photos}
+        isLoading={checkupPhotos.isLoading}
+        error={checkupPhotos.error}
+        uploadPhoto={checkupPhotos.uploadPhoto}
+        replacePhoto={checkupPhotos.replacePhoto}
+        deletePhoto={checkupPhotos.deletePhoto}
+      />
     </ScrollView>
   );
 };
