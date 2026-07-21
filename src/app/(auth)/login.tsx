@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
+import { Eye, EyeOff } from 'lucide-react-native';
 
 import { supabase } from '@/src/lib/supabase';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
@@ -26,6 +27,7 @@ const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [isValid, setIsValid] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const logo = require('../../../assets/images/logo-ext.png');
 
@@ -115,18 +117,33 @@ const LoginScreen: React.FC = () => {
               onSubmitEditing={() => Keyboard.dismiss()}
             />
 
-            <TextInput
-              onChange={handlePasswordChange}
-              value={password}
-              secureTextEntry
-              placeholder="Password"
-              placeholderTextColor={'#9CA3AF'}
-              autoCapitalize="none"
-              style={[styles.input, styles.secureInput]}
-              editable={!loading}
-              returnKeyType="done"
-              onSubmitEditing={Keyboard.dismiss}
-            />
+            <View style={styles.passwordField}>
+              <TextInput
+                onChange={handlePasswordChange}
+                value={password}
+                secureTextEntry={!showPassword}
+                placeholder="Password"
+                placeholderTextColor={'#9CA3AF'}
+                autoCapitalize="none"
+                style={[styles.input, !showPassword && styles.secureInput, styles.passwordInput]}
+                editable={!loading}
+                returnKeyType="done"
+                onSubmitEditing={Keyboard.dismiss}
+              />
+              <TouchableOpacity
+                style={styles.passwordVisibilityButton}
+                onPress={() => setShowPassword((visible) => !visible)}
+                disabled={loading}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Nascondi password' : 'Mostra password'}
+              >
+                {showPassword ? (
+                  <EyeOff size={21} color="#6B7280" />
+                ) : (
+                  <Eye size={21} color="#6B7280" />
+                )}
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity onPress={handleForgotPassword} disabled={loading}>
               <Text style={styles.forgotPassword}>Hai dimenticato la password?</Text>
@@ -192,6 +209,17 @@ const styles = StyleSheet.create({
   },
   secureInput: {
     ...(Platform.OS === 'android' && { fontFamily: undefined }),
+  },
+  passwordField: { position: 'relative' },
+  passwordInput: { paddingRight: 52 },
+  passwordVisibilityButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   forgotPassword: {
     textAlign: 'right',

@@ -1,9 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { File as LocalFile, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import * as WebBrowser from 'expo-web-browser';
 import { Download, File, FileSpreadsheet, FileText, Presentation } from 'lucide-react-native';
 import { GraphitFonts } from '@/src/theme';
 import { supabase } from '@/src/lib/supabase';
@@ -64,6 +63,7 @@ function DocumentIcon({ objectPath }: { objectPath: string | null }) {
 }
 
 export default function DocumentsSection({ assignmentId }: Props) {
+  const router = useRouter();
   const { data, error, refetch } = useAttachments(assignmentId);
   const isFirstFocus = useRef(true);
   const [downloadingPath, setDownloadingPath] = useState<string | null>(null);
@@ -82,16 +82,19 @@ export default function DocumentsSection({ assignmentId }: Props) {
     }, [refetch]),
   );
 
-  const openDocument = useCallback(async (doc: Attachment) => {
-    const url = documentUrl(doc);
-    if (!url) return;
-    try {
-      await WebBrowser.openBrowserAsync(url);
-    } catch (e) {
-      console.error('Failed to open document', doc.object_path, e);
-      Alert.alert('Errore', 'Impossibile aprire il documento.');
-    }
-  }, []);
+  const openDocument = useCallback(
+    (doc: Attachment) => {
+      if (!doc.object_path) return;
+      router.push({
+        pathname: '/document-viewer',
+        params: {
+          objectPath: doc.object_path,
+          title: downloadFileName(doc),
+        },
+      });
+    },
+    [router],
+  );
 
   const downloadDocument = useCallback(async (doc: Attachment) => {
     const url = documentUrl(doc);
