@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Keyboard,
@@ -21,10 +21,15 @@ import * as Linking from 'expo-linking';
 import { supabase } from '@/src/lib/supabase';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
 import { useAuthStore } from '@/src/store/authStore';
 
 const SetPasswordScreen: React.FC = () => {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const { signOut } = useAuthStore();
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -188,7 +193,7 @@ const SetPasswordScreen: React.FC = () => {
   if (isInitializing) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.secondary} />
+        <ActivityIndicator size="large" color={theme.secondary} />
       </View>
     );
   }
@@ -266,62 +271,63 @@ const SetPasswordScreen: React.FC = () => {
 
 export default SetPasswordScreen;
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, padding: 20 },
-  logoContainer: { alignItems: 'center', marginBottom: 30, marginTop: 40 },
-  logo: { width: 150, height: 55 },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginBottom: 40,
-    marginTop: 8,
-    paddingHorizontal: 20,
-  },
-  form: { gap: 15 },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    backgroundColor: colors.white,
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.text,
-  },
-  secureInput: {
-    ...(Platform.OS === 'android' && { fontFamily: undefined }),
-  },
-  button: {
-    alignItems: 'center',
-    backgroundColor: colors.secondary,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 20,
-    marginTop: 10,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: colors.white,
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-    fontSize: 12,
-    marginTop: 10,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    container: { flex: 1, padding: 20 },
+    logoContainer: { alignItems: 'center', marginBottom: 30, marginTop: 40 },
+    logo: { width: 150, height: 55 },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+    subtitle: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: '#666',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginBottom: 40,
+      marginTop: 8,
+      paddingHorizontal: 20,
+    },
+    form: { gap: 15 },
+    input: {
+      height: 50,
+      borderWidth: 1,
+      borderColor: '#E6E6E6',
+      borderRadius: 8,
+      paddingHorizontal: 15,
+      backgroundColor: colors.white,
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: colors.text,
+    },
+    secureInput: {
+      ...(Platform.OS === 'android' && { fontFamily: undefined }),
+    },
+    button: {
+      alignItems: 'center',
+      backgroundColor: theme.secondary,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      borderRadius: 20,
+      marginTop: 10,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: {
+      color: colors.white,
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+    },
+    errorText: {
+      color: 'red',
+      textAlign: 'center',
+      fontSize: 12,
+      marginTop: 10,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+  });

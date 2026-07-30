@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Keyboard,
@@ -20,9 +20,14 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '@/src/lib/supabase';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
 
 const LoginScreen: React.FC = () => {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -175,82 +180,83 @@ const LoginScreen: React.FC = () => {
 
 export default LoginScreen;
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  container: { flex: 1, padding: 20 },
-  logoContainer: { alignItems: 'center', marginBottom: 40, marginTop: 20 },
-  logo: { width: 150, height: 55 },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginBottom: 40,
-    marginTop: 8,
-  },
-  form: { gap: 15 },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    backgroundColor: colors.white,
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.text,
-  },
-  secureInput: {
-    ...(Platform.OS === 'android' && { fontFamily: undefined }),
-  },
-  passwordField: { position: 'relative' },
-  passwordInput: { paddingRight: 52 },
-  passwordVisibilityButton: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    width: 50,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  forgotPassword: {
-    textAlign: 'right',
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    marginBottom: 20,
-  },
-  button: {
-    alignItems: 'center',
-    backgroundColor: colors.secondary,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.white, fontFamily: GraphitFonts.GraphitRegular, fontSize: 16 },
-  footer: {
-    marginTop: 'auto',
-    alignItems: 'center',
-    paddingBottom: 10,
-  },
-  footerText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#888',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  linkText: {
-    color: colors.secondary,
-    textDecorationLine: 'underline',
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
+    container: { flex: 1, padding: 20 },
+    logoContainer: { alignItems: 'center', marginBottom: 40, marginTop: 20 },
+    logo: { width: 150, height: 55 },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+    subtitle: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: '#666',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginBottom: 40,
+      marginTop: 8,
+    },
+    form: { gap: 15 },
+    input: {
+      height: 50,
+      borderWidth: 1,
+      borderColor: '#E6E6E6',
+      borderRadius: 8,
+      paddingHorizontal: 15,
+      backgroundColor: colors.white,
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: colors.text,
+    },
+    secureInput: {
+      ...(Platform.OS === 'android' && { fontFamily: undefined }),
+    },
+    passwordField: { position: 'relative' },
+    passwordInput: { paddingRight: 52 },
+    passwordVisibilityButton: {
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      width: 50,
+      height: 50,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    forgotPassword: {
+      textAlign: 'right',
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      marginBottom: 20,
+    },
+    button: {
+      alignItems: 'center',
+      backgroundColor: theme.secondary,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      borderRadius: 20,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: { color: colors.white, fontFamily: GraphitFonts.GraphitRegular, fontSize: 16 },
+    footer: {
+      marginTop: 'auto',
+      alignItems: 'center',
+      paddingBottom: 10,
+    },
+    footerText: {
+      textAlign: 'center',
+      fontSize: 12,
+      color: '#888',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    linkText: {
+      color: theme.secondary,
+      textDecorationLine: 'underline',
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+  });

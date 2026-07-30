@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { VideoItem } from '@mr-types/video.types';
 import Badge from '@components/ui/Badge';
-import { GraphitFonts } from '@/src/theme';
-import { colors } from '@/src/theme/colors';
+import { GraphitFonts, withAlpha } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import ClockIcon from '@components/ui/icons/ClockIcon';
 import { Check } from 'lucide-react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -25,6 +26,9 @@ const formatDuration = (seconds: number | null) => {
 };
 
 export default function VideoCard({ video, categoryName, onPress }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const formattedDuration = formatDuration(video.duration_seconds ?? null);
   const scale = useSharedValue(1);
 
@@ -118,102 +122,103 @@ export default function VideoCard({ video, categoryName, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 20,
-    padding: 12,
-    marginBottom: 16,
-    backgroundColor: colors.primary,
-  },
-  thumbnailWrapper: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    position: 'relative',
-    marginBottom: 8,
-  },
-  thumbnail: {
-    width: '100%',
-    height: 180,
-  },
-  thumbnailPlaceholder: {
-    backgroundColor: 'rgba(255,255,255,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  thumbnailPlaceholderText: {
-    fontSize: 12,
-    color: '#555',
-  },
-  playOverlay: {
-    position: 'absolute',
-    inset: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  playCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(237, 81, 146, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  playIcon: {
-    fontSize: 22,
-    color: '#fff',
-    marginLeft: 2,
-  },
-  durationBadgeLeft: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    columnGap: 6,
-  },
-  durationText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  completedBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#4CAF50',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  progressBarTrack: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#ED5192',
-    borderRadius: 2,
-  },
-  content: {
-    flexDirection: 'column',
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#fff',
-    marginBottom: 10,
-  },
-  badgeWrapper: {
-    alignSelf: 'flex-start',
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    card: {
+      borderRadius: 20,
+      padding: 12,
+      marginBottom: 16,
+      backgroundColor: theme.primary,
+    },
+    thumbnailWrapper: {
+      borderRadius: 16,
+      overflow: 'hidden',
+      position: 'relative',
+      marginBottom: 8,
+    },
+    thumbnail: {
+      width: '100%',
+      height: 180,
+    },
+    thumbnailPlaceholder: {
+      backgroundColor: 'rgba(255,255,255,0.4)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    thumbnailPlaceholderText: {
+      fontSize: 12,
+      color: '#555',
+    },
+    playOverlay: {
+      position: 'absolute',
+      inset: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    playCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: withAlpha(theme.secondary, 0.4),
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    playIcon: {
+      fontSize: 22,
+      color: '#fff',
+      marginLeft: 2,
+    },
+    durationBadgeLeft: {
+      position: 'absolute',
+      top: 8,
+      left: 8,
+      backgroundColor: 'rgba(0,0,0,0.2)',
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      flexDirection: 'row',
+      alignItems: 'center',
+      columnGap: 6,
+    },
+    durationText: {
+      fontSize: 14,
+      color: '#FFFFFF',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    completedBadge: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      backgroundColor: '#4CAF50',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    progressBarTrack: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: 4,
+      backgroundColor: 'rgba(255,255,255,0.3)',
+    },
+    progressBarFill: {
+      height: '100%',
+      backgroundColor: theme.secondary,
+      borderRadius: 2,
+    },
+    content: {
+      flexDirection: 'column',
+    },
+    title: {
+      fontSize: 18,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: theme.onPrimary,
+      marginBottom: 10,
+    },
+    badgeWrapper: {
+      alignSelf: 'flex-start',
+    },
+  });

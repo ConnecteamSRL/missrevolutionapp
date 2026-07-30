@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { GraphitFonts } from '@/src/theme';
 
 interface MaintenanceScreenProps {
@@ -8,6 +9,8 @@ interface MaintenanceScreenProps {
 }
 
 export const MaintenanceScreen: React.FC<MaintenanceScreenProps> = ({ message }) => {
+  const theme = useTheme();
+
   return (
     <View style={styles.container}>
       <BackgroundGradientComponent />
@@ -20,7 +23,7 @@ export const MaintenanceScreen: React.FC<MaintenanceScreenProps> = ({ message })
 
       {!!message?.trim() && <Text style={styles.message}>{message}</Text>}
 
-      <ActivityIndicator size="large" color="#C388F0" style={{ marginTop: 28 }} />
+      <ActivityIndicator size="large" color={theme.accent} style={{ marginTop: 28 }} />
     </View>
   );
 };

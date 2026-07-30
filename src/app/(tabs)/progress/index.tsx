@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useUser } from '@/src/contexts/UserContext';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { GraphitFonts } from '@/src/theme';
 import { CheckupPhotosGallery } from '@components/progress/CheckupPhotosGallery';
 import WeightSummaryCard from '@components/progress/WeightSummaryCard';
@@ -22,7 +23,6 @@ import { useCheckupPhotos } from '@/src/hooks/progress/useCheckupPhotos';
 import { useRefreshOnFocus } from '@/src/hooks/core/useRefreshOnFocus';
 
 const UI = {
-  background: '#FCF0FB',
   text: '#1F1F1F',
   danger: '#D00000',
 };
@@ -80,6 +80,7 @@ const buildSeries = (history: CheckupHistoryItem[], key: ChartDataKey): Series =
 };
 
 const ProgressScreen: React.FC = () => {
+  const theme = useTheme();
   const { me } = useUser();
   const {
     history,
@@ -121,7 +122,7 @@ const ProgressScreen: React.FC = () => {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={'#C388F0'} />
+        <ActivityIndicator size="large" color={theme.accent} />
         <Text style={styles.centerText}>Caricamento progressi...</Text>
       </View>
     );
@@ -140,7 +141,7 @@ const ProgressScreen: React.FC = () => {
       style={styles.container}
       contentContainerStyle={styles.content}
       refreshControl={
-        <RefreshControl refreshing={pageRefreshing} onRefresh={refresh} tintColor="#C388F0" />
+        <RefreshControl refreshing={pageRefreshing} onRefresh={refresh} tintColor={theme.accent} />
       }
     >
       <WeightSummaryCard lastWeight={lastWeight} objective={objective} />
@@ -169,7 +170,9 @@ const ProgressScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: UI.background },
+  // Trasparenti: la sfumatura del tema e' gia' disegnata dal layout
+  // (BackgroundGradientComponent). Uno sfondo pieno qui la coprirebbe.
+  container: { flex: 1, backgroundColor: 'transparent' },
   content: { paddingHorizontal: PAGE_PAD, paddingVertical: 16, paddingBottom: 40 },
 
   center: {
@@ -177,7 +180,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    backgroundColor: UI.background,
+    backgroundColor: 'transparent',
   },
   centerText: {
     marginTop: 10,

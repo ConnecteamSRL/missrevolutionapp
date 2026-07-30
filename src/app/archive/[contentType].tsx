@@ -15,6 +15,8 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import PhaseInfoBanner from '@components/core/PhaseInfoBanner';
 import ArrowCircleRight from '@components/ui/icons/ArrowCircleRightIcon';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { supabase } from '@/src/lib/supabase';
 import { useUser } from '@/src/contexts/UserContext';
 import {
@@ -73,6 +75,9 @@ const pickFirst = (v: string | string[] | undefined) =>
   typeof v === 'string' ? v : Array.isArray(v) ? v[0] : undefined;
 
 export default function OtherPhasesArchiveScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const params = useLocalSearchParams<{ contentType?: string | string[] }>();
   const rawType = pickFirst(params.contentType);
   const contentType: ContentType | null =
@@ -178,7 +183,7 @@ export default function OtherPhasesArchiveScreen() {
       <ContentScreenLayout title={config.title}>
         {loading ? (
           <View style={styles.centered}>
-            <ActivityIndicator size="large" color={'#C388F0'} />
+            <ActivityIndicator size="large" color={theme.accent} />
             <Text style={styles.centerText}>Caricamento...</Text>
           </View>
         ) : error ? (
@@ -202,7 +207,7 @@ export default function OtherPhasesArchiveScreen() {
                   void refetchMe();
                   load(true);
                 }}
-                tintColor={'#C388F0'}
+                tintColor={theme.accent}
               />
             }
             ListHeaderComponent={
@@ -243,70 +248,71 @@ export default function OtherPhasesArchiveScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    root: { flex: 1 },
 
-  listContent: { paddingBottom: 40 },
+    listContent: { paddingBottom: 40 },
 
-  sectionTitle: {
-    fontSize: 16,
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitBold,
-    marginTop: 14,
-    marginBottom: 10,
-  },
+    sectionTitle: {
+      fontSize: 16,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitBold,
+      marginTop: 14,
+      marginBottom: 10,
+    },
 
-  card: {
-    marginBottom: 14,
-    backgroundColor: '#F1F1F4',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E0E0E6',
-    paddingVertical: 26,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  cardTitle: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1F1F1F',
-    fontFamily: GraphitFonts.GraphitRegular,
-    lineHeight: 20,
-  },
+    card: {
+      marginBottom: 14,
+      backgroundColor: '#F1F1F4',
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: '#E0E0E6',
+      paddingVertical: 26,
+      paddingHorizontal: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    cardTitle: {
+      flex: 1,
+      fontSize: 14,
+      color: '#1F1F1F',
+      fontFamily: GraphitFonts.GraphitRegular,
+      lineHeight: 20,
+    },
 
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  centerText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#1F1F1F',
-    textAlign: 'center',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#D00000',
-    textAlign: 'center',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginBottom: 12,
-  },
-  retryBtn: {
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  retryBtnText: { fontSize: 14, color: '#ED5192', fontFamily: GraphitFonts.GraphitBold },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
+    centerText: {
+      marginTop: 10,
+      fontSize: 14,
+      color: '#1F1F1F',
+      textAlign: 'center',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    errorText: {
+      fontSize: 14,
+      color: '#D00000',
+      textAlign: 'center',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginBottom: 12,
+    },
+    retryBtn: {
+      borderRadius: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    retryBtnText: { fontSize: 14, color: theme.secondary, fontFamily: GraphitFonts.GraphitBold },
 
-  emptyWrap: { paddingTop: 26, paddingHorizontal: 10, alignItems: 'center' },
-  emptyTitle: {
-    fontSize: 15,
-    color: '#1F1F1F',
-    fontFamily: GraphitFonts.GraphitBold,
-    textAlign: 'center',
-  },
-});
+    emptyWrap: { paddingTop: 26, paddingHorizontal: 10, alignItems: 'center' },
+    emptyTitle: {
+      fontSize: 15,
+      color: '#1F1F1F',
+      fontFamily: GraphitFonts.GraphitBold,
+      textAlign: 'center',
+    },
+  });

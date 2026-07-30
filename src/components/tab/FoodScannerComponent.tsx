@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   BackHandler,
@@ -19,8 +19,10 @@ import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import FoodIcon from '@components/ui/icons/FoodIcon';
 import BarCodeIcon from '@components/ui/icons/BarCodeIcon';
-import { colors, GraphitFonts } from '@/src/theme';
+import { colors, GraphitFonts, withAlpha } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { ScanCheck, ScanNutrient, ScanResponse, ScanStatus } from '@mr-types/barcode.types';
+import { AppTheme } from '@mr-types/theme.types';
 import { useProductScanner } from '@/src/hooks/content/useProductScanner';
 
 // Colori verdetto (coerenti col resto dell'app)
@@ -111,6 +113,8 @@ async function compressToBase64(uri: string): Promise<string> {
 
 export default function FoodScannerComponent() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [permission, requestPermission] = useCameraPermissions();
 
   const [cameraVisible, setCameraVisible] = useState(false);
@@ -411,7 +415,7 @@ export default function FoodScannerComponent() {
                 maxLength={4}
                 autoFocus
                 editable={!busy}
-                selectionColor={colors.secondary}
+                selectionColor={theme.secondary}
               />
               <Text style={styles.gramsDisplayUnit}>g</Text>
             </View>
@@ -504,7 +508,7 @@ export default function FoodScannerComponent() {
               />
             ) : (
               <View style={[styles.productImage, styles.productImageFallback]}>
-                <FoodIcon size={28} color={colors.secondary} />
+                <FoodIcon size={28} color={theme.secondary} />
               </View>
             )}
             <View style={styles.productInfo}>
@@ -647,7 +651,7 @@ export default function FoodScannerComponent() {
   return (
     <View style={styles.container}>
       <View style={styles.titleWrapper}>
-        <FoodIcon size={36} color="#ED5192" />
+        <FoodIcon size={36} color={theme.secondary} />
         <Text style={styles.title}>Scanner alimenti</Text>
       </View>
 
@@ -682,7 +686,7 @@ export default function FoodScannerComponent() {
           {/* Overlay Caricamento durante scansione / lettura */}
           {busy && (
             <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color="#ED5192" />
+              <ActivityIndicator size="large" color={theme.secondary} />
               <Text style={{ color: 'white', marginTop: 10 }}>
                 {scanMode === 'photo' ? 'Lettura della tabella…' : 'Analisi in corso…'}
               </Text>
@@ -778,439 +782,440 @@ export default function FoodScannerComponent() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 20,
-    width: '100%',
-    minHeight: 140,
-    flexGrow: 0,
-    flexShrink: 0,
-    alignSelf: 'stretch',
-  },
-  titleWrapper: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 22,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.white,
-  },
-  scanButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 999,
-    paddingHorizontal: 26,
-    paddingVertical: 18,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    columnGap: 8,
-  },
-  scanButtonText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-    color: '#000',
-  },
-  cameraContainer: { flex: 1, backgroundColor: '#000' },
-  camera: { flex: 1 },
-  cameraOverlay: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    paddingHorizontal: 24,
-    justifyContent: 'space-between',
-  },
-  overlayTop: { alignItems: 'center', marginTop: 12, gap: 14 },
-  overlayTitle: { fontFamily: GraphitFonts.GraphitRegular, fontSize: 18, color: '#FFFFFF' },
-  modeToggle: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderRadius: 999,
-    padding: 4,
-  },
-  modeChip: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 999,
-  },
-  modeChipActive: { backgroundColor: '#ED5192' },
-  modeChipText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  modeChipTextActive: { color: '#FFFFFF' },
-  scanFrame: {
-    alignSelf: 'center',
-    width: '100%',
-    height: '20%',
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#ED5192',
-    backgroundColor: 'transparent',
-  },
-  scanFramePhoto: { height: '45%' },
-  overlayBottom: { alignItems: 'center', gap: 18 },
-  shutterButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 4,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.25)',
-  },
-  shutterInner: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: '#FFFFFF',
-  },
-  closeButton: {
-    backgroundColor: 'rgba(237, 81, 146, 0.4)',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  closeButtonText: { fontFamily: GraphitFonts.GraphitBold, color: '#FFF', fontSize: 16 },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  modalBackground: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  resultCard: {
-    width: '100%',
-    maxHeight: '85%',
-    borderRadius: 24,
-    backgroundColor: colors.white,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-  },
-  resultHeader: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-  },
-  resultHeaderIcon: { fontSize: 44, marginBottom: 8 },
-  resultHeaderTitle: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 22,
-    color: colors.white,
-    textAlign: 'center',
-  },
-  resultHeaderSubtitle: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.95)',
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  resultScroll: { flexGrow: 0 },
-  resultScrollContent: { padding: 20 },
-  productRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  productImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    backgroundColor: '#F7F2FA',
-  },
-  productImageFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  productInfo: { flex: 1 },
-  productName: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 16,
-    color: colors.text,
-  },
-  productBrand: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 13,
-    color: '#6B6B6B',
-    marginTop: 2,
-  },
-  productServing: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 12,
-    color: '#6B6B6B',
-    marginTop: 2,
-  },
-  tableContainer: {
-    marginTop: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.gray,
-    overflow: 'hidden',
-  },
-  tableHeaderRow: {
-    flexDirection: 'row',
-    backgroundColor: '#F7F2FA',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  tableHeaderText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 12,
-    color: colors.text,
-  },
-  tableHeaderRight: { textAlign: 'right' },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.gray,
-  },
-  tableRowFailed: { backgroundColor: 'rgba(239, 68, 68, 0.08)' },
-  tableColLabel: { flex: 1.1, justifyContent: 'center' },
-  tableColValue: { flex: 1, alignItems: 'flex-end' },
-  tableLabelText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    color: colors.text,
-  },
-  tableValueText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    color: colors.text,
-  },
-  tableTextFailed: {
-    fontFamily: GraphitFonts.GraphitBold,
-    color: REJECTED_COLOR,
-  },
-  thresholdText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 11,
-    color: REJECTED_COLOR,
-    marginTop: 2,
-  },
-  derivedNote: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 11,
-    color: '#6B6B6B',
-    marginTop: 8,
-  },
-  // Variante outline coerente coi pill (stesso raggio/padding dei primari)
-  outlineButton: {
-    borderRadius: 999,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.secondary,
-    backgroundColor: 'rgba(237,81,146,0.06)',
-  },
-  outlineButtonText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 15,
-    color: colors.secondary,
-  },
-  // Popup dedicato peso porzione
-  gramsDialogRoot: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(17,17,17,0.55)',
-  },
-  gramsScroll: { flex: 1 },
-  gramsScrollContent: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-  },
-  gramsDialogCard: {
-    width: '100%',
-    maxWidth: 380,
-    backgroundColor: colors.white,
-    borderRadius: 28,
-    paddingTop: 24,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.28,
-    shadowRadius: 24,
-    elevation: 14,
-  },
-  gramsBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(237,81,146,0.10)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-  gramsBadgeIcon: { fontSize: 28 },
-  gramsDialogTitle: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 19,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  gramsDialogSubtitle: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 13,
-    color: '#6B6B6B',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  gramsDisplay: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    alignSelf: 'stretch',
-    marginTop: 22,
-    paddingBottom: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: '#EFE6F2',
-  },
-  gramsDisplayInput: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 46,
-    color: colors.text,
-    textAlign: 'center',
-    minWidth: 90,
-    padding: 0,
-    includeFontPadding: false,
-  },
-  gramsDisplayUnit: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 22,
-    color: '#9CA3AF',
-    marginLeft: 8,
-    marginBottom: 8,
-  },
-  gramsConfirmBtn: {
-    alignSelf: 'stretch',
-    marginTop: 24,
-    backgroundColor: colors.secondary,
-    borderRadius: 999,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.secondary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  gramsConfirmBtnDisabled: { opacity: 0.45 },
-  gramsConfirmText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 16,
-    color: colors.white,
-  },
-  gramsCancelBtn: {
-    alignSelf: 'stretch',
-    marginTop: 10,
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  gramsCancelText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 14,
-    color: '#9CA3AF',
-  },
-  reasonsContainer: {
-    marginTop: 14,
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-    borderRadius: 12,
-    padding: 12,
-  },
-  reasonsContainerWarning: { backgroundColor: 'rgba(245, 158, 11, 0.1)' },
-  reasonText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 13,
-    color: '#B91C1C',
-    marginBottom: 4,
-  },
-  reasonTextWarning: { color: '#92400E' },
-  simpleBody: {
-    alignItems: 'center',
-    padding: 24,
-    paddingBottom: 8,
-  },
-  simpleIcon: { fontSize: 44, marginBottom: 12 },
-  simpleTitle: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 20,
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  simpleMessage: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    color: '#6B6B6B',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  simpleBarcode: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 13,
-    color: colors.text,
-    marginTop: 10,
-  },
-  resultActions: {
-    padding: 20,
-    paddingTop: 8,
-    gap: 10,
-  },
-  primaryButton: {
-    backgroundColor: colors.secondary,
-    borderRadius: 999,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 16,
-    color: colors.white,
-  },
-  secondaryButton: {
-    borderRadius: 999,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 15,
-    color: '#6B6B6B',
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      paddingHorizontal: 20,
+      paddingVertical: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.primary,
+      borderRadius: 20,
+      width: '100%',
+      minHeight: 140,
+      flexGrow: 0,
+      flexShrink: 0,
+      alignSelf: 'stretch',
+    },
+    titleWrapper: {
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 22,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: theme.onPrimary,
+    },
+    scanButton: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 999,
+      paddingHorizontal: 26,
+      paddingVertical: 18,
+      width: '100%',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      columnGap: 8,
+    },
+    scanButtonText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+      color: '#000',
+    },
+    cameraContainer: { flex: 1, backgroundColor: '#000' },
+    camera: { flex: 1 },
+    cameraOverlay: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      paddingHorizontal: 24,
+      justifyContent: 'space-between',
+    },
+    overlayTop: { alignItems: 'center', marginTop: 12, gap: 14 },
+    overlayTitle: { fontFamily: GraphitFonts.GraphitRegular, fontSize: 18, color: '#FFFFFF' },
+    modeToggle: {
+      flexDirection: 'row',
+      backgroundColor: 'rgba(0,0,0,0.45)',
+      borderRadius: 999,
+      padding: 4,
+    },
+    modeChip: {
+      paddingHorizontal: 20,
+      paddingVertical: 8,
+      borderRadius: 999,
+    },
+    modeChipActive: { backgroundColor: theme.secondary },
+    modeChipText: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.8)',
+    },
+    modeChipTextActive: { color: '#FFFFFF' },
+    scanFrame: {
+      alignSelf: 'center',
+      width: '100%',
+      height: '20%',
+      borderRadius: 20,
+      borderWidth: 2,
+      borderColor: theme.secondary,
+      backgroundColor: 'transparent',
+    },
+    scanFramePhoto: { height: '45%' },
+    overlayBottom: { alignItems: 'center', gap: 18 },
+    shutterButton: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      borderWidth: 4,
+      borderColor: '#FFFFFF',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,0.25)',
+    },
+    shutterInner: {
+      width: 54,
+      height: 54,
+      borderRadius: 27,
+      backgroundColor: '#FFFFFF',
+    },
+    closeButton: {
+      backgroundColor: withAlpha(theme.secondary, 0.4),
+      paddingHorizontal: 24,
+      paddingVertical: 10,
+      borderRadius: 999,
+    },
+    closeButtonText: { fontFamily: GraphitFonts.GraphitBold, color: '#FFF', fontSize: 16 },
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
+    },
+    modalBackground: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    resultCard: {
+      width: '100%',
+      maxHeight: '85%',
+      borderRadius: 24,
+      backgroundColor: colors.white,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4.65,
+      elevation: 8,
+    },
+    resultHeader: {
+      alignItems: 'center',
+      paddingVertical: 20,
+      paddingHorizontal: 24,
+    },
+    resultHeaderIcon: { fontSize: 44, marginBottom: 8 },
+    resultHeaderTitle: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 22,
+      color: colors.white,
+      textAlign: 'center',
+    },
+    resultHeaderSubtitle: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.95)',
+      textAlign: 'center',
+      marginTop: 6,
+    },
+    resultScroll: { flexGrow: 0 },
+    resultScrollContent: { padding: 20 },
+    productRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    productImage: {
+      width: 64,
+      height: 64,
+      borderRadius: 12,
+      backgroundColor: theme.surface,
+    },
+    productImageFallback: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    productInfo: { flex: 1 },
+    productName: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 16,
+      color: colors.text,
+    },
+    productBrand: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 13,
+      color: '#6B6B6B',
+      marginTop: 2,
+    },
+    productServing: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 12,
+      color: '#6B6B6B',
+      marginTop: 2,
+    },
+    tableContainer: {
+      marginTop: 16,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.gray,
+      overflow: 'hidden',
+    },
+    tableHeaderRow: {
+      flexDirection: 'row',
+      backgroundColor: theme.surface,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+    },
+    tableHeaderText: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 12,
+      color: colors.text,
+    },
+    tableHeaderRight: { textAlign: 'right' },
+    tableRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.gray,
+    },
+    tableRowFailed: { backgroundColor: 'rgba(239, 68, 68, 0.08)' },
+    tableColLabel: { flex: 1.1, justifyContent: 'center' },
+    tableColValue: { flex: 1, alignItems: 'flex-end' },
+    tableLabelText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      color: colors.text,
+    },
+    tableValueText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      color: colors.text,
+    },
+    tableTextFailed: {
+      fontFamily: GraphitFonts.GraphitBold,
+      color: REJECTED_COLOR,
+    },
+    thresholdText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 11,
+      color: REJECTED_COLOR,
+      marginTop: 2,
+    },
+    derivedNote: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 11,
+      color: '#6B6B6B',
+      marginTop: 8,
+    },
+    // Variante outline coerente coi pill (stesso raggio/padding dei primari)
+    outlineButton: {
+      borderRadius: 999,
+      paddingVertical: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1.5,
+      borderColor: theme.secondary,
+      backgroundColor: withAlpha(theme.secondary, 0.06),
+    },
+    outlineButtonText: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 15,
+      color: theme.secondary,
+    },
+    // Popup dedicato peso porzione
+    gramsDialogRoot: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(17,17,17,0.55)',
+    },
+    gramsScroll: { flex: 1 },
+    gramsScrollContent: {
+      flexGrow: 1,
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      paddingBottom: 24,
+    },
+    gramsDialogCard: {
+      width: '100%',
+      maxWidth: 380,
+      backgroundColor: colors.white,
+      borderRadius: 28,
+      paddingTop: 24,
+      paddingBottom: 20,
+      paddingHorizontal: 24,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.28,
+      shadowRadius: 24,
+      elevation: 14,
+    },
+    gramsBadge: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: withAlpha(theme.secondary, 0.1),
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 14,
+    },
+    gramsBadgeIcon: { fontSize: 28 },
+    gramsDialogTitle: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 19,
+      color: colors.text,
+      textAlign: 'center',
+    },
+    gramsDialogSubtitle: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 13,
+      color: '#6B6B6B',
+      textAlign: 'center',
+      marginTop: 4,
+    },
+    gramsDisplay: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      alignSelf: 'stretch',
+      marginTop: 22,
+      paddingBottom: 8,
+      borderBottomWidth: 2,
+      borderBottomColor: theme.border,
+    },
+    gramsDisplayInput: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 46,
+      color: colors.text,
+      textAlign: 'center',
+      minWidth: 90,
+      padding: 0,
+      includeFontPadding: false,
+    },
+    gramsDisplayUnit: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 22,
+      color: '#9CA3AF',
+      marginLeft: 8,
+      marginBottom: 8,
+    },
+    gramsConfirmBtn: {
+      alignSelf: 'stretch',
+      marginTop: 24,
+      backgroundColor: theme.secondary,
+      borderRadius: 999,
+      paddingVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: theme.secondary,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    gramsConfirmBtnDisabled: { opacity: 0.45 },
+    gramsConfirmText: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 16,
+      color: colors.white,
+    },
+    gramsCancelBtn: {
+      alignSelf: 'stretch',
+      marginTop: 10,
+      paddingVertical: 8,
+      alignItems: 'center',
+    },
+    gramsCancelText: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 14,
+      color: '#9CA3AF',
+    },
+    reasonsContainer: {
+      marginTop: 14,
+      backgroundColor: 'rgba(239, 68, 68, 0.08)',
+      borderRadius: 12,
+      padding: 12,
+    },
+    reasonsContainerWarning: { backgroundColor: 'rgba(245, 158, 11, 0.1)' },
+    reasonText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 13,
+      color: '#B91C1C',
+      marginBottom: 4,
+    },
+    reasonTextWarning: { color: '#92400E' },
+    simpleBody: {
+      alignItems: 'center',
+      padding: 24,
+      paddingBottom: 8,
+    },
+    simpleIcon: { fontSize: 44, marginBottom: 12 },
+    simpleTitle: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 20,
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: 8,
+    },
+    simpleMessage: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      color: '#6B6B6B',
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    simpleBarcode: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 13,
+      color: colors.text,
+      marginTop: 10,
+    },
+    resultActions: {
+      padding: 20,
+      paddingTop: 8,
+      gap: 10,
+    },
+    primaryButton: {
+      backgroundColor: theme.secondary,
+      borderRadius: 999,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    primaryButtonText: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 16,
+      color: colors.white,
+    },
+    secondaryButton: {
+      borderRadius: 999,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    secondaryButtonText: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 15,
+      color: '#6B6B6B',
+    },
+  });

@@ -17,10 +17,15 @@ import OtpBoxesInput from '@components/auth/OtpBoxesInput';
 import { supabase } from '@/src/lib/supabase';
 import { useAuthStore } from '@/src/store/authStore';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 
 export default function ResetPasswordScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const params = useLocalSearchParams<{ email?: string }>();
   const email = (params.email ?? '').toString().trim().toLowerCase();
 
@@ -147,51 +152,52 @@ export default function ResetPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  container: { flex: 1, padding: 20, justifyContent: 'center' },
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitBold,
-    marginBottom: 10,
-  },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginBottom: 20,
-  },
-  form: { gap: 14 },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    backgroundColor: colors.white,
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.text,
-  },
-  secureInput: {
-    ...(Platform.OS === 'android' && { fontFamily: undefined }),
-  },
-  button: {
-    alignItems: 'center',
-    backgroundColor: colors.secondary,
-    paddingVertical: 12,
-    borderRadius: 20,
-    marginTop: 8,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  cancelButton: { alignItems: 'center', marginTop: 6 },
-  cancelText: { color: '#999', fontFamily: GraphitFonts.GraphitRegular },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
+    container: { flex: 1, padding: 20, justifyContent: 'center' },
+    title: {
+      fontSize: 24,
+      textAlign: 'center',
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitBold,
+      marginBottom: 10,
+    },
+    subtitle: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: '#666',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginBottom: 20,
+    },
+    form: { gap: 14 },
+    input: {
+      height: 50,
+      borderWidth: 1,
+      borderColor: '#E6E6E6',
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      backgroundColor: colors.white,
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: colors.text,
+    },
+    secureInput: {
+      ...(Platform.OS === 'android' && { fontFamily: undefined }),
+    },
+    button: {
+      alignItems: 'center',
+      backgroundColor: theme.secondary,
+      paddingVertical: 12,
+      borderRadius: 20,
+      marginTop: 8,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    cancelButton: { alignItems: 'center', marginTop: 6 },
+    cancelText: { color: '#999', fontFamily: GraphitFonts.GraphitRegular },
+  });

@@ -52,7 +52,11 @@ export const UserProvider: React.FC<Props> = ({ children }) => {
     try {
       const { data, error } = await supabase.rpc('me_detailed');
       if (error) throw error;
-      setMe(data ?? null);
+      // me_detailed e' `returns jsonb`, quindi i tipi generati si fermano a
+      // Json e overrideTypes rifiuta di restringerlo (Json comprende anche
+      // Json[]): il passaggio da unknown e' l'unico modo di dichiarare qui la
+      // forma vera. Si toglie se la funzione passera' a un tipo composito.
+      setMe((data as unknown as MeDetailed | null) ?? null);
     } catch (err) {
       console.error('Errore nel recupero di me_detailed', err);
       setError('Errore durante il caricamento dei dati utente');

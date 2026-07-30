@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
+import { Tables } from '@mr-types/database.types';
 
-type GymEditorialConfig = {
-  banner_key: string | null;
-  // Banner "messaggio fissato" in cima alla chat (aggiunti dalla migrazione
-  // 20260622120000_chat_pinned_message). Opzionali: assenti finché la
-  // migrazione non è applicata / i tipi non sono rigenerati.
-  pinned_message_enabled?: boolean | null;
-  pinned_message_html?: string | null;
-};
+// La tabella tiene il solo messaggio in evidenza della chat: i banner sono del
+// brand e stanno su app_config (migrazione 20260730095937_banner_globali_su_app_config).
+type GymEditorialConfig = Tables<'gym_editorial_configs'>;
 
 export const useGymEditorial = (gymId: string | undefined) => {
   const [config, setConfig] = useState<GymEditorialConfig | null>(null);
@@ -30,7 +26,7 @@ export const useGymEditorial = (gymId: string | undefined) => {
           .single();
 
         if (!error && data) {
-          setConfig(data as GymEditorialConfig);
+          setConfig(data);
         }
       } catch (e) {
         console.error('Error fetching editorial config', e);

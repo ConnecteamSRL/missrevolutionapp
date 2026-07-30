@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   LayoutChangeEvent,
   StyleSheet,
@@ -9,6 +9,8 @@ import {
   ViewStyle,
 } from 'react-native';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import HtmlContent from '@components/ui/HtmlContent';
 import { ContentTextSizeLevel, useContentTextSizeStore } from '@/src/store/contentTextSizeStore';
 
@@ -44,18 +46,31 @@ export default function HtmlBadgeCard({
   showTextSizeButton = false,
   enableImageViewer = false,
 }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { width: windowWidth } = useWindowDimensions();
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
 
   const textSizeLevel = useContentTextSizeStore((s) => s.level);
   const cycleTextSizeLevel = useContentTextSizeStore((s) => s.cycleLevel);
 
-  const onContentLayout = useCallback((event: LayoutChangeEvent) => {
-    const width = event.nativeEvent.layout.width;
-    setMeasuredWidth((prev) => (prev !== null && Math.abs(prev - width) < 1 ? prev : width));
-  }, []);
+  const estimatedWidth = Math.max(windowWidth - HORIZONTAL_CHROME, 0);
 
-  const contentWidth = measuredWidth ?? Math.max(windowWidth - HORIZONTAL_CHROME, 0);
+  // Vedi ChatPinnedBanner: confrontare la misura con la larghezza in uso, e
+  // non solo con la misura precedente, evita un aggiornamento di stato inutile
+  // che ricostruirebbe il motore di RenderHTML appena montata la scheda.
+  const onContentLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const width = event.nativeEvent.layout.width;
+      setMeasuredWidth((prev) => {
+        const inUse = prev ?? estimatedWidth;
+        return Math.abs(inUse - width) < 1 ? prev : width;
+      });
+    },
+    [estimatedWidth],
+  );
+
+  const contentWidth = measuredWidth ?? estimatedWidth;
 
   return (
     <View style={[styles.contentCard, style]}>
@@ -94,72 +109,73 @@ export default function HtmlBadgeCard({
   );
 }
 
-const styles = StyleSheet.create({
-  contentCard: {
-    alignSelf: 'stretch',
-    backgroundColor: '#FFE7F1',
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    padding: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.08,
-    shadowRadius: 22,
-    elevation: 3,
-  },
-  cardTopGlow: {
-    position: 'absolute',
-    top: -80,
-    left: -60,
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: '#FFFFFF',
-    opacity: 0.55,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
-  },
-  pill: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  pillText: {
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 12,
-    lineHeight: 14,
-    letterSpacing: 0.2,
-  },
-  cardAccentLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#FFD1E4',
-    opacity: 0.9,
-  },
-  textSizeButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  textSizeButtonText: {
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 12,
-    lineHeight: 14,
-    letterSpacing: 0.2,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    contentCard: {
+      alignSelf: 'stretch',
+      backgroundColor: theme.surface,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 16,
+      marginBottom: 16,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 16 },
+      shadowOpacity: 0.08,
+      shadowRadius: 22,
+      elevation: 3,
+    },
+    cardTopGlow: {
+      position: 'absolute',
+      top: -80,
+      left: -60,
+      width: 220,
+      height: 220,
+      borderRadius: 110,
+      backgroundColor: '#FFFFFF',
+      opacity: 0.55,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 10,
+    },
+    pill: {
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 999,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    pillText: {
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 12,
+      lineHeight: 14,
+      letterSpacing: 0.2,
+    },
+    cardAccentLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: theme.border,
+      opacity: 0.9,
+    },
+    textSizeButton: {
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 999,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    textSizeButtonText: {
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 12,
+      lineHeight: 14,
+      letterSpacing: 0.2,
+    },
+  });

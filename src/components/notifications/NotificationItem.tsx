@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -18,6 +18,8 @@ import { formatDistanceToNow, parseISO } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Bell, Eye, Trash2 } from 'lucide-react-native';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { NotificationItem as NotificationItemType } from '@/src/types/notification.types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -31,6 +33,8 @@ type Props = {
 };
 
 export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props) => {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const router = useRouter();
   const translateX = useSharedValue(0);
   const itemHeight = useSharedValue(1);
@@ -116,7 +120,7 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
       { translateX: translateX.value },
       { scale: interpolate(pressed.value, [0, 1], [1, 0.97], Extrapolation.CLAMP) },
     ],
-    backgroundColor: interpolateColor(pressed.value, [0, 1], ['#FFE7F1', '#FFD6E8']),
+    backgroundColor: interpolateColor(pressed.value, [0, 1], [theme.surface, theme.border]),
   }));
 
   const animatedContainerStyle = useAnimatedStyle(() => ({
@@ -174,7 +178,7 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
             {!item.is_read && <View style={styles.unreadAccent} />}
 
             <View style={styles.iconCircle}>
-              <Bell size={18} color={colors.secondary} />
+              <Bell size={18} color={theme.secondary} />
             </View>
 
             <View style={styles.textContainer}>
@@ -202,117 +206,118 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
   );
 };
 
-const styles = StyleSheet.create({
-  actionsContainer: {
-    ...StyleSheet.absoluteFillObject,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  actionLeft: {
-    backgroundColor: '#4CAF50',
-    height: '100%',
-    width: '50%',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    paddingLeft: 20,
-    borderRadius: 16,
-  },
-  actionRight: {
-    backgroundColor: '#F44336',
-    height: '100%',
-    width: '50%',
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-    paddingRight: 20,
-    borderRadius: 16,
-  },
-  actionText: {
-    fontFamily: GraphitFonts.GraphitMedium,
-    fontSize: 11,
-    color: '#fff',
-    marginTop: 2,
-  },
-  itemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    shadowColor: 'rgba(204, 174, 227, 0.20)',
-    shadowOpacity: 1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  itemContainerUnread: {
-    borderColor: '#FFB8D6',
-  },
-  unreadAccent: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 3,
-    backgroundColor: '#ED5192',
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FFD1E4',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  textContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  title: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 14,
-    color: colors.text,
-    flex: 1,
-    marginRight: 8,
-  },
-  newBadge: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  newBadgeText: {
-    fontFamily: GraphitFonts.GraphitMedium,
-    fontSize: 9,
-    color: '#ED5192',
-  },
-  body: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 12,
-    color: 'rgba(31, 31, 31, 0.78)',
-    marginBottom: 2,
-    lineHeight: 16,
-  },
-  timeText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 11,
-    color: 'rgba(31, 31, 31, 0.55)',
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    actionsContainer: {
+      ...StyleSheet.absoluteFillObject,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderRadius: 16,
+      overflow: 'hidden',
+    },
+    actionLeft: {
+      backgroundColor: '#4CAF50',
+      height: '100%',
+      width: '50%',
+      justifyContent: 'center',
+      alignItems: 'flex-start',
+      paddingLeft: 20,
+      borderRadius: 16,
+    },
+    actionRight: {
+      backgroundColor: '#F44336',
+      height: '100%',
+      width: '50%',
+      justifyContent: 'center',
+      alignItems: 'flex-end',
+      paddingRight: 20,
+      borderRadius: 16,
+    },
+    actionText: {
+      fontFamily: GraphitFonts.GraphitMedium,
+      fontSize: 11,
+      color: '#fff',
+      marginTop: 2,
+    },
+    itemContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingVertical: 12,
+      paddingHorizontal: 12,
+      shadowColor: theme.primary,
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 2,
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    itemContainerUnread: {
+      borderColor: theme.secondary,
+    },
+    unreadAccent: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 3,
+      backgroundColor: theme.secondary,
+    },
+    iconCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: theme.border,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    textContainer: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 2,
+    },
+    title: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 14,
+      color: colors.text,
+      flex: 1,
+      marginRight: 8,
+    },
+    newBadge: {
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 6,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    newBadgeText: {
+      fontFamily: GraphitFonts.GraphitMedium,
+      fontSize: 9,
+      color: theme.secondary,
+    },
+    body: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 12,
+      color: 'rgba(31, 31, 31, 0.78)',
+      marginBottom: 2,
+      lineHeight: 16,
+    },
+    timeText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 11,
+      color: 'rgba(31, 31, 31, 0.55)',
+    },
+  });

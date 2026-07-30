@@ -18,6 +18,8 @@ import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import AvatarPlaceholderIcon from '@components/ui/icons/AvatarPlaceholderIcon';
 import { useUser } from '@/src/contexts/UserContext';
 import { clearAvatarCache, getCachedAvatarUrl } from '@/src/utils/avatar.utils';
 import { supabase } from '@/src/lib/supabase';
@@ -28,6 +30,9 @@ type Props = {
   editable?: boolean;
 };
 
+/** Lato dell'avatar segnaposto quando viene aperto a schermo intero. */
+const FULLSCREEN_PLACEHOLDER_SIZE = Math.round(Dimensions.get('window').width * 0.7);
+
 const BUCKET_AVATARS = 'avatars' as const;
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 const MAX_SIZE = 800 * 1024;
@@ -35,14 +40,13 @@ const SIGNED_URL_TTL_SEC = 60 * 60;
 
 export default function UserAvatarComponent({ size = 42, onPress, editable = false }: Props) {
   const { me, refetchMe } = useUser();
+  const theme = useTheme();
   const { showActionSheetWithOptions } = useActionSheet();
   const insets = useSafeAreaInsets();
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showFullscreen, setShowFullscreen] = useState<boolean>(false);
-
-  const placeholderAsset = require('../../../assets/images/misc/placeholder.jpg');
 
   const side = Math.round(size);
   const radius = side / 2;
@@ -188,8 +192,9 @@ export default function UserAvatarComponent({ size = 42, onPress, editable = fal
     );
   };
 
-  const imageSource: ImageSource = avatarUrl ? { uri: avatarUrl } : placeholderAsset;
-  const recyclingKey = avatarUrl ?? 'placeholder';
+  const placeholder = (
+    <AvatarPlaceholderIcon background={theme.primary} foreground={theme.secondary} size={side} />
+  );
 
   return (
     <>
@@ -201,17 +206,18 @@ export default function UserAvatarComponent({ size = 42, onPress, editable = fal
       >
         {isLoading ? (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={'#C388F0'} />
+            <ActivityIndicator size="large" color={theme.accent} />
           </View>
-        ) : (
+        ) : avatarUrl ? (
           <Image
-            recyclingKey={recyclingKey}
-            source={imageSource}
-            placeholder={placeholderAsset}
+            recyclingKey={avatarUrl}
+            source={{ uri: avatarUrl }}
             style={{ width: '100%', height: '100%', borderRadius: radius }}
             contentFit="cover"
             transition={250}
           />
+        ) : (
+          placeholder
         )}
       </TouchableOpacity>
 
@@ -226,7 +232,21 @@ export default function UserAvatarComponent({ size = 42, onPress, editable = fal
           activeOpacity={1}
           onPress={() => setShowFullscreen(false)}
         >
-          <Image source={imageSource} style={styles.fullscreenImage} contentFit="contain" />
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              style={styles.fullscreenImage}
+              contentFit="contain"
+            />
+          ) : (
+            <View style={styles.fullscreenPlaceholder}>
+              <AvatarPlaceholderIcon
+                background={theme.primary}
+                foreground={theme.secondary}
+                size={FULLSCREEN_PLACEHOLDER_SIZE}
+              />
+            </View>
+          )}
         </TouchableOpacity>
       </Modal>
     </>
@@ -236,9 +256,12 @@ export default function UserAvatarComponent({ size = 42, onPress, editable = fal
 async function deleteAvatarOrThrow(args: { userId: string }): Promise<void> {
   const { userId } = args;
 
+  // In SQL p_key e' `text` nullable e passare null e' proprio il modo di
+  // cancellare l'avatar, ma il generatore dichiara sempre gli argomenti delle
+  // funzioni come non-null: il cast serve solo a dirlo al compilatore.
   const { error } = await supabase.rpc('set_avatar_key', {
     p_user_id: userId,
-    p_key: null,
+    p_key: null as unknown as string,
   });
 
   if (error) throw error;
@@ -389,5 +412,9 @@ const styles = StyleSheet.create({
   fullscreenImage: {
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
+  },
+  fullscreenPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

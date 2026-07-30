@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import ArrowCircleRight from '@components/ui/icons/ArrowCircleRightIcon';
 
 type Props = {
@@ -10,6 +12,9 @@ type Props = {
 };
 
 export default function OtherPhasesLink({ label, count, onPress }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   return (
     <Pressable
       onPress={onPress}
@@ -21,31 +26,32 @@ export default function OtherPhasesLink({ label, count, onPress }: Props) {
         {label}
         {count !== undefined ? ` (${count})` : ''}
       </Text>
-      <ArrowCircleRight color={'#D9AFC0'} size={20} />
+      <ArrowCircleRight color={theme.primary} size={20} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 4,
-    marginBottom: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: '#D9AFC0',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  label: {
-    flex: 1,
-    fontSize: 14,
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      marginTop: 4,
+      marginBottom: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: theme.primary,
+      backgroundColor: '#FFFFFF',
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    label: {
+      flex: 1,
+      fontSize: 14,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+  });

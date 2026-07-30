@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Enums } from '@mr-types/database.types';
+import { AppTheme } from '@mr-types/theme.types';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { formatObjective } from '@/src/utils/objective.utils';
 import BalanceIcon from '@components/ui/icons/BalanceIcon';
 import DartIcon from '@components/ui/icons/DartIcon';
@@ -21,6 +23,8 @@ const HomeWeightCard: React.FC<Props> = ({
   objective,
   ctaLabel = 'Visualizza tutti i progressi',
 }) => {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const router = useRouter();
 
   const handleCtaPress = () => {
@@ -63,86 +67,87 @@ const HomeWeightCard: React.FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    marginVertical: 20,
-    backgroundColor: '#FFD7E8',
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 16,
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      width: '100%',
+      marginVertical: 20,
+      backgroundColor: theme.border,
+      borderRadius: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+    },
+    headerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 16,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
 
-  cardsWrapper: {
-    flexDirection: 'row',
-    gap: 14,
-  },
-  miniCard: {
-    flex: 1,
-    flexDirection: 'column',
-    paddingVertical: 15,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFE7F1',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  miniCardTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  miniCardTitle: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    color: '#545454',
-  },
-  miniCardValue: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-    color: '#000',
-  },
+    cardsWrapper: {
+      flexDirection: 'row',
+      gap: 14,
+    },
+    miniCard: {
+      flex: 1,
+      flexDirection: 'column',
+      paddingVertical: 15,
+      paddingHorizontal: 16,
+      backgroundColor: theme.surface,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    miniCardTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    miniCardTitle: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      color: '#545454',
+    },
+    miniCardValue: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+      color: '#000',
+    },
 
-  ctaButton: {
-    marginTop: 20,
-    width: '100%',
-    backgroundColor: colors.white,
-    borderRadius: 60,
-    paddingLeft: CIRCLE_SIZE + 12,
-    paddingRight: 8,
-    paddingVertical: 8,
-    minHeight: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaText: {
-    flex: 1,
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 15,
-    color: '#000',
-    textAlign: 'center',
-  },
-  ctaIconCircle: {
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-    borderRadius: CIRCLE_SIZE / 2,
-    backgroundColor: '#ED5192',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-  },
-});
+    ctaButton: {
+      marginTop: 20,
+      width: '100%',
+      backgroundColor: colors.white,
+      borderRadius: 60,
+      paddingLeft: CIRCLE_SIZE + 12,
+      paddingRight: 8,
+      paddingVertical: 8,
+      minHeight: 56,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    ctaText: {
+      flex: 1,
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 15,
+      color: '#000',
+      textAlign: 'center',
+    },
+    ctaIconCircle: {
+      width: CIRCLE_SIZE,
+      height: CIRCLE_SIZE,
+      borderRadius: CIRCLE_SIZE / 2,
+      backgroundColor: theme.secondary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 8,
+    },
+  });
 
 export default HomeWeightCard;

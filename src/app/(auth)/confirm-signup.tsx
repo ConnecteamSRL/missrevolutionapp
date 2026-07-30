@@ -15,11 +15,16 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import OtpBoxesInput from '@components/auth/OtpBoxesInput';
 import { supabase } from '@/src/lib/supabase';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 const RESEND_COOLDOWN_SEC = 60;
 
 export default function ConfirmSignupScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const params = useLocalSearchParams<{ email?: string }>();
   const email = (params.email ?? '').toString().trim().toLowerCase();
 
@@ -141,47 +146,48 @@ export default function ConfirmSignupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitBold,
-    marginTop: 12,
-  },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginTop: 8,
-  },
-  hint: {
-    textAlign: 'center',
-    fontSize: 13,
-    color: '#666',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginTop: 10,
-    marginBottom: 18,
-    lineHeight: 18,
-  },
-  form: { gap: 14, marginTop: 6 },
-  button: {
-    alignItems: 'center',
-    backgroundColor: colors.secondary,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 20,
-    marginTop: 6,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: colors.white,
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-  },
-  linkBtn: { alignItems: 'center', marginTop: 8 },
-  linkText: { fontFamily: GraphitFonts.GraphitRegular, fontSize: 14, color: colors.text },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
+    container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
+    title: {
+      fontSize: 24,
+      textAlign: 'center',
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitBold,
+      marginTop: 12,
+    },
+    subtitle: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: '#666',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginTop: 8,
+    },
+    hint: {
+      textAlign: 'center',
+      fontSize: 13,
+      color: '#666',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginTop: 10,
+      marginBottom: 18,
+      lineHeight: 18,
+    },
+    form: { gap: 14, marginTop: 6 },
+    button: {
+      alignItems: 'center',
+      backgroundColor: theme.secondary,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      borderRadius: 20,
+      marginTop: 6,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: {
+      color: colors.white,
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+    },
+    linkBtn: { alignItems: 'center', marginTop: 8 },
+    linkText: { fontFamily: GraphitFonts.GraphitRegular, fontSize: 14, color: colors.text },
+  });

@@ -1,6 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import Animated, {
   Easing,
   FadeIn,
@@ -32,6 +34,8 @@ export default function FaqAccordionItem({
   onToggle,
   videoLink,
 }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const arrowRotation = useSharedValue(expanded ? 180 : 0);
 
   useEffect(() => {
@@ -74,7 +78,7 @@ export default function FaqAccordionItem({
           <View style={styles.questionRow}>
             <Text style={[styles.question, expanded && styles.questionActive]}>{question}</Text>
             <Animated.View style={[styles.arrowWrapper, arrowStyle]}>
-              <ArrowDown color={expanded ? '#FE61A2' : '#363636'} size={18} />
+              <ArrowDown color={expanded ? theme.secondary : '#363636'} size={18} />
             </Animated.View>
           </View>
         </View>
@@ -99,89 +103,90 @@ export default function FaqAccordionItem({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 16,
-    backgroundColor: '#FFE7F1',
-    borderColor: '#FFD1E4',
-    borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  containerActive: {
-    backgroundColor: '#FFD7E8',
-    borderColor: '#FFD1E4',
-    shadowColor: '#ED5192',
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  headerTextWrapper: {
-    flex: 1,
-    marginRight: 8,
-  },
-  categoryBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    backgroundColor: '#FFD7E8',
-    marginBottom: 6,
-  },
-  categoryBadgeActive: {
-    backgroundColor: '#FFE7F1',
-    borderColor: '#FFD1E4',
-  },
-  categoryText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 12,
-    color: '#363636',
-  },
-  categoryTextActive: {
-    color: '#363636',
-  },
-  questionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  question: {
-    flex: 1,
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    color: '#FE61A2',
-  },
-  questionActive: {
-    color: '#ED5192',
-  },
-  arrowWrapper: {
-    marginLeft: 8,
-  },
-  body: {
-    marginTop: 12,
-    overflow: 'hidden',
-  },
-  answer: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 12,
-    lineHeight: 18,
-    color: '#363636',
-  },
-  videoLinkWrapper: {
-    marginTop: 8,
-    alignSelf: 'flex-start',
-  },
-  videoLinkText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    color: '#FE61A2',
-    textDecorationLine: 'underline',
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      borderRadius: 16,
+      backgroundColor: theme.surface,
+      borderColor: theme.border,
+      borderWidth: 1,
+      marginBottom: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+    },
+    containerActive: {
+      backgroundColor: theme.border,
+      borderColor: theme.border,
+      shadowColor: theme.secondary,
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    headerTextWrapper: {
+      flex: 1,
+      marginRight: 8,
+    },
+    categoryBadge: {
+      alignSelf: 'flex-start',
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: theme.border,
+      backgroundColor: theme.border,
+      marginBottom: 6,
+    },
+    categoryBadgeActive: {
+      backgroundColor: theme.surface,
+      borderColor: theme.border,
+    },
+    categoryText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 12,
+      color: '#363636',
+    },
+    categoryTextActive: {
+      color: '#363636',
+    },
+    questionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 2,
+    },
+    question: {
+      flex: 1,
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      color: theme.secondary,
+    },
+    questionActive: {
+      color: theme.secondary,
+    },
+    arrowWrapper: {
+      marginLeft: 8,
+    },
+    body: {
+      marginTop: 12,
+      overflow: 'hidden',
+    },
+    answer: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 12,
+      lineHeight: 18,
+      color: '#363636',
+    },
+    videoLinkWrapper: {
+      marginTop: 8,
+      alignSelf: 'flex-start',
+    },
+    videoLinkText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      color: theme.secondary,
+      textDecorationLine: 'underline',
+    },
+  });

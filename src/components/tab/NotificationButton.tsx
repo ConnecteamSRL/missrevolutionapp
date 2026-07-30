@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import NotificationIcon from '@components/ui/icons/NotificationIcon';
 import { colors } from '@/src/theme';
 import { router } from 'expo-router';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useUser } from '@/src/contexts/UserContext';
+import { AppTheme } from '@mr-types/theme.types';
 
 export default function NotificationButton() {
   const { me } = useUser();
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const hasNotification = (me?.notifications_to_read || 0) > 0;
 
@@ -24,31 +28,32 @@ export default function NotificationButton() {
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: colors.white,
-    padding: 10,
-    borderRadius: 50,
-    borderColor: colors.gray,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconWrapper: {
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badge: {
-    position: 'absolute',
-    top: -2,
-    right: 1,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#FF5DA2',
-    borderWidth: 1.5,
-    borderColor: colors.white,
-    zIndex: 2,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    button: {
+      backgroundColor: colors.white,
+      padding: 10,
+      borderRadius: 50,
+      borderColor: colors.gray,
+      borderWidth: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    iconWrapper: {
+      position: 'relative',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    badge: {
+      position: 'absolute',
+      top: -2,
+      right: 1,
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: theme.secondary,
+      borderWidth: 1.5,
+      borderColor: colors.white,
+      zIndex: 2,
+    },
+  });

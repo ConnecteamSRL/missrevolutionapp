@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -13,6 +13,8 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import { router, Stack } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { useMyWorkouts, type Workout } from '@/src/hooks/content/useWorkouts';
 import { useRefreshOnFocus } from '@/src/hooks/core/useRefreshOnFocus';
 import FitnessIcon from '@components/ui/icons/FitnessIcon';
@@ -33,12 +35,13 @@ const formatError = (e: unknown) => {
 };
 
 export default function WorkoutIndex() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const { me } = useUser();
 
-  const gymId = me?.gym?.id ?? null;
-
   const workouts = useMyWorkouts();
-  const liveHook = useYoutubeLiveEvents(gymId);
+  const liveHook = useYoutubeLiveEvents();
 
   const pageLoading = !me?.user_id || workouts.loading || liveHook.loading;
   const pageRefreshing = workouts.refreshing || liveHook.refreshing;
@@ -93,11 +96,11 @@ export default function WorkoutIndex() {
             {item.title}
           </Text>
 
-          <ArrowCircleRight color={'#D9AFC0'} size={22} />
+          <ArrowCircleRight color={theme.primary} size={22} />
         </Animated.View>
       </Pressable>
     ),
-    [],
+    [styles, theme],
   );
 
   const openLive = useCallback(async () => {
@@ -116,7 +119,7 @@ export default function WorkoutIndex() {
 
       {pageLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={'#C388F0'} />
+          <ActivityIndicator size="large" color={theme.accent} />
           <Text style={styles.centerText}>Caricamento...</Text>
         </View>
       ) : pageError && !hasContent ? (
@@ -137,7 +140,7 @@ export default function WorkoutIndex() {
             <RefreshControl
               refreshing={pageRefreshing}
               onRefresh={onRefresh}
-              tintColor={'#C388F0'}
+              tintColor={theme.accent}
             />
           }
           ListHeaderComponent={
@@ -188,98 +191,99 @@ export default function WorkoutIndex() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: { flex: 1 },
 
-  content: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+    content: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
 
-  liveWrap: { paddingHorizontal: 2, paddingTop: 6, paddingBottom: 10 },
+    liveWrap: { paddingHorizontal: 2, paddingTop: 6, paddingBottom: 10 },
 
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 2,
-    paddingVertical: 10,
-    marginBottom: 10,
-  },
-  headerTitle: {
-    fontSize: 20,
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 2,
+      paddingVertical: 10,
+      marginBottom: 10,
+    },
+    headerTitle: {
+      fontSize: 20,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
 
-  card: {
-    marginBottom: 14,
-    backgroundColor: '#FFE7F1',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    paddingVertical: 26,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  cardTitle: {
-    fontSize: 14,
-    color: '#1F1F1F',
-    fontFamily: GraphitFonts.GraphitRegular,
-    lineHeight: 20,
-  },
+    card: {
+      marginBottom: 14,
+      backgroundColor: theme.surface,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingVertical: 26,
+      paddingHorizontal: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    cardTitle: {
+      fontSize: 14,
+      color: '#1F1F1F',
+      fontFamily: GraphitFonts.GraphitRegular,
+      lineHeight: 20,
+    },
 
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: 'transparent',
-  },
-  centerText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#1F1F1F',
-    textAlign: 'center',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#D00000',
-    textAlign: 'center',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginBottom: 12,
-  },
-  retryBtn: {
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  retryBtnText: {
-    fontSize: 14,
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-  emptyWrap: {
-    paddingTop: 26,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-  },
-  emptyTitle: {
-    fontSize: 15,
-    color: '#1F1F1F',
-    fontFamily: GraphitFonts.GraphitBold,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
-    marginTop: 8,
-    fontSize: 13,
-    color: '#545454',
-    fontFamily: GraphitFonts.GraphitRegular,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-});
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      backgroundColor: 'transparent',
+    },
+    centerText: {
+      marginTop: 10,
+      fontSize: 14,
+      color: '#1F1F1F',
+      textAlign: 'center',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    errorText: {
+      fontSize: 14,
+      color: '#D00000',
+      textAlign: 'center',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginBottom: 12,
+    },
+    retryBtn: {
+      borderRadius: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    retryBtnText: {
+      fontSize: 14,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+    emptyWrap: {
+      paddingTop: 26,
+      paddingHorizontal: 10,
+      alignItems: 'center',
+    },
+    emptyTitle: {
+      fontSize: 15,
+      color: '#1F1F1F',
+      fontFamily: GraphitFonts.GraphitBold,
+      textAlign: 'center',
+    },
+    emptySubtitle: {
+      marginTop: 8,
+      fontSize: 13,
+      color: '#545454',
+      fontFamily: GraphitFonts.GraphitRegular,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+  });

@@ -12,6 +12,8 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { router } from 'expo-router';
 
 import { GraphitFonts } from '@/src/theme';
+import { AppTheme } from '@mr-types/theme.types';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useUser } from '@/src/contexts/UserContext';
 import { useMyRecipes, type Recipe } from '@/src/hooks/content/useRecipes';
 import ArrowCircleRight from '@components/ui/icons/ArrowCircleRightIcon';
@@ -20,6 +22,8 @@ import OtherPhasesLink from '@components/core/OtherPhasesLink';
 const UI_GENERIC_ERROR = 'Si è verificato un errore. Riprova.';
 
 export default function RecipesListSection() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { me } = useUser();
   const recipes = useMyRecipes();
 
@@ -41,33 +45,36 @@ export default function RecipesListSection() {
 
   const keyExtractor = useCallback((item: Recipe) => String(item.id), []);
 
-  const renderRecipeItem = useCallback(({ item, index }: { item: Recipe; index: number }) => {
-    return (
-      <Pressable
-        onPress={() =>
-          router.push({
-            pathname: '/(recipe)/[recipeId]',
-            params: { recipeId: String(item.id), title: item.title },
-          })
-        }
-        android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
-        style={{ borderRadius: 20 }}
-      >
-        <Animated.View
-          entering={FadeInDown.delay(index * 80)
-            .duration(480)
-            .springify()}
-          style={styles.card}
+  const renderRecipeItem = useCallback(
+    ({ item, index }: { item: Recipe; index: number }) => {
+      return (
+        <Pressable
+          onPress={() =>
+            router.push({
+              pathname: '/(recipe)/[recipeId]',
+              params: { recipeId: String(item.id), title: item.title },
+            })
+          }
+          android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
+          style={{ borderRadius: 20 }}
         >
-          <Text style={styles.cardTitle} numberOfLines={2}>
-            {item.title}
-          </Text>
+          <Animated.View
+            entering={FadeInDown.delay(index * 80)
+              .duration(480)
+              .springify()}
+            style={styles.card}
+          >
+            <Text style={styles.cardTitle} numberOfLines={2}>
+              {item.title}
+            </Text>
 
-          <ArrowCircleRight color={'#D9AFC0'} size={22} />
-        </Animated.View>
-      </Pressable>
-    );
-  }, []);
+            <ArrowCircleRight color={theme.primary} size={22} />
+          </Animated.View>
+        </Pressable>
+      );
+    },
+    [styles, theme],
+  );
 
   const ListHeader = useMemo(
     () => (
@@ -75,13 +82,13 @@ export default function RecipesListSection() {
         <Text style={styles.headerTitle}>Le tue ricette</Text>
       </Animated.View>
     ),
-    [],
+    [styles],
   );
 
   if (pageLoading) {
     return (
       <View style={styles.stateWrap}>
-        <ActivityIndicator size="large" color={'#C388F0'} />
+        <ActivityIndicator size="large" color={theme.accent} />
         <Text style={styles.centerText}>Caricamento...</Text>
       </View>
     );
@@ -106,7 +113,11 @@ export default function RecipesListSection() {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContent}
       refreshControl={
-        <RefreshControl refreshing={pageRefreshing} onRefresh={onRefresh} tintColor={'#C388F0'} />
+        <RefreshControl
+          refreshing={pageRefreshing}
+          onRefresh={onRefresh}
+          tintColor={theme.accent}
+        />
       }
       ListHeaderComponent={ListHeader}
       ListEmptyComponent={
@@ -127,73 +138,74 @@ export default function RecipesListSection() {
   );
 }
 
-const styles = StyleSheet.create({
-  listContent: { paddingBottom: 40 },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    listContent: { paddingBottom: 40 },
 
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
-  },
-  headerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ED5192' },
-  headerTitle: { fontSize: 20, color: '#ED5192', fontFamily: GraphitFonts.GraphitRegular },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 10,
+    },
+    headerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.secondary },
+    headerTitle: { fontSize: 20, color: theme.secondary, fontFamily: GraphitFonts.GraphitRegular },
 
-  card: {
-    marginBottom: 14,
-    backgroundColor: '#FFE7F1',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    paddingVertical: 26,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  cardTitle: {
-    fontSize: 14,
-    color: '#1F1F1F',
-    fontFamily: GraphitFonts.GraphitRegular,
-    lineHeight: 20,
-  },
+    card: {
+      marginBottom: 14,
+      backgroundColor: theme.surface,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingVertical: 26,
+      paddingHorizontal: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    cardTitle: {
+      fontSize: 14,
+      color: '#1F1F1F',
+      fontFamily: GraphitFonts.GraphitRegular,
+      lineHeight: 20,
+    },
 
-  stateWrap: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  centerText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#1F1F1F',
-    textAlign: 'center',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#D00000',
-    textAlign: 'center',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginBottom: 12,
-  },
-  retryBtn: {
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  retryBtnText: { fontSize: 14, color: '#ED5192', fontFamily: GraphitFonts.GraphitBold },
+    stateWrap: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+    },
+    centerText: {
+      marginTop: 10,
+      fontSize: 14,
+      color: '#1F1F1F',
+      textAlign: 'center',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    errorText: {
+      fontSize: 14,
+      color: '#D00000',
+      textAlign: 'center',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginBottom: 12,
+    },
+    retryBtn: {
+      borderRadius: 16,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    retryBtnText: { fontSize: 14, color: theme.secondary, fontFamily: GraphitFonts.GraphitBold },
 
-  emptyWrap: { paddingTop: 26, paddingHorizontal: 10, alignItems: 'center' },
-  emptyTitle: {
-    fontSize: 15,
-    color: '#1F1F1F',
-    fontFamily: GraphitFonts.GraphitBold,
-    textAlign: 'center',
-  },
-});
+    emptyWrap: { paddingTop: 26, paddingHorizontal: 10, alignItems: 'center' },
+    emptyTitle: {
+      fontSize: 15,
+      color: '#1F1F1F',
+      fontFamily: GraphitFonts.GraphitBold,
+      textAlign: 'center',
+    },
+  });

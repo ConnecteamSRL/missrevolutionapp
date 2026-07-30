@@ -6,17 +6,22 @@ import FaqCtaIcon from '@components/ui/icons/FaqCtaIcon';
 import VideoCtaIcon from '@components/ui/icons/VideoCtaIcon';
 import { useRouter } from 'expo-router';
 import { useChatUnread } from '@/src/contexts/ChatUnreadContext';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 export default function HomeCtaSection() {
   const router = useRouter();
   const { unreadCount } = useChatUnread();
+  const theme = useTheme();
+  // Le quattro sfumature arrivano dal tema nello stesso ordine delle card.
+  const [videoGradient, surveyGradient, faqGradient, chatGradient] = theme.ctaGradients;
+
   return (
     <View style={styles.gridContainer}>
       <View style={styles.row}>
         <View style={styles.itemWrapper}>
           <GridCtaItem
             title="Video"
-            gradientColors={['#E8B3E2', '#EFB4E9']}
+            gradientColors={videoGradient}
             icon={<VideoCtaIcon size={20} />}
             onPress={() => router.push('/video')}
           />
@@ -24,7 +29,7 @@ export default function HomeCtaSection() {
         <View style={styles.itemWrapper}>
           <GridCtaItem
             title="Survey"
-            gradientColors={['#FFBFD3', '#FFBFD3']}
+            gradientColors={surveyGradient}
             icon={<SurveyCtaIcon size={20} />}
             onPress={() => router.push('/survey')}
           />
@@ -35,7 +40,7 @@ export default function HomeCtaSection() {
         <View style={styles.itemWrapper}>
           <GridCtaItem
             title="FAQs"
-            gradientColors={['#FFB1E0', '#FFB1E0']}
+            gradientColors={faqGradient}
             icon={<FaqCtaIcon size={20} />}
             onPress={() => router.push('/faq')}
           />
@@ -43,7 +48,7 @@ export default function HomeCtaSection() {
         <View style={styles.itemWrapper}>
           <GridCtaItem
             title="Chat"
-            gradientColors={['#FFCDBF', '#FFCDBF']}
+            gradientColors={chatGradient}
             icon={<ChatCtaIcon size={20} />}
             onPress={() => router.push('/(chat)/chat')}
             badgeCount={unreadCount}

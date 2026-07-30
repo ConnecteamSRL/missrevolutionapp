@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
-import { colors, GraphitFonts } from '@/src/theme';
+import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { supabase } from '@/src/lib/supabase';
 import FaqCategoryBadges, { FaqCategory } from '@components/faq/FaqCategoryBadges';
 import FaqAccordionItem from '@components/faq/FaqAccordionItem';
@@ -20,6 +22,9 @@ type Faq = {
 };
 
 export default function FaqScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const [categories, setCategories] = useState<FaqCategory[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
 
@@ -122,7 +127,7 @@ export default function FaqScreen() {
     return (
       <ContentScreenLayout title="FAQ & Supporto">
         <View style={styles.centered}>
-          <ActivityIndicator size="small" color={'#C388F0'} />
+          <ActivityIndicator size="small" color={theme.accent} />
           <Text style={styles.loadingText}>Caricamento FAQ...</Text>
         </View>
       </ContentScreenLayout>
@@ -191,33 +196,34 @@ export default function FaqScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  subtitle: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.secondary,
-    marginBottom: 16,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.secondary,
-    marginTop: 8,
-  },
-  errorText: {
-    color: 'red',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  retryText: {
-    marginTop: 8,
-    textDecorationLine: 'underline',
-    color: colors.secondary,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  listContent: {
-    paddingBottom: 24,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    subtitle: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: theme.secondary,
+      marginBottom: 16,
+    },
+    centered: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: theme.secondary,
+      marginTop: 8,
+    },
+    errorText: {
+      color: 'red',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    retryText: {
+      marginTop: 8,
+      textDecorationLine: 'underline',
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    listContent: {
+      paddingBottom: 24,
+    },
+  });

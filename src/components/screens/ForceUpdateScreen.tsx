@@ -9,14 +9,18 @@ import {
   View,
 } from 'react-native';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { GraphitFonts } from '@/src/theme';
 import { AppConfig } from '@mr-types/app-config.types';
+import { AppTheme } from '@mr-types/theme.types';
 
 interface ForceUpdateScreenProps {
   config: AppConfig;
 }
 
 export const ForceUpdateScreen: React.FC<ForceUpdateScreenProps> = ({ config }) => {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [isOpening, setIsOpening] = useState(false);
 
   const storeUrl = useMemo(() => {
@@ -58,7 +62,7 @@ export const ForceUpdateScreen: React.FC<ForceUpdateScreenProps> = ({ config }) 
         disabled={!storeUrl || isOpening}
       >
         {isOpening ? (
-          <ActivityIndicator size="large" color={'#C388F0'} />
+          <ActivityIndicator size="large" color={theme.accent} />
         ) : (
           <Text style={styles.buttonText}>Apri lo Store</Text>
         )}
@@ -67,58 +71,59 @@ export const ForceUpdateScreen: React.FC<ForceUpdateScreenProps> = ({ config }) 
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 12,
-    color: '#1a1a1a',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#333',
-    lineHeight: 24,
-    marginBottom: 14,
-  },
-  meta: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 22,
-  },
-  metaStrong: {
-    fontFamily: GraphitFonts.GraphitBold,
-    fontWeight: '700',
-    color: '#444',
-  },
-  button: {
-    backgroundColor: '#C388F0',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 14,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.55,
-  },
-  buttonText: {
-    fontFamily: GraphitFonts.GraphitBold,
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+      backgroundColor: '#fff',
+    },
+    title: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontSize: 24,
+      fontWeight: '700',
+      marginBottom: 12,
+      color: '#1a1a1a',
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+      textAlign: 'center',
+      color: '#333',
+      lineHeight: 24,
+      marginBottom: 14,
+    },
+    meta: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      textAlign: 'center',
+      color: '#666',
+      lineHeight: 20,
+      marginBottom: 22,
+    },
+    metaStrong: {
+      fontFamily: GraphitFonts.GraphitBold,
+      fontWeight: '700',
+      color: '#444',
+    },
+    button: {
+      backgroundColor: theme.accent,
+      paddingVertical: 14,
+      paddingHorizontal: 32,
+      borderRadius: 14,
+      width: '100%',
+      alignItems: 'center',
+    },
+    buttonDisabled: {
+      opacity: 0.55,
+    },
+    buttonText: {
+      fontFamily: GraphitFonts.GraphitBold,
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });

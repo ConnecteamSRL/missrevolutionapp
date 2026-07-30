@@ -13,13 +13,17 @@ export const useNotifications = () => {
     if (!me?.user_id) return;
 
     try {
+      // Postgres non propaga il NOT NULL attraverso una vista, cosi' i tipi
+      // generati danno tutte le colonne nullable e `data` come Json generico;
+      // sulle tabelle di partenza id, title, body e data sono NOT NULL.
       const { data, error } = await supabase
         .from('app_user_notifications_view')
         .select('*')
-        .order('sent_at', { ascending: false });
+        .order('sent_at', { ascending: false })
+        .overrideTypes<NotificationItem[], { merge: false }>();
 
       if (error) throw error;
-      setNotifications(data as NotificationItem[]);
+      setNotifications(data);
     } catch (error) {
       console.error(error);
     } finally {

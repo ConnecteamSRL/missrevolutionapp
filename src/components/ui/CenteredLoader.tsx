@@ -1,15 +1,18 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 type Props = {
   message?: string;
 };
 
 export default function CenteredLoader({ message = 'Caricamento...' }: Props) {
+  const theme = useTheme();
+
   return (
     <View style={styles.center}>
-      <ActivityIndicator size="large" color={'#C388F0'} />
+      <ActivityIndicator size="large" color={theme.accent} />
       <Text style={styles.text}>{message}</Text>
     </View>
   );

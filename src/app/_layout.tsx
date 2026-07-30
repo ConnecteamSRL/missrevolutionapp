@@ -9,9 +9,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AppConfigProvider, useAppConfig } from '@/src/contexts/AppConfigContext';
 import { UserProvider } from '@/src/contexts/UserContext';
 import { ChatUnreadProvider } from '@/src/contexts/ChatUnreadContext';
+import { ThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
 import { useSupabaseAuth } from '@/src/hooks/core/useSupabaseAuth';
 import { useAuthStore } from '@/src/store/authStore';
 import { useContentTextSizeStore } from '@/src/store/contentTextSizeStore';
+import { useGenderStore } from '@/src/store/genderStore';
 import { useNotificationRouting } from '@/src/hooks/core/useNotificationRouting';
 
 import { MaintenanceScreen } from '@/src/components/screens/MaintenanceScreen';
@@ -26,11 +28,14 @@ if (__DEV__) {
   require('../../ReactotronConfig');
 }
 
-const LoadingScreen: React.FC = () => (
-  <View style={styles.loadingContainer}>
-    <ActivityIndicator size="large" color={'#C388F0'} />
-  </View>
-);
+const LoadingScreen: React.FC = () => {
+  const theme = useTheme();
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color={theme.accent} />
+    </View>
+  );
+};
 
 const AppEntryPoint: React.FC = () => {
   const { config, isLoading: isConfigLoading } = useAppConfig();
@@ -108,8 +113,11 @@ export default function RootLayout(): React.ReactElement {
   // Restores the persisted content text size while the splash screen is
   // still up (app readiness waits on config + auth network calls, so the
   // AsyncStorage read completes well before any content card can render).
+  // Il sesso memorizzato segue la stessa strada: serve a scegliere il tema
+  // prima che il profilo utente arrivi dal server.
   useEffect(() => {
     useContentTextSizeStore.getState().hydrate();
+    useGenderStore.getState().hydrate();
   }, []);
 
   return (
@@ -118,10 +126,12 @@ export default function RootLayout(): React.ReactElement {
         <ActionSheetProvider>
           <AppConfigProvider>
             <UserProvider>
-              <ChatUnreadProvider>
-                <StatusBar style="dark" />
-                <AppEntryPoint />
-              </ChatUnreadProvider>
+              <ThemeProvider>
+                <ChatUnreadProvider>
+                  <StatusBar style="dark" />
+                  <AppEntryPoint />
+                </ChatUnreadProvider>
+              </ThemeProvider>
             </UserProvider>
           </AppConfigProvider>
         </ActionSheetProvider>

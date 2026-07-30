@@ -2,13 +2,18 @@ import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View, SectionList, ActivityIndicator } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
-import { colors, GraphitFonts } from '@/src/theme';
+import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { isToday, isThisWeek, parseISO } from 'date-fns';
 import { useNotifications } from '@/src/hooks/core/useNotifications';
 import { NotificationItem } from '@/src/components/notifications/NotificationItem';
 import { NotificationItem as NotificationItemType } from '@/src/types/notification.types';
 
 export default function NotificationsScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const {
     notifications,
     loading,
@@ -63,7 +68,7 @@ export default function NotificationsScreen() {
       <GestureHandlerRootView style={styles.gestureRoot}>
         {loading && !refreshing ? (
           <View style={styles.center}>
-            <ActivityIndicator size="small" color={colors.secondary} />
+            <ActivityIndicator size="small" color={theme.secondary} />
           </View>
         ) : (
           <SectionList
@@ -88,34 +93,35 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  gestureRoot: {
-    flex: 1,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  listContent: {
-    paddingBottom: 40,
-  },
-  sectionHeader: {
-    marginBottom: 12,
-    backgroundColor: 'transparent',
-  },
-  sectionHeaderText: {
-    fontFamily: GraphitFonts.GraphitMedium,
-    fontSize: 18,
-    color: colors.secondary,
-  },
-  emptyContainer: {
-    paddingTop: 60,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: 'rgba(31, 31, 31, 0.55)',
-    fontSize: 16,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    gestureRoot: {
+      flex: 1,
+    },
+    center: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    listContent: {
+      paddingBottom: 40,
+    },
+    sectionHeader: {
+      marginBottom: 12,
+      backgroundColor: 'transparent',
+    },
+    sectionHeaderText: {
+      fontFamily: GraphitFonts.GraphitMedium,
+      fontSize: 18,
+      color: theme.secondary,
+    },
+    emptyContainer: {
+      paddingTop: 60,
+      alignItems: 'center',
+    },
+    emptyText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: 'rgba(31, 31, 31, 0.55)',
+      fontSize: 16,
+    },
+  });

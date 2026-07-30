@@ -17,6 +17,8 @@ import DocumentsSection from '@components/core/DocumentsSection';
 import Badge from '@components/ui/Badge';
 
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { supabase } from '@/src/lib/supabase';
 import { useVideoProgress } from '@/src/hooks/content/useVideoProgress';
 import { useAuthStore } from '@/src/store/authStore';
@@ -49,6 +51,9 @@ const formatDuration = (seconds: number | null) => {
 const UI_GENERIC_ERROR = 'Si è verificato un errore. Riprova.';
 
 export default function VideoDetailScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const { videoId } = useLocalSearchParams<{ videoId: string }>();
   const { user } = useAuthStore();
   const { saveProgress, saveProgressImmediate, markCompleted } = useVideoProgress();
@@ -213,7 +218,7 @@ export default function VideoDetailScreen() {
     return (
       <ContentScreenLayout title="Video">
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#C388F0" />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       </ContentScreenLayout>
     );
@@ -253,12 +258,11 @@ export default function VideoDetailScreen() {
                     style={styles.player}
                     nativeControls={true}
                     contentFit="contain"
-                    allowsFullscreen={true}
                   />
                 </View>
               ) : (
                 <View style={styles.emptyVideoContainer}>
-                  <Video size={48} color={colors.primary} />
+                  <Video size={48} color={theme.primary} />
                   <Text style={styles.emptyVideoTitle}>Video in arrivo</Text>
                   <Text style={styles.emptyVideoText}>
                     Stiamo caricando il video, riprova più tardi
@@ -294,7 +298,7 @@ export default function VideoDetailScreen() {
                     </View>
                   ) : progressPercent > 0 ? (
                     <View style={styles.progressBadge}>
-                      <Check size={16} color={colors.secondary} />
+                      <Check size={16} color={theme.secondary} />
                       <Text style={styles.progressText}>In corso</Text>
                     </View>
                   ) : null}
@@ -310,140 +314,141 @@ export default function VideoDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-  scrollContent: { paddingBottom: 40 },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    root: { flex: 1 },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
+    scrollContent: { paddingBottom: 40 },
 
-  playerContainer: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    marginBottom: 20,
-  },
-  player: {
-    width: '100%',
-    height: '100%',
-  },
+    playerContainer: {
+      width: '100%',
+      aspectRatio: 16 / 9,
+      borderRadius: 16,
+      overflow: 'hidden',
+      backgroundColor: '#000',
+      marginBottom: 20,
+    },
+    player: {
+      width: '100%',
+      height: '100%',
+    },
 
-  emptyVideoContainer: {
-    backgroundColor: '#FCF0FB',
-    borderRadius: 16,
-    paddingVertical: 40,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 10,
-  },
-  emptyVideoTitle: {
-    fontSize: 18,
-    fontFamily: GraphitFonts.GraphitBold,
-    color: colors.text,
-  },
-  emptyVideoText: {
-    fontSize: 14,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#666',
-    textAlign: 'center',
-  },
+    emptyVideoContainer: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      paddingVertical: 40,
+      paddingHorizontal: 24,
+      alignItems: 'center',
+      marginBottom: 20,
+      gap: 10,
+    },
+    emptyVideoTitle: {
+      fontSize: 18,
+      fontFamily: GraphitFonts.GraphitBold,
+      color: colors.text,
+    },
+    emptyVideoText: {
+      fontSize: 14,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#666',
+      textAlign: 'center',
+    },
 
-  infoSection: {
-    gap: 12,
-  },
-  videoTitle: {
-    fontSize: 22,
-    fontFamily: GraphitFonts.GraphitBold,
-    color: colors.text,
-  },
-  videoDescription: {
-    fontSize: 15,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#545454',
-    lineHeight: 22,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flexWrap: 'wrap',
-  },
-  durationTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  durationText: {
-    fontSize: 14,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#666',
-  },
-  completionRow: {
-    marginTop: 4,
-  },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  completedText: {
-    fontSize: 15,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#4CAF50',
-  },
-  progressBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  progressText: {
-    fontSize: 15,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.secondary,
-  },
+    infoSection: {
+      gap: 12,
+    },
+    videoTitle: {
+      fontSize: 22,
+      fontFamily: GraphitFonts.GraphitBold,
+      color: colors.text,
+    },
+    videoDescription: {
+      fontSize: 15,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#545454',
+      lineHeight: 22,
+    },
+    metaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      flexWrap: 'wrap',
+    },
+    durationTag: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    durationText: {
+      fontSize: 14,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#666',
+    },
+    completionRow: {
+      marginTop: 4,
+    },
+    completedBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    completedText: {
+      fontSize: 15,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#4CAF50',
+    },
+    progressBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    progressText: {
+      fontSize: 15,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: theme.secondary,
+    },
 
-  statusBannerError: {
-    backgroundColor: '#FFE7F1',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#ED5192',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 16,
-  },
-  bannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  bannerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ED5192' },
-  statusTextError: {
-    flex: 1,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#D00000',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  retryButton: {
-    marginTop: 10,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    borderRadius: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  retryButtonText: { color: '#ED5192', fontSize: 14, fontFamily: GraphitFonts.GraphitBold },
+    statusBannerError: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.secondary,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginBottom: 16,
+    },
+    bannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    bannerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.secondary },
+    statusTextError: {
+      flex: 1,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#D00000',
+      fontSize: 14,
+      lineHeight: 18,
+    },
+    retryButton: {
+      marginTop: 10,
+      backgroundColor: '#FFFFFF',
+      paddingVertical: 12,
+      borderRadius: 16,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    retryButtonText: { color: theme.secondary, fontSize: 14, fontFamily: GraphitFonts.GraphitBold },
 
-  emptyTitle: {
-    fontSize: 16,
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitBold,
-    textAlign: 'center',
-    marginBottom: 6,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    color: '#545454',
-    fontFamily: GraphitFonts.GraphitRegular,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-});
+    emptyTitle: {
+      fontSize: 16,
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitBold,
+      textAlign: 'center',
+      marginBottom: 6,
+    },
+    emptySubtitle: {
+      fontSize: 13,
+      color: '#545454',
+      fontFamily: GraphitFonts.GraphitRegular,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+  });

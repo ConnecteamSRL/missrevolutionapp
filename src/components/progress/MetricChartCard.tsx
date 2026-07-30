@@ -2,17 +2,15 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { GraphitFonts } from '@/src/theme';
+import { AppTheme } from '@mr-types/theme.types';
 
 const screenWidth = Dimensions.get('window').width;
 
 const UI = {
-  miniCardBg: '#FFE7F1',
-  border: '#FFD1E4',
   text: '#1F1F1F',
   muted: '#545454',
-  accent: '#ED5192',
-  line: '#C388F0',
   white: '#FFFFFF',
 };
 
@@ -51,6 +49,8 @@ export const MetricChartCard: React.FC<{
   index: number;
   disabledMessage?: string;
 }> = ({ cfg, series, index, disabledMessage }) => {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [selected, setSelected] = useState<SelectedPoint>(null);
 
   const points = series.data.length;
@@ -66,21 +66,21 @@ export const MetricChartCard: React.FC<{
       datasets: [
         {
           data: series.data,
-          color: (opacity = 1) => hexToRgba(UI.line, opacity),
+          color: (opacity = 1) => hexToRgba(theme.accent, opacity),
           strokeWidth: 3,
         },
       ],
     }),
-    [series.data, series.labels],
+    [series.data, series.labels, theme.accent],
   );
 
   const chartConfig = useMemo(
     () => ({
-      backgroundColor: UI.miniCardBg,
-      backgroundGradientFrom: UI.miniCardBg,
-      backgroundGradientTo: UI.miniCardBg,
+      backgroundColor: theme.surface,
+      backgroundGradientFrom: theme.surface,
+      backgroundGradientTo: theme.surface,
       decimalPlaces: cfg.decimalPlaces,
-      color: (opacity = 1) => hexToRgba(UI.line, opacity),
+      color: (opacity = 1) => hexToRgba(theme.accent, opacity),
       labelColor: (opacity = 1) => hexToRgba(UI.muted, opacity),
       propsForDots: {
         r: '4.5',
@@ -93,12 +93,12 @@ export const MetricChartCard: React.FC<{
       },
       propsForBackgroundLines: {
         strokeDasharray: '4 6',
-        stroke: UI.border,
+        stroke: theme.border,
         strokeWidth: 1,
         strokeOpacity: 0.9,
       },
     }),
-    [cfg.decimalPlaces],
+    [cfg.decimalPlaces, theme.surface, theme.accent, theme.border],
   );
 
   const onDataPointClick = useCallback((p: any) => {
@@ -199,93 +199,94 @@ export const MetricChartCard: React.FC<{
   );
 };
 
-const styles = StyleSheet.create({
-  chartCard: {
-    marginBottom: 16,
-    backgroundColor: UI.miniCardBg,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: UI.border,
-    paddingTop: 16,
-    paddingBottom: 16,
-    paddingHorizontal: CARD_PAD,
-    overflow: 'hidden',
-  },
-  chartTitle: {
-    fontSize: 16,
-    color: UI.text,
-    marginBottom: 12,
-    fontFamily: GraphitFonts.GraphitMedium,
-  },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    chartCard: {
+      marginBottom: 16,
+      backgroundColor: theme.surface,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingTop: 16,
+      paddingBottom: 16,
+      paddingHorizontal: CARD_PAD,
+      overflow: 'hidden',
+    },
+    chartTitle: {
+      fontSize: 16,
+      color: UI.text,
+      marginBottom: 12,
+      fontFamily: GraphitFonts.GraphitMedium,
+    },
 
-  chartViewport: {
-    position: 'relative',
-    overflow: 'visible',
-  },
-  chart: { borderRadius: 0 },
+    chartViewport: {
+      position: 'relative',
+      overflow: 'visible',
+    },
+    chart: { borderRadius: 0 },
 
-  tooltip: {
-    position: 'absolute',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: UI.border,
-    backgroundColor: UI.white,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
-  },
-  tooltipValue: {
-    fontSize: 12,
-    color: UI.text,
-    fontFamily: GraphitFonts.GraphitBold,
-    lineHeight: 14,
-  },
-  tooltipDate: {
-    marginTop: 2,
-    fontSize: 11,
-    color: UI.muted,
-    fontFamily: GraphitFonts.GraphitRegular,
-    lineHeight: 13,
-  },
+    tooltip: {
+      position: 'absolute',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: theme.border,
+      backgroundColor: UI.white,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.12,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 3,
+    },
+    tooltipValue: {
+      fontSize: 12,
+      color: UI.text,
+      fontFamily: GraphitFonts.GraphitBold,
+      lineHeight: 14,
+    },
+    tooltipDate: {
+      marginTop: 2,
+      fontSize: 11,
+      color: UI.muted,
+      fontFamily: GraphitFonts.GraphitRegular,
+      lineHeight: 13,
+    },
 
-  disabledDim: { opacity: 0.7 },
-  disabledBody: {
-    height: CHART_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 18,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: UI.border,
-    backgroundColor: UI.white,
-  },
-  disabledIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: UI.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-    backgroundColor: UI.miniCardBg,
-  },
-  disabledIcon: {
-    fontSize: 18,
-    color: UI.accent,
-    fontFamily: GraphitFonts.GraphitBold,
-    lineHeight: 20,
-  },
-  disabledText: {
-    fontSize: 13,
-    color: UI.muted,
-    textAlign: 'center',
-    fontFamily: GraphitFonts.GraphitRegular,
-    lineHeight: 18,
-  },
-});
+    disabledDim: { opacity: 0.7 },
+    disabledBody: {
+      height: CHART_HEIGHT,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 18,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: theme.border,
+      backgroundColor: UI.white,
+    },
+    disabledIconWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 10,
+      backgroundColor: theme.surface,
+    },
+    disabledIcon: {
+      fontSize: 18,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitBold,
+      lineHeight: 20,
+    },
+    disabledText: {
+      fontSize: 13,
+      color: UI.muted,
+      textAlign: 'center',
+      fontFamily: GraphitFonts.GraphitRegular,
+      lineHeight: 18,
+    },
+  });

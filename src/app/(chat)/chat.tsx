@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,15 +10,17 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
-import { colors, GraphitFonts } from '@/src/theme';
+import { GraphitFonts } from '@/src/theme';
 import { useChat } from '@/src/hooks/core/useChat';
 import { ChatBubble } from '@components/chat/ChatBubble';
 import { ChatInput } from '@components/chat/ChatInput';
 import ChatPinnedBanner from '@components/chat/ChatPinnedBanner';
 import { useUser } from '@/src/contexts/UserContext';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useGymEditorial } from '@/src/hooks/content/useGymEditorial';
 import { useChatUnread } from '@/src/contexts/ChatUnreadContext';
 import { useLocalSearchParams } from 'expo-router';
+import { AppTheme } from '@mr-types/theme.types';
 
 // True se l'HTML ha testo (o immagini) realmente visibile, non solo tag o
 // spazi vuoti (es. "<p></p>", "<p><br></p>", "&nbsp;"): evita di renderizzare
@@ -34,6 +36,8 @@ const hasVisibleHtml = (html?: string | null): boolean => {
 };
 
 export default function ChatScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { me, isUserLoading } = useUser();
   const insets = useSafeAreaInsets();
 
@@ -114,14 +118,14 @@ export default function ChatScreen() {
         </View>
       );
     },
-    [messages, formatDateLabel],
+    [messages, formatDateLabel, styles],
   );
 
   if (isUserLoading) {
     return (
       <ContentScreenLayout title="Supporto Chat">
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="small" color={'#C388F0'} />
+          <ActivityIndicator size="small" color={theme.accent} />
           <Text style={styles.infoText}>Caricamento profilo...</Text>
         </View>
       </ContentScreenLayout>
@@ -150,7 +154,7 @@ export default function ChatScreen() {
           <View style={styles.listContainer}>
             {loading ? (
               <View style={styles.centerContainer}>
-                <ActivityIndicator size="small" color={'#C388F0'} />
+                <ActivityIndicator size="small" color={theme.accent} />
                 <Text style={styles.infoText}>Caricamento conversazione...</Text>
               </View>
             ) : error ? (
@@ -184,65 +188,66 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  keyboardContainer: { flex: 1 },
-  contentContainer: { flex: 1 },
-  listContainer: { flex: 1 },
-  list: { flex: 1 },
-  inputWrap: { paddingTop: 8 },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    keyboardContainer: { flex: 1 },
+    contentContainer: { flex: 1 },
+    listContainer: { flex: 1 },
+    list: { flex: 1 },
+    inputWrap: { paddingTop: 8 },
 
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  listContent: {
-    paddingVertical: 16,
-    // Lista invertita: con pochi messaggi tienili attaccati sotto il banner
-    // (lo spazio vuoto va in fondo, sopra l'input) invece di farli "galleggiare"
-    // in basso lasciando un grande vuoto sotto il banner. Con molti messaggi
-    // il contenuto supera l'altezza e flexGrow/justifyContent non hanno effetto.
-    flexGrow: 1,
-    justifyContent: 'flex-end',
-  },
-  infoText: {
-    marginTop: 12,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#666',
-  },
-  errorText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: 'red',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  placeholderTitle: {
-    fontSize: 24,
-    fontFamily: GraphitFonts.GraphitBold,
-    color: colors.secondary,
-    marginBottom: 8,
-  },
-  placeholderText: {
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#888',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  dateHeaderContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-  },
-  dateHeaderText: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 12,
-    color: '#555',
-    textTransform: 'capitalize',
-  },
-});
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 32,
+    },
+    listContent: {
+      paddingVertical: 16,
+      // Lista invertita: con pochi messaggi tienili attaccati sotto il banner
+      // (lo spazio vuoto va in fondo, sopra l'input) invece di farli "galleggiare"
+      // in basso lasciando un grande vuoto sotto il banner. Con molti messaggi
+      // il contenuto supera l'altezza e flexGrow/justifyContent non hanno effetto.
+      flexGrow: 1,
+      justifyContent: 'flex-end',
+    },
+    infoText: {
+      marginTop: 12,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#666',
+    },
+    errorText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: 'red',
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    placeholderTitle: {
+      fontSize: 24,
+      fontFamily: GraphitFonts.GraphitBold,
+      color: theme.secondary,
+      marginBottom: 8,
+    },
+    placeholderText: {
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#888',
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    dateHeaderContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 6,
+    },
+    dateHeaderText: {
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 16,
+      backgroundColor: 'rgba(0,0,0,0.06)',
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 12,
+      color: '#555',
+      textTransform: 'capitalize',
+    },
+  });

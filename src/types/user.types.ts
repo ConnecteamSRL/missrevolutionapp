@@ -5,10 +5,6 @@ export type MeDetailed = {
     id: string;
     name: string;
   } | null;
-  mfa: {
-    aal: 'aal1' | 'aal2';
-    enabled: boolean;
-  };
   role: Database['public']['Enums']['app_role'];
   avatar: {
     key: string;
@@ -40,6 +36,9 @@ export type MeDetailed = {
     first_name: string | null;
     display_name: string | null;
     current_objective: Enums<'fitness_objective'>;
+    // Determina il tema colore. me_detailed lo espone dalla migrazione
+    // 20260728120000_gender_themes in poi.
+    gender: Enums<'gender_enum'> | null;
   };
   notifications_to_read: number;
   user_id: string;

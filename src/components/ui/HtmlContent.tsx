@@ -18,11 +18,14 @@ import RenderHTML, {
 } from 'react-native-render-html';
 import ImageViewing from 'react-native-image-viewing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GraphitFonts } from '@/src/theme';
+import { GraphitFonts, withAlpha } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import {
   CONTENT_TEXT_SIZE_MULTIPLIERS,
   useContentTextSizeStore,
 } from '@/src/store/contentTextSizeStore';
+import { useSignedContentHtml } from '@/src/hooks/content/useSignedContentHtml';
 
 type Props = {
   html: string | null | undefined;
@@ -259,6 +262,11 @@ const ImgRenderer: CustomBlockRenderer = function ImgRenderer(props) {
 // `renderers` reference changes, so this object must be referentially stable.
 const renderers = { img: ImgRenderer };
 
+// Stessa ragione, ma per il motore di rendering: `ignoredDomTags` e' una delle
+// dipendenze di useTRenderEngine. Scritto in linea nel JSX sarebbe un array
+// nuovo a ogni render, e un qualsiasi ri-render ricostruirebbe tutto il motore.
+const ignoredDomTags = ['script', 'style', 'iframe', 'form', 'input', 'button'];
+
 export default function HtmlContent({
   html,
   contentWidth,
@@ -269,15 +277,22 @@ export default function HtmlContent({
 }: Props) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const cw = contentWidth ?? width;
 
   const level = useContentTextSizeStore((s) => s.level);
   const multiplier = scalableText ? CONTENT_TEXT_SIZE_MULTIPLIERS[level] : 1;
 
+  // Le immagini del catalogo stanno su un bucket privato e nell'HTML salvato
+  // sono percorsi: qui diventano URL firmati, rinnovati finche' la schermata
+  // resta aperta.
+  const signedHtml = useSignedContentHtml(html);
+
   const source = useMemo(
-    () => ({ html: stripPastedColorsFromHtml(normalizeHtml(html ?? '')) }),
-    [html],
+    () => ({ html: stripPastedColorsFromHtml(normalizeHtml(signedHtml)) }),
+    [signedHtml],
   );
 
   const [viewer, setViewer] = useState({ visible: false, index: 0 });
@@ -313,11 +328,35 @@ export default function HtmlContent({
     [],
   );
 
-  // tagsStyles/classesStyles are memoized on [multiplier, cw]: RenderHTML
+  // Anche renderersProps e' sorvegliato da RenderHTML (RenderersPropsProvider):
+  // in linea nel JSX sarebbe un oggetto nuovo a ogni render.
+  const renderersProps = useMemo(
+    () => ({
+      a: {
+        onPress: async (_evt: any, href: string) => {
+          if (!href) return;
+          if (onOpenUrl) return onOpenUrl(href);
+          try {
+            await Linking.openURL(href);
+          } catch (e) {
+            console.error('Failed to open url', href, e);
+          }
+        },
+      },
+      img: {
+        enableExperimentalPercentWidth: true,
+      },
+    }),
+    [onOpenUrl],
+  );
+
+  // tagsStyles/classesStyles are memoized on [multiplier, theme]: RenderHTML
   // rebuilds its engine when these references change, which is accepted here
-  // because the text-size level changes rarely (explicit user tap). All the
-  // textual font sizes, line heights and vertical block margins scale
-  // proportionally; images and hr are intentionally left untouched.
+  // because both change rarely (un tap esplicito sulla dimensione testo, o il
+  // cambio di tema al riavvio). Deliberatamente NON dipendono da `cw`: la
+  // larghezza si assesta a ogni montaggio e ricostruirebbe il motore ogni
+  // volta. All the textual font sizes, line heights and vertical block margins
+  // scale proportionally; images and hr are intentionally left untouched.
   const tagsStyles = useMemo<MixedStyleRecord>(() => {
     const s = (value: number) => Math.round(value * multiplier);
     // The editor only produces <h3>, but pasted content can carry any heading
@@ -326,7 +365,7 @@ export default function HtmlContent({
     const heading: MixedStyleDeclaration = {
       marginTop: s(8),
       marginBottom: s(10),
-      color: '#ED5192',
+      color: theme.secondary,
       fontFamily: GraphitFonts.GraphitBold,
       fontSize: s(24),
       lineHeight: s(24),
@@ -350,9 +389,17 @@ export default function HtmlContent({
       u: { textDecorationLine: 'underline' },
       ul: { marginTop: s(4), marginBottom: s(10), paddingLeft: 18 },
       li: { marginBottom: s(8) },
-      a: { color: '#ED5192', textDecorationLine: 'underline' },
+      a: { color: theme.secondary, textDecorationLine: 'underline' },
       img: {
-        maxWidth: cw,
+        // Tetto di sicurezza, non la larghezza effettiva: domVisitors mette
+        // width="100%" su ogni immagine e le dimensioni reali le calcola la
+        // prop `contentWidth` di RenderHTML, che puo' cambiare liberamente
+        // perche' non fa parte del motore. Qui serve un valore STABILE: con
+        // `cw` il motore resterebbe legato alla larghezza misurata e verrebbe
+        // ricostruito a ogni montaggio, appena il layout si assesta.
+        // (Una percentuale non va bene: si risolve su un contenitore che non
+        // tiene conto del padding della card e l'immagine sborda.)
+        maxWidth: width,
         height: 'auto',
         alignSelf: 'center',
         borderRadius: 14,
@@ -360,7 +407,7 @@ export default function HtmlContent({
         marginBottom: 6,
       },
       hr: {
-        borderColor: '#FFD1E4',
+        borderColor: theme.border,
         borderTopWidth: 1,
         marginTop: 10,
         marginBottom: 12,
@@ -372,7 +419,7 @@ export default function HtmlContent({
       h5: heading,
       h6: heading,
     };
-  }, [multiplier, cw]);
+  }, [multiplier, width, theme]);
 
   // One empty editor line: p line-height (20) + p marginBottom (10), both
   // scaled with the same multiplier so spacing stays proportional. marginTop
@@ -386,9 +433,9 @@ export default function HtmlContent({
       },
       // Brand pink served via a stylesheet class (inline color is a no-op on
       // RN). stripPastedColorsFromHtml tags brand-pink elements with this class.
-      'mr-pink': { color: '#ED5192' },
+      'mr-pink': { color: theme.secondary },
     }),
-    [multiplier],
+    [multiplier, theme],
   );
 
   return (
@@ -403,24 +450,9 @@ export default function HtmlContent({
         // selectable on Android breaks text layout (no wrapping): see
         // facebook/react-native#48921 and #30684.
         defaultTextProps={{ selectable: Platform.OS === 'ios' ? selectable : false }}
-        ignoredDomTags={['script', 'style', 'iframe', 'form', 'input', 'button']}
+        ignoredDomTags={ignoredDomTags}
         tagsStyles={tagsStyles}
-        renderersProps={{
-          a: {
-            onPress: async (_evt: any, href: string) => {
-              if (!href) return;
-              if (onOpenUrl) return onOpenUrl(href);
-              try {
-                await Linking.openURL(href);
-              } catch (e) {
-                console.error('Failed to open url', href, e);
-              }
-            },
-          },
-          img: {
-            enableExperimentalPercentWidth: true,
-          },
-        }}
+        renderersProps={renderersProps}
       />
 
       {enableImageViewer && (
@@ -451,25 +483,26 @@ export default function HtmlContent({
   );
 }
 
-const styles = StyleSheet.create({
-  viewerHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  viewerCloseBtn: {
-    backgroundColor: 'rgba(237, 81, 146, 0.4)',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  viewerCloseText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontFamily: GraphitFonts.GraphitMedium,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    viewerHeader: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+    },
+    viewerCloseBtn: {
+      backgroundColor: withAlpha(theme.secondary, 0.4),
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    viewerCloseText: {
+      color: '#FFF',
+      fontSize: 14,
+      fontFamily: GraphitFonts.GraphitMedium,
+    },
+  });

@@ -11,9 +11,11 @@ import {
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { VolumeX, Volume2 } from 'lucide-react-native';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { useUser } from '@/src/contexts/UserContext';
 import { supabase } from '@/src/lib/supabase';
-import { useGymEditorial } from '@/src/hooks/content/useGymEditorial';
+import { useAppConfig } from '@/src/contexts/AppConfigContext';
 import { getCachedBannerUri } from '@/src/utils/bannerCache';
 
 const VIDEO_EXTENSIONS = ['.mp4'];
@@ -27,8 +29,10 @@ function getMediaType(key: string): 'video' | 'image' | null {
 }
 
 export default function HomeBannerComponent() {
+  const theme = useTheme();
+  const homeStyle = useMemo(() => makeStyles(theme), [theme]);
   const { me } = useUser();
-  const { config, isLoading: isConfigLoading } = useGymEditorial(me?.gym?.id);
+  const { config, isLoading: isConfigLoading } = useAppConfig();
   const [isImageLoading, setIsImageLoading] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [isVideoReady, setIsVideoReady] = useState(false);
@@ -38,32 +42,43 @@ export default function HomeBannerComponent() {
 
   const armImage = require('../../../assets/images/misc/arm.png');
 
+  // Il banner e' del brand, non della palestra: arriva dalla configurazione
+  // globale (app_config). Solo gli utenti "maschio" vedono la variante
+  // maschile, e solo se e' stata caricata: altrimenti vale quella predefinita.
+  const bannerKey = useMemo(() => {
+    if (!config) return null;
+    if (me?.profile?.gender === 'maschio' && config.banner_key_male) {
+      return config.banner_key_male;
+    }
+    return config.banner_key;
+  }, [config, me?.profile?.gender]);
+
   const bannerUrl = useMemo(() => {
-    if (config?.banner_key) {
-      return supabase.storage.from('editorial').getPublicUrl(config.banner_key).data.publicUrl;
+    if (bannerKey) {
+      return supabase.storage.from('editorial').getPublicUrl(bannerKey).data.publicUrl;
     }
     return null;
-  }, [config?.banner_key]);
+  }, [bannerKey]);
 
   const mediaType = useMemo(() => {
-    if (!config?.banner_key) return null;
-    return getMediaType(config.banner_key);
-  }, [config?.banner_key]);
+    if (!bannerKey) return null;
+    return getMediaType(bannerKey);
+  }, [bannerKey]);
 
   useEffect(() => {
-    if (!config?.banner_key || !bannerUrl) {
+    if (!bannerKey || !bannerUrl) {
       setCachedUri(null);
       return;
     }
     const requestId = ++cacheRequestRef.current;
     setIsCaching(true);
-    getCachedBannerUri(config.banner_key, bannerUrl).then((uri) => {
+    getCachedBannerUri(bannerKey, bannerUrl).then((uri) => {
       if (requestId === cacheRequestRef.current) {
         setCachedUri(uri);
         setIsCaching(false);
       }
     });
-  }, [config?.banner_key, bannerUrl]);
+  }, [bannerKey, bannerUrl]);
 
   const player = useVideoPlayer(mediaType === 'video' && cachedUri ? cachedUri : null, (p) => {
     p.loop = true;
@@ -166,76 +181,77 @@ export default function HomeBannerComponent() {
   );
 }
 
-const homeStyle = StyleSheet.create({
-  container: {
-    width: '100%',
-    minHeight: 180,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: colors.primary,
-    position: 'relative',
-  },
-  skeleton: {
-    backgroundColor: colors.primary,
-    zIndex: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bannerFull: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  bannerImageCover: {
-    resizeMode: 'cover',
-  },
-  muteButton: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    borderRadius: 20,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bannerFallback: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 45,
-    paddingLeft: 20,
-    backgroundColor: colors.primary,
-  },
-  imageWrapperFallback: {
-    position: 'absolute',
-    right: -20,
-    top: 30,
-    bottom: 0,
-    justifyContent: 'center',
-    zIndex: 0,
-  },
-  imageFallback: {
-    width: 170,
-    height: 250,
-    resizeMode: 'contain',
-  },
-  textWrapper: {
-    maxWidth: '70%',
-    flexDirection: 'column',
-    gap: 9,
-    zIndex: 1,
-  },
-  title: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 22,
-    color: colors.white,
-  },
-  subtitle: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-    lineHeight: 20,
-    color: colors.white,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      width: '100%',
+      minHeight: 180,
+      borderRadius: 20,
+      overflow: 'hidden',
+      backgroundColor: theme.primary,
+      position: 'relative',
+    },
+    skeleton: {
+      backgroundColor: theme.primary,
+      zIndex: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bannerFull: {
+      flex: 1,
+      width: '100%',
+      height: '100%',
+    },
+    bannerImageCover: {
+      resizeMode: 'cover',
+    },
+    muteButton: {
+      position: 'absolute',
+      bottom: 12,
+      right: 12,
+      backgroundColor: 'rgba(0, 0, 0, 0.45)',
+      borderRadius: 20,
+      width: 36,
+      height: 36,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bannerFallback: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 45,
+      paddingLeft: 20,
+      backgroundColor: theme.primary,
+    },
+    imageWrapperFallback: {
+      position: 'absolute',
+      right: -20,
+      top: 30,
+      bottom: 0,
+      justifyContent: 'center',
+      zIndex: 0,
+    },
+    imageFallback: {
+      width: 170,
+      height: 250,
+      resizeMode: 'contain',
+    },
+    textWrapper: {
+      maxWidth: '70%',
+      flexDirection: 'column',
+      gap: 9,
+      zIndex: 1,
+    },
+    title: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 22,
+      color: theme.onPrimary,
+    },
+    subtitle: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+      lineHeight: 20,
+      color: theme.onPrimary,
+    },
+  });

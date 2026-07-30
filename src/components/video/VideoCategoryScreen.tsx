@@ -6,11 +6,13 @@ import VideoSearchBar from '@components/video/VideoSearchBar';
 import CategoryItem from '@components/video/CategoryItem';
 import VideoCard from '@components/video/VideoCard';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { VideoBreadcrumbItem, VideoItem } from '@mr-types/video.types';
 import VideoBreadcrumbs from '@components/video/VideoBreadcrumbs';
 import { useVideoPage } from '@/src/hooks/content/useVideoPage';
 
 export default function VideoCategoryScreen() {
+  const theme = useTheme();
   const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
   const { data, loading, refreshing, refresh, refetch, error } = useVideoPage(categoryId);
   const [searchText, setSearchText] = useState('');
@@ -59,7 +61,7 @@ export default function VideoCategoryScreen() {
     if (loading && !refreshing && !data) {
       return (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#C388F0" />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       );
     }
@@ -82,7 +84,7 @@ export default function VideoCategoryScreen() {
         showsVerticalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor="#C388F0" />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={theme.accent} />
         }
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={

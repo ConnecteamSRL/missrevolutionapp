@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { type DietPlan } from '@/src/hooks/content/useMyCurrentDiet';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import HtmlBadgeCard from '@components/core/HtmlBadgeCard';
 import DocumentsSection from '@components/core/DocumentsSection';
 import { confirmOpenExternalUrl } from '@/src/utils/openExternalLink.utils';
@@ -12,6 +13,7 @@ type Props = {
 };
 
 export default function CurrentDietCard({ diet, loading, error }: Props) {
+  const theme = useTheme();
   const confirmOpenUrl = useCallback((url: string) => {
     confirmOpenExternalUrl(url);
   }, []);
@@ -19,7 +21,7 @@ export default function CurrentDietCard({ diet, loading, error }: Props) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={'#C388F0'} />
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }

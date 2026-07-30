@@ -11,6 +11,8 @@ import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import { useLocalSearchParams } from 'expo-router';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { useWorkoutById } from '@/src/hooks/content/useWorkoutById';
 import HtmlBadgeCard from '@components/core/HtmlBadgeCard';
 import DocumentsSection from '@components/core/DocumentsSection';
@@ -29,6 +31,9 @@ const pickFirst = (v: string | string[] | undefined) =>
   typeof v === 'string' ? v : Array.isArray(v) ? v[0] : undefined;
 
 export default function WorkoutDetailScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const params = useLocalSearchParams<Params>();
 
   const workoutId = useMemo(
@@ -73,7 +78,7 @@ export default function WorkoutDetailScreen() {
     return (
       <ContentScreenLayout title={screenTitle}>
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={'#C388F0'} />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       </ContentScreenLayout>
     );
@@ -133,81 +138,82 @@ export default function WorkoutDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1 },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    root: { flex: 1 },
 
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
 
-  scrollContent: { paddingBottom: 40 },
+    scrollContent: { paddingBottom: 40 },
 
-  statusBannerError: {
-    backgroundColor: '#FFE7F1',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#ED5192',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 16,
-  },
-  bannerHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  bannerDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ED5192',
-  },
-  statusTextError: {
-    flex: 1,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#D00000',
-    fontSize: 14,
-    lineHeight: 18,
-  },
+    statusBannerError: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.secondary,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginBottom: 16,
+    },
+    bannerHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    bannerDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: theme.secondary,
+    },
+    statusTextError: {
+      flex: 1,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#D00000',
+      fontSize: 14,
+      lineHeight: 18,
+    },
 
-  retryButton: {
-    marginTop: 10,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    borderRadius: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  retryButtonText: {
-    color: '#ED5192',
-    fontSize: 14,
-    fontFamily: GraphitFonts.GraphitBold,
-  },
+    retryButton: {
+      marginTop: 10,
+      backgroundColor: '#FFFFFF',
+      paddingVertical: 12,
+      borderRadius: 16,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    retryButtonText: {
+      color: theme.secondary,
+      fontSize: 14,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
 
-  ctaButton: {
-    backgroundColor: '#ED5192',
-    paddingVertical: 16,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  ctaButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
+    ctaButton: {
+      backgroundColor: theme.secondary,
+      paddingVertical: 16,
+      borderRadius: 20,
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    ctaButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
 
-  emptyTitle: {
-    fontSize: 16,
-    color: '#1F1F1F',
-    fontFamily: GraphitFonts.GraphitBold,
-    textAlign: 'center',
-    marginBottom: 6,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    color: '#545454',
-    fontFamily: GraphitFonts.GraphitRegular,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-});
+    emptyTitle: {
+      fontSize: 16,
+      color: '#1F1F1F',
+      fontFamily: GraphitFonts.GraphitBold,
+      textAlign: 'center',
+      marginBottom: 6,
+    },
+    emptySubtitle: {
+      fontSize: 13,
+      color: '#545454',
+      fontFamily: GraphitFonts.GraphitRegular,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+  });

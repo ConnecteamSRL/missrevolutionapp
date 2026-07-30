@@ -4,9 +4,7 @@ import { VideoPageData } from '@mr-types/video.types';
 import { useUser } from '@/src/contexts/UserContext';
 
 export function useVideoPage(categoryId?: string) {
-  const { me, isUserLoading } = useUser();
-
-  const gymId = me?.gym?.id;
+  const { isUserLoading } = useUser();
 
   const [data, setData] = useState<VideoPageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,12 +14,6 @@ export function useVideoPage(categoryId?: string) {
   const fetchPage = useCallback(
     async (silent = false) => {
       if (isUserLoading) return;
-      if (!gymId) {
-        setError("Nessuna palestra associata all'utente.");
-        setLoading(false);
-        setRefreshing(false);
-        return;
-      }
 
       if (!silent) setLoading(true);
 
@@ -33,7 +25,6 @@ export function useVideoPage(categoryId?: string) {
           const { data: masterData, error: masterError } = await supabase
             .from('video_categories')
             .select('id')
-            .eq('gym_id', gymId)
             .eq('slug', 'master')
             .single();
 
@@ -47,7 +38,11 @@ export function useVideoPage(categoryId?: string) {
 
         if (rpcError) throw rpcError;
 
-        setData(rpcData as VideoPageData);
+        // video_category_page e' `returns jsonb`, quindi i tipi generati si
+        // fermano a Json e overrideTypes rifiuta di restringerlo (Json
+        // comprende anche Json[]): il passaggio da unknown e' l'unico modo di
+        // dichiarare qui la forma vera.
+        setData(rpcData as unknown as VideoPageData);
       } catch (err) {
         console.error(err);
         if (!silent) setError('Impossibile caricare i contenuti video.');
@@ -56,7 +51,7 @@ export function useVideoPage(categoryId?: string) {
         setRefreshing(false);
       }
     },
-    [categoryId, gymId, isUserLoading],
+    [categoryId, isUserLoading],
   );
 
   useEffect(() => {

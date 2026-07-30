@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 
 type Props = {
   value: string;
@@ -19,6 +21,8 @@ export default function OtpBoxesInput({
   disabled = false,
   autoFocus = true,
 }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const refs = useRef<(TextInput | null)[]>([]);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
@@ -116,22 +120,23 @@ export default function OtpBoxesInput({
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
-  cell: {
-    height: 50,
-    width: 44,
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
-    borderRadius: 10,
-    backgroundColor: colors.white,
-    textAlign: 'center',
-    fontSize: 18,
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  cellFocused: {
-    borderColor: colors.secondary,
-  },
-  cellDisabled: { opacity: 0.6 },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    row: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
+    cell: {
+      height: 50,
+      width: 44,
+      borderWidth: 1,
+      borderColor: '#E6E6E6',
+      borderRadius: 10,
+      backgroundColor: colors.white,
+      textAlign: 'center',
+      fontSize: 18,
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    cellFocused: {
+      borderColor: theme.secondary,
+    },
+    cellDisabled: { opacity: 0.6 },
+  });

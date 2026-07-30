@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,8 +12,10 @@ import {
 import { colors, GraphitFonts } from '@/src/theme';
 import SendIcon from '@components/ui/icons/SendIcon';
 import { useUser } from '@/src/contexts/UserContext';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { router } from 'expo-router';
 import { AiRequest, AiResponse } from '@mr-types/ai.types';
+import { AppTheme } from '@mr-types/theme.types';
 import aiConfig from '@/src/config/ai.config';
 
 type Props = {
@@ -21,6 +23,8 @@ type Props = {
 };
 
 export default function FaqAiAssistent({ onFaqFound }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [question, setQuestion] = useState('');
   const [isSending, setIsSending] = useState(false);
   const { me } = useUser();
@@ -101,7 +105,7 @@ export default function FaqAiAssistent({ onFaqFound }: Props) {
       <View style={styles.inputWrapper}>
         <TextInput
           placeholder="Chiedi all'assistente AI..."
-          placeholderTextColor={colors.white + 'AA'}
+          placeholderTextColor={theme.onPrimary + 'AA'}
           style={styles.input}
           value={question}
           onChangeText={setQuestion}
@@ -121,45 +125,46 @@ export default function FaqAiAssistent({ onFaqFound }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.primary,
-    borderRadius: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  title: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.white,
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 60,
-    borderWidth: 1,
-    borderColor: colors.white,
-    paddingLeft: 16,
-    paddingTop: 4,
-    paddingRight: 4,
-    paddingBottom: 4,
-  },
-  input: {
-    flex: 1,
-    color: colors.white,
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-  },
-  sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.secondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 10,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: theme.primary,
+      borderRadius: 20,
+      paddingVertical: 20,
+      paddingHorizontal: 20,
+      marginBottom: 20,
+    },
+    title: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: theme.onPrimary,
+      fontSize: 16,
+      marginBottom: 12,
+    },
+    inputWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.primary,
+      borderRadius: 60,
+      borderWidth: 1,
+      borderColor: colors.white,
+      paddingLeft: 16,
+      paddingTop: 4,
+      paddingRight: 4,
+      paddingBottom: 4,
+    },
+    input: {
+      flex: 1,
+      color: theme.onPrimary,
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+    },
+    sendButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: theme.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: 10,
+    },
+  });

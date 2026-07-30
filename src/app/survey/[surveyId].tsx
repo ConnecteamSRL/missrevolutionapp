@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,12 +15,17 @@ import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import { useSurveyDetail } from '@/src/hooks/core/useSurveys';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SurveyQuestion } from '@mr-types/survey.types';
-import { GraphitFonts } from '@/src/theme';
+import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { useLocalSearchParams } from 'expo-router';
 
 type LocalAnswers = Record<string, { optionId?: string; optionIds?: string[]; text?: string }>;
 
 export default function SurveyDetailScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const navigation = useNavigation();
   const { surveyId, title } = useLocalSearchParams<{ surveyId: string; title?: string }>();
 
@@ -122,7 +127,7 @@ export default function SurveyDetailScreen() {
           <TextInput
             style={[styles.input, isReadOnly && styles.inputDisabled]}
             placeholder="Scrivi la tua risposta..."
-            placeholderTextColor="#B0A7AF"
+            placeholderTextColor={colors.textPlaceholder}
             value={currentAnswer?.text || ''}
             onChangeText={(t) => handleTextChange(question.id, t)}
             editable={!isReadOnly}
@@ -167,7 +172,7 @@ export default function SurveyDetailScreen() {
     return (
       <ContentScreenLayout title={title}>
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={'#C388F0'} />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       </ContentScreenLayout>
     );
@@ -201,7 +206,7 @@ export default function SurveyDetailScreen() {
               disabled={submitting}
             >
               {submitting ? (
-                <ActivityIndicator color={'#C388F0'} />
+                <ActivityIndicator color={theme.accent} />
               ) : (
                 <Text style={styles.submitButtonText}>Invia risposte</Text>
               )}
@@ -213,108 +218,109 @@ export default function SurveyDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scrollContent: { paddingBottom: 40 },
-  description: {
-    fontSize: 14,
-    color: '#545454',
-    marginBottom: 16,
-    fontStyle: 'italic',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  questionCard: {
-    backgroundColor: '#FFE7F1',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    padding: 16,
-    marginBottom: 16,
-  },
-  questionText: {
-    fontSize: 15,
-    marginBottom: 12,
-    color: '#363636',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    borderRadius: 12,
-    padding: 12,
-    minHeight: 80,
-    textAlignVertical: 'top',
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 14,
-    color: '#363636',
-  },
-  inputDisabled: { backgroundColor: '#F5F5F5', color: '#888' },
-  optionsContainer: { gap: 10 },
-  optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    borderRadius: 12,
-  },
-  optionButtonSelected: {
-    backgroundColor: '#FFE7F1',
-    borderColor: '#ED5192',
-  },
-  optionButtonDisabled: { opacity: 0.7 },
-  radioCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: '#B0A7AF',
-    marginRight: 10,
-  },
-  radioCircleSelected: {
-    borderColor: '#ED5192',
-    backgroundColor: '#ED5192',
-  },
-  optionText: {
-    fontSize: 14,
-    color: '#545454',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  optionTextSelected: {
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  submitButton: {
-    backgroundColor: '#ED5192',
-    paddingVertical: 16,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginTop: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  statusBanner: {
-    backgroundColor: '#CCAEE3',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 16,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  statusText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#363636',
-    fontSize: 14,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    scrollContent: { paddingBottom: 40 },
+    description: {
+      fontSize: 14,
+      color: '#545454',
+      marginBottom: 16,
+      fontStyle: 'italic',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    questionCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 16,
+      marginBottom: 16,
+    },
+    questionText: {
+      fontSize: 15,
+      marginBottom: 12,
+      color: '#363636',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    input: {
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 12,
+      padding: 12,
+      minHeight: 80,
+      textAlignVertical: 'top',
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 14,
+      color: '#363636',
+    },
+    inputDisabled: { backgroundColor: '#F5F5F5', color: '#888' },
+    optionsContainer: { gap: 10 },
+    optionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 12,
+    },
+    optionButtonSelected: {
+      backgroundColor: theme.surface,
+      borderColor: theme.secondary,
+    },
+    optionButtonDisabled: { opacity: 0.7 },
+    radioCircle: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: 2,
+      borderColor: colors.textPlaceholder,
+      marginRight: 10,
+    },
+    radioCircleSelected: {
+      borderColor: theme.secondary,
+      backgroundColor: theme.secondary,
+    },
+    optionText: {
+      fontSize: 14,
+      color: '#545454',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    optionTextSelected: {
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    submitButton: {
+      backgroundColor: theme.secondary,
+      paddingVertical: 16,
+      borderRadius: 20,
+      alignItems: 'center',
+      marginTop: 24,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    submitButtonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    statusBanner: {
+      backgroundColor: theme.primary,
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 16,
+      marginBottom: 20,
+      alignItems: 'center',
+    },
+    statusText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#363636',
+      fontSize: 14,
+    },
+  });

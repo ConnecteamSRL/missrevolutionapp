@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import HeaderTabComponent from '@components/tab/HeaderTabComponent';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 import HomeIcon from '@components/ui/icons/HomeIcon';
 import NutritionIcon from '@components/ui/icons/NutritionIcon';
@@ -53,6 +54,7 @@ function IconWithIndicator({
 }
 
 export default function TabsLayout() {
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   const bottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, 10) : insets.bottom;
@@ -76,10 +78,10 @@ export default function TabsLayout() {
           },
           safeAreaInsets: { bottom: bottomInset },
           tabBarActiveTintColor: '#FFFFFF',
-          tabBarInactiveTintColor: '#F1DFFF',
+          tabBarInactiveTintColor: theme.surface,
           tabBarBackground: () => (
             <LinearGradient
-              colors={['#CEA1F1', '#C082EF']}
+              colors={theme.tabGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={{ flex: 1 }}

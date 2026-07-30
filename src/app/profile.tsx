@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -11,6 +11,8 @@ import UserAvatarComponent from '@components/tab/UserAvatarComponent';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import { useUser } from '@/src/contexts/UserContext';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { useAppUserProfile } from '@/src/hooks/core/useAppUserProfile';
 import { MaterialIcons } from '@expo/vector-icons';
 import MembershipsSection from '@components/core/MembershipsSection';
@@ -18,6 +20,9 @@ import { logout } from '@/src/hooks/auth/useLogout';
 import { useRouter } from 'expo-router';
 
 export default function Profile() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const router = useRouter();
   const { me } = useUser();
   const userId = me?.profile.user_id;
@@ -40,7 +45,7 @@ export default function Profile() {
     .filter(Boolean)
     .join(', ');
 
-  const iconColor = (colors as any).secondary || colors.gray;
+  const iconColor = theme.secondary || colors.gray;
 
   const handleSignOut = async (): Promise<void> => {
     setSignOutLoading(true);
@@ -61,7 +66,7 @@ export default function Profile() {
             <UserAvatarComponent size={80} editable={true} />
             <View>
               {loading ? (
-                <ActivityIndicator size="small" color={'#C388F0'} />
+                <ActivityIndicator size="small" color={theme.accent} />
               ) : (
                 <Text style={styles.displayName}>{displayName}</Text>
               )}
@@ -70,7 +75,7 @@ export default function Profile() {
 
           {loading ? (
             <View style={styles.loadingRow}>
-              <ActivityIndicator size="small" color={'#C388F0'} />
+              <ActivityIndicator size="small" color={theme.accent} />
             </View>
           ) : (
             <>
@@ -137,7 +142,7 @@ export default function Profile() {
             activeOpacity={0.8}
           >
             {signOutLoading ? (
-              <ActivityIndicator size="small" color={'#C388F0'} />
+              <ActivityIndicator size="small" color={theme.accent} />
             ) : (
               <View style={styles.actionRow}>
                 <MaterialIcons name="logout" size={20} color="#D32F2F" />
@@ -151,113 +156,114 @@ export default function Profile() {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContent: {
-    paddingBottom: 24,
-    rowGap: 20,
-  },
-  container: {
-    padding: 10,
-    borderRadius: 30,
-    backgroundColor: '#FFE7F1',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    gap: 16,
-  },
-  avatarContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: 24,
-    padding: 16,
-    backgroundColor: colors.primary,
-    borderRadius: 20,
-  },
-  displayName: {
-    color: colors.white,
-    fontSize: 18,
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-  loadingRow: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitMedium,
-    marginTop: 4,
-    marginLeft: 6,
-  },
-  infoList: {
-    gap: 14,
-  },
-  infoGroup: {
-    gap: 6,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: '#565656',
-    fontFamily: GraphitFonts.GraphitMedium,
-    marginLeft: 6,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    backgroundColor: '#FFD7E8',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    paddingLeft: 18,
-    paddingTop: 12,
-    paddingRight: 8,
-    paddingBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    minHeight: 60,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#1E1E1E',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginRight: 12,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFE7F1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 10,
-    gap: 12,
-  },
-  actionButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 60,
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    columnGap: 8,
-  },
-  actionText: {
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitBold,
-    color: '#1F1F1F',
-  },
-  logoutText: {
-    color: '#D32F2F',
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    scrollContent: {
+      paddingBottom: 24,
+      rowGap: 20,
+    },
+    container: {
+      padding: 10,
+      borderRadius: 30,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: 16,
+    },
+    avatarContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: 24,
+      padding: 16,
+      backgroundColor: theme.primary,
+      borderRadius: 20,
+    },
+    displayName: {
+      color: theme.onPrimary,
+      fontSize: 18,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+    loadingRow: {
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    sectionTitle: {
+      fontSize: 16,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitMedium,
+      marginTop: 4,
+      marginLeft: 6,
+    },
+    infoList: {
+      gap: 14,
+    },
+    infoGroup: {
+      gap: 6,
+    },
+    infoLabel: {
+      fontSize: 13,
+      color: '#565656',
+      fontFamily: GraphitFonts.GraphitMedium,
+      marginLeft: 6,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      backgroundColor: theme.border,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingLeft: 18,
+      paddingTop: 12,
+      paddingRight: 8,
+      paddingBottom: 12,
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      minHeight: 60,
+    },
+    infoText: {
+      flex: 1,
+      fontSize: 16,
+      color: '#1E1E1E',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginRight: 12,
+    },
+    iconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: theme.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    buttonContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 10,
+      gap: 12,
+    },
+    actionButton: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: 60,
+      paddingVertical: 12,
+      paddingHorizontal: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    actionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      columnGap: 8,
+    },
+    actionText: {
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitBold,
+      color: '#1F1F1F',
+    },
+    logoutText: {
+      color: '#D32F2F',
+    },
+  });

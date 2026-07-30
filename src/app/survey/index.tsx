@@ -4,8 +4,10 @@ import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import { useMySurveys } from '@/src/hooks/core/useSurveys';
 import { router } from 'expo-router';
 import SurveyList from '@components/survey/SurveyList';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 export default function SurveyListScreen() {
+  const theme = useTheme();
   const { surveys, loading, refresh, refreshing, fetchSurveys } = useMySurveys();
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function SurveyListScreen() {
     return (
       <ContentScreenLayout title="Survey">
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={'#C388F0'} />
+          <ActivityIndicator size="large" color={theme.accent} />
         </View>
       </ContentScreenLayout>
     );

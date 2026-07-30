@@ -5,9 +5,11 @@ import HomeBannerComponent from '@components/home/HomeBannerComponent';
 import HomeCtaSection from '@components/home/HomeCtaSection';
 import HomeWeightCard from '@components/home/HomeWeightCard';
 import { useUser } from '@/src/contexts/UserContext';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLatestCheckup } from '@/src/hooks/progress/useLatestCheckup';
 
 const HomeScreen: React.FC = () => {
+  const theme = useTheme();
   const { me, isUserLoading } = useUser();
   const {
     latestCheckup,
@@ -20,7 +22,7 @@ const HomeScreen: React.FC = () => {
   if (isLoadingData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#C388F0" />
+        <ActivityIndicator size="large" color={theme.accent} />
       </View>
     );
   }

@@ -16,6 +16,8 @@ import { Image } from 'expo-image';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import { supabase } from '@/src/lib/supabase';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@components/layouts/DismissKeyboardView';
 
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
@@ -23,6 +25,9 @@ const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 const normalizeEmail = (v: string) => v.trim().toLowerCase();
 
 export default function RegisterScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
@@ -143,90 +148,91 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
+    container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
 
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logo: {
-    width: 150,
-    height: 55,
-  },
+    logoContainer: {
+      alignItems: 'center',
+      marginBottom: 40,
+    },
+    logo: {
+      width: 150,
+      height: 55,
+    },
 
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginBottom: 40,
-    marginTop: 8,
-  },
+    title: {
+      fontSize: 24,
+      textAlign: 'center',
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+    subtitle: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: '#666',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginBottom: 40,
+      marginTop: 8,
+    },
 
-  form: { gap: 15 },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    backgroundColor: colors.white,
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: colors.text,
-  },
-  secureInput: {
-    ...(Platform.OS === 'android' && { fontFamily: undefined }),
-  },
+    form: { gap: 15 },
+    input: {
+      height: 50,
+      borderWidth: 1,
+      borderColor: '#E6E6E6',
+      borderRadius: 8,
+      paddingHorizontal: 15,
+      backgroundColor: colors.white,
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: colors.text,
+    },
+    secureInput: {
+      ...(Platform.OS === 'android' && { fontFamily: undefined }),
+    },
 
-  button: {
-    display: 'flex',
-    alignItems: 'center',
-    backgroundColor: colors.secondary,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: colors.white,
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-  },
+    button: {
+      display: 'flex',
+      alignItems: 'center',
+      backgroundColor: theme.secondary,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      borderRadius: 20,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: {
+      color: colors.white,
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+    },
 
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E6E6E6',
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 14,
-    color: '#999',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
+    dividerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 24,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: '#E6E6E6',
+    },
+    dividerText: {
+      marginHorizontal: 12,
+      fontSize: 14,
+      color: '#999',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
 
-  secondarySection: {
-    display: 'flex',
-    marginTop: 8,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    fontFamily: GraphitFonts.GraphitRegular,
-    fontSize: 16,
-    color: colors.text,
-  },
-});
+    secondarySection: {
+      display: 'flex',
+      marginTop: 8,
+      alignItems: 'center',
+    },
+    secondaryButtonText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 16,
+      color: colors.text,
+    },
+  });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -15,8 +15,13 @@ import { Image } from 'expo-image';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import { supabase } from '@/src/lib/supabase';
 import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 
 export default function ForgotPasswordScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const logo = require('../../../assets/images/logo-ext.png');
@@ -95,53 +100,54 @@ export default function ForgotPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-  container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
-  logoContainer: { alignItems: 'center', marginBottom: 30 },
-  logo: { width: 120, height: 45 },
-  title: {
-    fontSize: 24,
-    textAlign: 'center',
-    color: colors.text,
-    fontFamily: GraphitFonts.GraphitBold,
-    marginBottom: 10,
-  },
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginBottom: 30,
-    lineHeight: 20,
-  },
-  form: { gap: 15 },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#E6E6E6',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    backgroundColor: colors.white,
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  button: {
-    alignItems: 'center',
-    backgroundColor: colors.secondary,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  backButton: { alignItems: 'center', marginTop: 10 },
-  backButtonText: {
-    color: colors.text,
-    fontSize: 14,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
+    container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
+    logoContainer: { alignItems: 'center', marginBottom: 30 },
+    logo: { width: 120, height: 45 },
+    title: {
+      fontSize: 24,
+      textAlign: 'center',
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitBold,
+      marginBottom: 10,
+    },
+    subtitle: {
+      textAlign: 'center',
+      fontSize: 14,
+      color: '#666',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginBottom: 30,
+      lineHeight: 20,
+    },
+    form: { gap: 15 },
+    input: {
+      height: 50,
+      borderWidth: 1,
+      borderColor: '#E6E6E6',
+      borderRadius: 8,
+      paddingHorizontal: 15,
+      backgroundColor: colors.white,
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    button: {
+      alignItems: 'center',
+      backgroundColor: theme.secondary,
+      paddingVertical: 12,
+      borderRadius: 20,
+    },
+    buttonDisabled: { opacity: 0.6 },
+    buttonText: {
+      color: colors.white,
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    backButton: { alignItems: 'center', marginTop: 10 },
+    backButtonText: {
+      color: colors.text,
+      fontSize: 14,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+  });

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { format } from 'date-fns';
+import { useTheme } from '@/src/contexts/ThemeContext';
 import { GraphitFonts } from '@/src/theme';
+import { AppTheme } from '@mr-types/theme.types';
 
 type SurveyItem = {
   assignment_id: string;
@@ -34,6 +36,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function SurveyList({ surveys, refreshing, onRefresh, onPressSurvey }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   return (
     <FlatList
       data={surveys}
@@ -93,78 +98,79 @@ export default function SurveyList({ surveys, refreshing, onRefresh, onPressSurv
   );
 }
 
-const styles = StyleSheet.create({
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  listContent: {},
-  emptyText: { color: '#666', fontSize: 16, textAlign: 'center' },
-  card: {
-    backgroundColor: '#FFE7F1',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardDisabled: {
-    opacity: 0.6,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  badge: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    marginRight: 8,
-    backgroundColor: '#FFD7E8',
-  },
-  badgeText: {
-    color: '#363636',
-    fontSize: 12,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  subRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-    gap: 8,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#ED5192',
-    marginHorizontal: 6,
-  },
-  dateText: {
-    fontSize: 12,
-    color: '#888',
-  },
-  title: {
-    fontSize: 16,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#363636',
-    marginBottom: 4,
-  },
-  cardCompleted: {
-    backgroundColor: '#CCAEE3',
-    borderColor: '#B48FD4',
-  },
-  subText: {
-    fontSize: 12,
-    fontFamily: GraphitFonts.GraphitRegular,
-    lineHeight: 18,
-    color: '#545454',
-    marginTop: 4,
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    listContent: {},
+    emptyText: { color: '#666', fontSize: 16, textAlign: 'center' },
+    card: {
+      backgroundColor: theme.surface,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 16,
+      marginBottom: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    cardDisabled: {
+      opacity: 0.6,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    badge: {
+      paddingHorizontal: 18,
+      paddingVertical: 8,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginRight: 8,
+      backgroundColor: theme.border,
+    },
+    badgeText: {
+      color: '#363636',
+      fontSize: 12,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    subRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 4,
+      gap: 8,
+    },
+    dot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: theme.secondary,
+      marginHorizontal: 6,
+    },
+    dateText: {
+      fontSize: 12,
+      color: '#888',
+    },
+    title: {
+      fontSize: 16,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#363636',
+      marginBottom: 4,
+    },
+    cardCompleted: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    subText: {
+      fontSize: 12,
+      fontFamily: GraphitFonts.GraphitRegular,
+      lineHeight: 18,
+      color: '#545454',
+      marginTop: 4,
+    },
+  });

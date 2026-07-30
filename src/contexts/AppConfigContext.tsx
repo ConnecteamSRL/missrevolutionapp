@@ -18,11 +18,15 @@ export const AppConfigProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const fetchConfig = async () => {
     try {
       setIsLoading(true);
+      // La riga della vista si dichiara con AppConfig: i temi ne arrivano come
+      // jsonb e i banner sono piu' recenti dei tipi generati (vedi
+      // app-config.types.ts).
       const { data, error } = await supabase
         .from('app_config_public')
         .select('*')
         .eq('id', 1)
-        .single();
+        .single()
+        .overrideTypes<AppConfig, { merge: false }>();
 
       if (error) throw error;
       setConfig(data);

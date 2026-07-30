@@ -1,12 +1,14 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { File as LocalFile, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Download, File, FileSpreadsheet, FileText, Presentation } from 'lucide-react-native';
-import { GraphitFonts } from '@/src/theme';
-import { supabase } from '@/src/lib/supabase';
+import { colors, GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { Attachment, useAttachments } from '@/src/hooks/content/useAttachments';
+import { signContentDocument } from '@/src/utils/contentStorage';
 import {
   CONTENT_TEXT_SIZE_MULTIPLIERS,
   useContentTextSizeStore,
@@ -16,7 +18,6 @@ type Props = {
   assignmentId?: string | null;
 };
 
-const ICON_COLOR = '#ED5192';
 const UI_DOCUMENTS_ERROR = 'Impossibile caricare i documenti.';
 
 const MIME_TYPES: Record<string, string> = {
@@ -29,12 +30,6 @@ const MIME_TYPES: Record<string, string> = {
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 };
 
-function documentUrl(doc: Attachment): string | null {
-  if (!doc.object_path) return null;
-  const { data } = supabase.storage.from('content-documents').getPublicUrl(doc.object_path);
-  return data.publicUrl || null;
-}
-
 function downloadFileName(doc: Attachment): string {
   const storageName = doc.object_path?.split('/').pop() || 'documento';
   const extension = storageName.split('.').pop()?.toLowerCase() || '';
@@ -45,24 +40,27 @@ function downloadFileName(doc: Attachment): string {
 }
 
 function DocumentIcon({ objectPath }: { objectPath: string | null }) {
+  const theme = useTheme();
   const ext = objectPath?.split('.').pop()?.toLowerCase() ?? '';
   switch (ext) {
     case 'xls':
     case 'xlsx':
-      return <FileSpreadsheet size={22} color={ICON_COLOR} />;
+      return <FileSpreadsheet size={22} color={theme.secondary} />;
     case 'ppt':
     case 'pptx':
-      return <Presentation size={22} color={ICON_COLOR} />;
+      return <Presentation size={22} color={theme.secondary} />;
     case 'pdf':
     case 'doc':
     case 'docx':
-      return <FileText size={22} color={ICON_COLOR} />;
+      return <FileText size={22} color={theme.secondary} />;
     default:
-      return <File size={22} color={ICON_COLOR} />;
+      return <File size={22} color={theme.secondary} />;
   }
 }
 
 export default function DocumentsSection({ assignmentId }: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const router = useRouter();
   const { data, error, refetch } = useAttachments(assignmentId);
   const isFirstFocus = useRef(true);
@@ -97,11 +95,16 @@ export default function DocumentsSection({ assignmentId }: Props) {
   );
 
   const downloadDocument = useCallback(async (doc: Attachment) => {
-    const url = documentUrl(doc);
-    if (!url || !doc.object_path) return;
+    if (!doc.object_path) return;
 
     setDownloadingPath(doc.object_path);
     try {
+      // Il bucket e' privato: la firma si chiede al momento del download.
+      const url = await signContentDocument(doc.object_path);
+      if (!url) {
+        Alert.alert('Errore', 'Impossibile scaricare il documento.');
+        return;
+      }
       const fileName = downloadFileName(doc);
       const downloaded = await LocalFile.downloadFileAsync(
         url,
@@ -182,10 +185,10 @@ export default function DocumentsSection({ assignmentId }: Props) {
               accessibilityLabel={`Scarica ${doc.display_name ?? 'documento'}`}
             >
               {downloadingPath === doc.object_path ? (
-                <ActivityIndicator size="small" color={ICON_COLOR} />
+                <ActivityIndicator size="small" color={theme.secondary} />
               ) : (
                 <>
-                  <Download size={18} color={ICON_COLOR} />
+                  <Download size={18} color={theme.secondary} />
                   <Text style={styles.downloadButtonText}>Scarica</Text>
                 </>
               )}
@@ -197,106 +200,107 @@ export default function DocumentsSection({ assignmentId }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignSelf: 'stretch',
-    backgroundColor: '#FFE7F1',
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    padding: 16,
-    marginBottom: 16,
-    gap: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitBold,
-  },
-  sectionHint: {
-    marginTop: -6,
-    color: '#6B5360',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  list: {
-    gap: 10,
-  },
-  documentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    overflow: 'hidden',
-  },
-  documentOpenButton: {
-    flex: 1,
-    minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
-    paddingLeft: 12,
-    paddingRight: 8,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFE7F1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  documentName: {
-    flex: 1,
-    flexShrink: 1,
-    fontSize: 14,
-    color: '#1F1F1F',
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  downloadButton: {
-    width: 84,
-    alignSelf: 'stretch',
-    flexDirection: 'row',
-    gap: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderLeftWidth: 1,
-    borderLeftColor: '#FFD1E4',
-  },
-  downloadButtonText: {
-    color: ICON_COLOR,
-    fontSize: 12,
-    fontFamily: GraphitFonts.GraphitBold,
-  },
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      alignSelf: 'stretch',
+      backgroundColor: theme.surface,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 16,
+      marginBottom: 16,
+      gap: 12,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+    sectionHint: {
+      marginTop: -6,
+      color: colors.textMuted,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    list: {
+      gap: 10,
+    },
+    documentRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      overflow: 'hidden',
+    },
+    documentOpenButton: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 10,
+      paddingLeft: 12,
+      paddingRight: 8,
+    },
+    iconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: theme.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    documentName: {
+      flex: 1,
+      flexShrink: 1,
+      fontSize: 14,
+      color: '#1F1F1F',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    downloadButton: {
+      width: 84,
+      alignSelf: 'stretch',
+      flexDirection: 'row',
+      gap: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderLeftWidth: 1,
+      borderLeftColor: theme.border,
+    },
+    downloadButtonText: {
+      color: theme.secondary,
+      fontSize: 12,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
 
-  statusBannerError: {
-    backgroundColor: '#FFE7F1',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#ED5192',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 16,
-  },
-  bannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  bannerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ED5192' },
-  statusTextError: {
-    flex: 1,
-    fontFamily: GraphitFonts.GraphitRegular,
-    color: '#D00000',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  retryButton: {
-    marginTop: 10,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    borderRadius: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-  },
-  retryButtonText: { color: '#ED5192', fontSize: 14, fontFamily: GraphitFonts.GraphitBold },
-});
+    statusBannerError: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.secondary,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginBottom: 16,
+    },
+    bannerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    bannerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.secondary },
+    statusTextError: {
+      flex: 1,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#D00000',
+      fontSize: 14,
+      lineHeight: 18,
+    },
+    retryButton: {
+      marginTop: 10,
+      backgroundColor: '#FFFFFF',
+      paddingVertical: 12,
+      borderRadius: 16,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    retryButtonText: { color: theme.secondary, fontSize: 14, fontFamily: GraphitFonts.GraphitBold },
+  });

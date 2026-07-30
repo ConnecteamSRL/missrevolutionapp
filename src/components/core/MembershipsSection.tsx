@@ -2,15 +2,19 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useUser } from '@/src/contexts/UserContext';
 import { useUserMemberships, UserMembershipDetail } from '@/src/hooks/core/useUserMemberships';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, GraphitFonts } from '@/src/theme';
-import React from 'react';
+import { GraphitFonts } from '@/src/theme';
+import React, { useMemo } from 'react';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 
 export default function MembershipsSection() {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { me } = useUser();
   const userId = me?.user_id;
   const { data, loading } = useUserMemberships(userId);
 
-  const iconColor = (colors as any).secondary || '#ED5192';
+  const iconColor = theme.secondary;
 
   const fmt = (d?: string | null) => (d ? new Date(d).toLocaleDateString('it-IT') : '∞');
 
@@ -67,7 +71,7 @@ export default function MembershipsSection() {
 
       {loading ? (
         <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color={'#C388F0'} />
+          <ActivityIndicator size="small" color={theme.accent} />
         </View>
       ) : (
         <View style={styles.infoList}>
@@ -90,74 +94,75 @@ export default function MembershipsSection() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 10,
-    borderRadius: 30,
-    backgroundColor: '#FFE7F1',
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    gap: 16,
-  },
-  loadingRow: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  infoList: {
-    gap: 24,
-  },
-  membershipBlock: {
-    gap: 14,
-  },
-  separator: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#FFD1E4',
-    paddingBottom: 24,
-  },
-  infoGroup: {
-    gap: 6,
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: '#565656',
-    fontFamily: GraphitFonts.GraphitMedium,
-    marginLeft: 6,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    backgroundColor: '#FFD7E8',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#FFD1E4',
-    paddingLeft: 18,
-    paddingTop: 12,
-    paddingRight: 8,
-    paddingBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    minHeight: 60,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#1E1E1E',
-    fontFamily: GraphitFonts.GraphitRegular,
-    marginRight: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    color: '#ED5192',
-    fontFamily: GraphitFonts.GraphitMedium,
-    marginTop: 4,
-    marginLeft: 6,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#FFE7F1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      padding: 10,
+      borderRadius: 30,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+      gap: 16,
+    },
+    loadingRow: {
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    infoList: {
+      gap: 24,
+    },
+    membershipBlock: {
+      gap: 14,
+    },
+    separator: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+      paddingBottom: 24,
+    },
+    infoGroup: {
+      gap: 6,
+    },
+    infoLabel: {
+      fontSize: 13,
+      color: '#565656',
+      fontFamily: GraphitFonts.GraphitMedium,
+      marginLeft: 6,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      backgroundColor: theme.border,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingLeft: 18,
+      paddingTop: 12,
+      paddingRight: 8,
+      paddingBottom: 12,
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      minHeight: 60,
+    },
+    infoText: {
+      flex: 1,
+      fontSize: 16,
+      color: '#1E1E1E',
+      fontFamily: GraphitFonts.GraphitRegular,
+      marginRight: 12,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      color: theme.secondary,
+      fontFamily: GraphitFonts.GraphitMedium,
+      marginTop: 4,
+      marginLeft: 6,
+    },
+    iconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: theme.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });

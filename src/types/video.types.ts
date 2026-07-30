@@ -1,6 +1,5 @@
 export interface VideoCategory {
   id: string;
-  gym_id: string;
   parent_id: string | null;
   slug: string;
   name: string;

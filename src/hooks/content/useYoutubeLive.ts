@@ -6,7 +6,7 @@ export type YoutubeLiveEvent = Tables<'youtube_live_events'>;
 
 const nowIso = () => new Date().toISOString();
 
-export const useYoutubeLiveEvents = (gymId: string | null | undefined) => {
+export const useYoutubeLiveEvents = () => {
   const [data, setData] = useState<YoutubeLiveEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -17,13 +17,6 @@ export const useYoutubeLiveEvents = (gymId: string | null | undefined) => {
   const fetchLiveEvents = useCallback(async () => {
     const reqId = ++reqIdRef.current;
 
-    if (!gymId) {
-      setData(null);
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
-
     setError(null);
 
     try {
@@ -32,7 +25,6 @@ export const useYoutubeLiveEvents = (gymId: string | null | undefined) => {
       const { data: live, error: liveErr } = await supabase
         .from('youtube_live_events')
         .select('*')
-        .eq('gym_id', gymId)
         .eq('status', 'live')
         .order('starts_at', { ascending: false })
         .limit(1)
@@ -50,7 +42,6 @@ export const useYoutubeLiveEvents = (gymId: string | null | undefined) => {
       const { data: next, error: nextErr } = await supabase
         .from('youtube_live_events')
         .select('*')
-        .eq('gym_id', gymId)
         .eq('status', 'scheduled')
         .gte('starts_at', now)
         .order('starts_at', { ascending: true })
@@ -74,7 +65,7 @@ export const useYoutubeLiveEvents = (gymId: string | null | undefined) => {
         setRefreshing(false);
       }
     }
-  }, [gymId]);
+  }, []);
 
   const refresh = useCallback(() => {
     setRefreshing(true);

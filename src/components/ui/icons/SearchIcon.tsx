@@ -9,7 +9,7 @@ interface TabIconProps extends SvgProps {
 const SearchIcon = ({ color, size, ...props }: TabIconProps) => (
   <Svg width={20} height={20} fill="none" {...props}>
     <Path
-      stroke="#ED5192"
+      stroke={color}
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={1.5}

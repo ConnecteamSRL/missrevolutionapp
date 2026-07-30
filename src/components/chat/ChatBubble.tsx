@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInUp, Layout } from 'react-native-reanimated';
-import { colors, GraphitFonts } from '@/src/theme';
+import { GraphitFonts, withAlpha } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
 import { ChatMessage } from '@/src/types/chat.types';
 import UserAvatarComponent from '@components/tab/UserAvatarComponent';
 
@@ -12,6 +14,8 @@ type Props = {
 };
 
 export const ChatBubble = ({ message, isMe, showMyAvatar = false }: Props) => {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const isBot = !isMe && message.sender_type === 'bot';
 
   let senderLabel: string | null = null;
@@ -73,89 +77,90 @@ export const ChatBubble = ({ message, isMe, showMyAvatar = false }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    paddingHorizontal: 16,
-    marginVertical: 4,
-  },
-  rightContainer: {
-    alignItems: 'flex-end',
-  },
-  leftContainer: {
-    alignItems: 'flex-start',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 6,
-  },
-  rowRight: {
-    justifyContent: 'flex-end',
-  },
-  rowLeft: {
-    justifyContent: 'flex-start',
-  },
-  myAvatar: {
-    marginBottom: 2,
-  },
-  bubble: {
-    maxWidth: '80%',
-    padding: 12,
-    borderRadius: 16,
-  },
-  rightBubble: {
-    backgroundColor: colors.primary,
-    borderBottomRightRadius: 2,
-  },
-  leftBubble: {
-    backgroundColor: '#FFD7E8',
-    borderBottomLeftRadius: 2,
-  },
-  botBubble: {
-    backgroundColor: colors.secondary,
-    borderBottomLeftRadius: 2,
-  },
-  senderLabel: {
-    fontSize: 10,
-    fontFamily: GraphitFonts.GraphitBold,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-  },
-  rightSenderLabel: {
-    color: 'rgba(255,255,255,0.7)',
-  },
-  leftSenderLabel: {
-    color: '#666',
-  },
-  botSenderLabel: {
-    color: 'rgba(255,255,255,0.8)',
-  },
-  text: {
-    fontSize: 15,
-    fontFamily: GraphitFonts.GraphitRegular,
-    lineHeight: 20,
-  },
-  rightText: {
-    color: '#FFFFFF',
-  },
-  leftText: {
-    color: '#000000',
-  },
-  botText: {
-    color: '#FFFFFF',
-  },
-  time: {
-    fontSize: 10,
-    marginTop: 4,
-    fontFamily: GraphitFonts.GraphitRegular,
-  },
-  rightTime: {
-    color: 'rgba(0,0,0,0.4)',
-    alignSelf: 'flex-end',
-  },
-  leftTime: {
-    color: 'rgba(0,0,0,0.4)',
-    alignSelf: 'flex-start',
-  },
-});
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    container: {
+      width: '100%',
+      paddingHorizontal: 16,
+      marginVertical: 4,
+    },
+    rightContainer: {
+      alignItems: 'flex-end',
+    },
+    leftContainer: {
+      alignItems: 'flex-start',
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      gap: 6,
+    },
+    rowRight: {
+      justifyContent: 'flex-end',
+    },
+    rowLeft: {
+      justifyContent: 'flex-start',
+    },
+    myAvatar: {
+      marginBottom: 2,
+    },
+    bubble: {
+      maxWidth: '80%',
+      padding: 12,
+      borderRadius: 16,
+    },
+    rightBubble: {
+      backgroundColor: theme.primary,
+      borderBottomRightRadius: 2,
+    },
+    leftBubble: {
+      backgroundColor: theme.border,
+      borderBottomLeftRadius: 2,
+    },
+    botBubble: {
+      backgroundColor: theme.secondary,
+      borderBottomLeftRadius: 2,
+    },
+    senderLabel: {
+      fontSize: 10,
+      fontFamily: GraphitFonts.GraphitBold,
+      marginBottom: 4,
+      textTransform: 'uppercase',
+    },
+    rightSenderLabel: {
+      color: withAlpha(theme.onPrimary, 0.7),
+    },
+    leftSenderLabel: {
+      color: '#666',
+    },
+    botSenderLabel: {
+      color: 'rgba(255,255,255,0.8)',
+    },
+    text: {
+      fontSize: 15,
+      fontFamily: GraphitFonts.GraphitRegular,
+      lineHeight: 20,
+    },
+    rightText: {
+      color: theme.onPrimary,
+    },
+    leftText: {
+      color: '#000000',
+    },
+    botText: {
+      color: '#FFFFFF',
+    },
+    time: {
+      fontSize: 10,
+      marginTop: 4,
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
+    rightTime: {
+      color: 'rgba(0,0,0,0.4)',
+      alignSelf: 'flex-end',
+    },
+    leftTime: {
+      color: 'rgba(0,0,0,0.4)',
+      alignSelf: 'flex-start',
+    },
+  });

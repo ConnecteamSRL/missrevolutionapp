@@ -1,35 +1,17 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never;
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json;
-          operationName?: string;
-          query?: string;
-          variables?: Json;
-        };
-        Returns: Json;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '14.5';
   };
   public: {
     Tables: {
       app_config: {
         Row: {
+          banner_key: string | null;
+          banner_key_male: string | null;
           feature_flags: Json | null;
           id: number;
           latest_version: string;
@@ -41,9 +23,13 @@ export type Database = {
           store_url_android: string | null;
           store_url_ios: string | null;
           support_email: string | null;
+          theme_female_id: string | null;
+          theme_male_id: string | null;
           updated_at: string | null;
         };
         Insert: {
+          banner_key?: string | null;
+          banner_key_male?: string | null;
           feature_flags?: Json | null;
           id?: number;
           latest_version?: string;
@@ -55,9 +41,13 @@ export type Database = {
           store_url_android?: string | null;
           store_url_ios?: string | null;
           support_email?: string | null;
+          theme_female_id?: string | null;
+          theme_male_id?: string | null;
           updated_at?: string | null;
         };
         Update: {
+          banner_key?: string | null;
+          banner_key_male?: string | null;
           feature_flags?: Json | null;
           id?: number;
           latest_version?: string;
@@ -69,7 +59,81 @@ export type Database = {
           store_url_android?: string | null;
           store_url_ios?: string | null;
           support_email?: string | null;
+          theme_female_id?: string | null;
+          theme_male_id?: string | null;
           updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'app_config_theme_female_id_fkey';
+            columns: ['theme_female_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_themes';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'app_config_theme_male_id_fkey';
+            columns: ['theme_male_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_themes';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      app_themes: {
+        Row: {
+          accent_color: string;
+          bg_gradient_end: string;
+          bg_gradient_start: string;
+          border_color: string;
+          created_at: string;
+          cta_gradients: Json;
+          id: string;
+          is_active: boolean;
+          name: string;
+          on_primary_color: string;
+          primary_color: string;
+          secondary_color: string;
+          surface_color: string;
+          tab_gradient_end: string;
+          tab_gradient_start: string;
+          updated_at: string;
+        };
+        Insert: {
+          accent_color: string;
+          bg_gradient_end: string;
+          bg_gradient_start: string;
+          border_color: string;
+          created_at?: string;
+          cta_gradients?: Json;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          on_primary_color: string;
+          primary_color: string;
+          secondary_color: string;
+          surface_color: string;
+          tab_gradient_end: string;
+          tab_gradient_start: string;
+          updated_at?: string;
+        };
+        Update: {
+          accent_color?: string;
+          bg_gradient_end?: string;
+          bg_gradient_start?: string;
+          border_color?: string;
+          created_at?: string;
+          cta_gradients?: Json;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          on_primary_color?: string;
+          primary_color?: string;
+          secondary_color?: string;
+          surface_color?: string;
+          tab_gradient_end?: string;
+          tab_gradient_start?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -349,11 +413,189 @@ export type Database = {
           },
         ];
       };
+      content_attachments: {
+        Row: {
+          created_at: string;
+          diet_plan_id: string | null;
+          display_name: string;
+          id: string;
+          object_path: string;
+          recipe_id: string | null;
+          sort_order: number;
+          user_diet_assignment_id: string | null;
+          user_recipe_assignment_id: string | null;
+          user_workout_assignment_id: string | null;
+          video_id: string | null;
+          workout_plan_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          diet_plan_id?: string | null;
+          display_name: string;
+          id?: string;
+          object_path: string;
+          recipe_id?: string | null;
+          sort_order?: number;
+          user_diet_assignment_id?: string | null;
+          user_recipe_assignment_id?: string | null;
+          user_workout_assignment_id?: string | null;
+          video_id?: string | null;
+          workout_plan_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          diet_plan_id?: string | null;
+          display_name?: string;
+          id?: string;
+          object_path?: string;
+          recipe_id?: string | null;
+          sort_order?: number;
+          user_diet_assignment_id?: string | null;
+          user_recipe_assignment_id?: string | null;
+          user_workout_assignment_id?: string | null;
+          video_id?: string | null;
+          workout_plan_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'content_attachments_diet_plan_id_fkey';
+            columns: ['diet_plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'diet_plans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_recipe_id_fkey';
+            columns: ['recipe_id'];
+            isOneToOne: false;
+            referencedRelation: 'recipes';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_recipe_id_fkey';
+            columns: ['recipe_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_my_recipes';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_recipe_id_fkey';
+            columns: ['recipe_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_my_recipes_all_phases';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_user_diet_assignment_id_fkey';
+            columns: ['user_diet_assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_diet_assignments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_user_diet_assignment_id_fkey';
+            columns: ['user_diet_assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_my_diets';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_user_diet_assignment_id_fkey';
+            columns: ['user_diet_assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_my_diets_all_phases';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_user_recipe_assignment_id_fkey';
+            columns: ['user_recipe_assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_recipe_assignments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_user_workout_assignment_id_fkey';
+            columns: ['user_workout_assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'user_workout_assignments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_user_workout_assignment_id_fkey';
+            columns: ['user_workout_assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_my_workouts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_user_workout_assignment_id_fkey';
+            columns: ['user_workout_assignment_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_my_workouts_all_phases';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_video_id_fkey';
+            columns: ['video_id'];
+            isOneToOne: false;
+            referencedRelation: 'videos';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'content_attachments_workout_plan_id_fkey';
+            columns: ['workout_plan_id'];
+            isOneToOne: false;
+            referencedRelation: 'workout_plans';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      content_document_display_names: {
+        Row: {
+          created_at: string;
+          display_name: string;
+          object_path: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name: string;
+          object_path: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string;
+          object_path?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      content_image_display_names: {
+        Row: {
+          created_at: string;
+          display_name: string;
+          object_path: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name: string;
+          object_path: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string;
+          object_path?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       diet_plans: {
         Row: {
           created_at: string;
           description: string | null;
-          gym_id: string | null;
           html_content: string;
           id: string;
           is_active: boolean;
@@ -364,7 +606,6 @@ export type Database = {
         Insert: {
           created_at?: string;
           description?: string | null;
-          gym_id?: string | null;
           html_content: string;
           id?: string;
           is_active?: boolean;
@@ -375,7 +616,6 @@ export type Database = {
         Update: {
           created_at?: string;
           description?: string | null;
-          gym_id?: string | null;
           html_content?: string;
           id?: string;
           is_active?: boolean;
@@ -383,15 +623,7 @@ export type Database = {
           title?: string;
           updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'diet_plans_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       faq_categories: {
         Row: {
@@ -471,27 +703,36 @@ export type Database = {
         Row: {
           created_at: string;
           max_carbs_100g: number | null;
+          max_carbs_serving: number | null;
           max_fat_100g: number | null;
+          max_fat_serving: number | null;
           max_sugar_100g: number | null;
           min_protein_100g: number | null;
+          min_protein_serving: number | null;
           objective: Database['public']['Enums']['fitness_objective'];
           updated_at: string;
         };
         Insert: {
           created_at?: string;
           max_carbs_100g?: number | null;
+          max_carbs_serving?: number | null;
           max_fat_100g?: number | null;
+          max_fat_serving?: number | null;
           max_sugar_100g?: number | null;
           min_protein_100g?: number | null;
+          min_protein_serving?: number | null;
           objective: Database['public']['Enums']['fitness_objective'];
           updated_at?: string;
         };
         Update: {
           created_at?: string;
           max_carbs_100g?: number | null;
+          max_carbs_serving?: number | null;
           max_fat_100g?: number | null;
+          max_fat_serving?: number | null;
           max_sugar_100g?: number | null;
           min_protein_100g?: number | null;
+          min_protein_serving?: number | null;
           objective?: Database['public']['Enums']['fitness_objective'];
           updated_at?: string;
         };
@@ -499,21 +740,24 @@ export type Database = {
       };
       gym_editorial_configs: {
         Row: {
-          banner_key: string | null;
           created_at: string;
           gym_id: string;
+          pinned_message_enabled: boolean;
+          pinned_message_html: string | null;
           updated_at: string;
         };
         Insert: {
-          banner_key?: string | null;
           created_at?: string;
           gym_id: string;
+          pinned_message_enabled?: boolean;
+          pinned_message_html?: string | null;
           updated_at?: string;
         };
         Update: {
-          banner_key?: string | null;
           created_at?: string;
           gym_id?: string;
+          pinned_message_enabled?: boolean;
+          pinned_message_html?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -672,33 +916,22 @@ export type Database = {
         Row: {
           created_at: string;
           description: string | null;
-          gym_id: string;
           id: string;
           name: string;
         };
         Insert: {
           created_at?: string;
           description?: string | null;
-          gym_id: string;
           id?: string;
           name: string;
         };
         Update: {
           created_at?: string;
           description?: string | null;
-          gym_id?: string;
           id?: string;
           name?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'memberships_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       notifications: {
         Row: {
@@ -753,11 +986,40 @@ export type Database = {
           },
         ];
       };
+      recipe_collections: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: string;
+          is_active: boolean;
+          objective: Database['public']['Enums']['fitness_objective'];
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_active?: boolean;
+          objective: Database['public']['Enums']['fitness_objective'];
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_active?: boolean;
+          objective?: Database['public']['Enums']['fitness_objective'];
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       recipes: {
         Row: {
           created_at: string;
           description: string | null;
-          gym_id: string | null;
           html_content: string;
           id: string;
           is_active: boolean;
@@ -768,7 +1030,6 @@ export type Database = {
         Insert: {
           created_at?: string;
           description?: string | null;
-          gym_id?: string | null;
           html_content: string;
           id?: string;
           is_active?: boolean;
@@ -779,7 +1040,6 @@ export type Database = {
         Update: {
           created_at?: string;
           description?: string | null;
-          gym_id?: string | null;
           html_content?: string;
           id?: string;
           is_active?: boolean;
@@ -787,15 +1047,7 @@ export type Database = {
           title?: string;
           updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'recipes_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       role_user_permissions: {
         Row: {
@@ -815,6 +1067,63 @@ export type Database = {
           permissions?: Database['public']['Enums']['user_permission'][];
           priority?: number;
           role?: Database['public']['Enums']['app_role'];
+        };
+        Relationships: [];
+      };
+      scan_logs: {
+        Row: {
+          app_version: string | null;
+          barcode: string | null;
+          checks: Json | null;
+          created_at: string;
+          duration_ms: number | null;
+          error_message: string | null;
+          id: string;
+          is_allowed: boolean | null;
+          objective: Database['public']['Enums']['fitness_objective'] | null;
+          ocr_meta: Json | null;
+          product: Json | null;
+          reasons: string[] | null;
+          rules_snapshot: Json | null;
+          scan_mode: string;
+          status: string;
+          user_id: string | null;
+        };
+        Insert: {
+          app_version?: string | null;
+          barcode?: string | null;
+          checks?: Json | null;
+          created_at?: string;
+          duration_ms?: number | null;
+          error_message?: string | null;
+          id?: string;
+          is_allowed?: boolean | null;
+          objective?: Database['public']['Enums']['fitness_objective'] | null;
+          ocr_meta?: Json | null;
+          product?: Json | null;
+          reasons?: string[] | null;
+          rules_snapshot?: Json | null;
+          scan_mode?: string;
+          status: string;
+          user_id?: string | null;
+        };
+        Update: {
+          app_version?: string | null;
+          barcode?: string | null;
+          checks?: Json | null;
+          created_at?: string;
+          duration_ms?: number | null;
+          error_message?: string | null;
+          id?: string;
+          is_allowed?: boolean | null;
+          objective?: Database['public']['Enums']['fitness_objective'] | null;
+          ocr_meta?: Json | null;
+          product?: Json | null;
+          reasons?: string[] | null;
+          rules_snapshot?: Json | null;
+          scan_mode?: string;
+          status?: string;
+          user_id?: string | null;
         };
         Relationships: [];
       };
@@ -997,7 +1306,6 @@ export type Database = {
           created_at: string;
           created_by: string;
           description: string | null;
-          gym_id: string | null;
           id: string;
           is_active: boolean;
           title: string;
@@ -1007,7 +1315,6 @@ export type Database = {
           created_at?: string;
           created_by: string;
           description?: string | null;
-          gym_id?: string | null;
           id?: string;
           is_active?: boolean;
           title: string;
@@ -1017,28 +1324,19 @@ export type Database = {
           created_at?: string;
           created_by?: string;
           description?: string | null;
-          gym_id?: string | null;
           id?: string;
           is_active?: boolean;
           title?: string;
           updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'surveys_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       user_checkup_photos: {
         Row: {
           checkup_id: string;
           created_at: string;
           id: string;
-          pose_type: string | null;
+          pose_type: string;
           storage_path: string;
           user_id: string;
         };
@@ -1046,7 +1344,7 @@ export type Database = {
           checkup_id: string;
           created_at?: string;
           id?: string;
-          pose_type?: string | null;
+          pose_type?: string;
           storage_path: string;
           user_id: string;
         };
@@ -1054,7 +1352,7 @@ export type Database = {
           checkup_id?: string;
           created_at?: string;
           id?: string;
-          pose_type?: string | null;
+          pose_type?: string;
           storage_path?: string;
           user_id?: string;
         };
@@ -1095,6 +1393,7 @@ export type Database = {
           created_by: string | null;
           fat_mass_kg: number | null;
           id: string;
+          is_filled: boolean | null;
           lean_mass_kg: number | null;
           notes: string | null;
           photos_enabled: boolean;
@@ -1108,6 +1407,7 @@ export type Database = {
           created_by?: string | null;
           fat_mass_kg?: number | null;
           id?: string;
+          is_filled?: boolean | null;
           lean_mass_kg?: number | null;
           notes?: string | null;
           photos_enabled?: boolean;
@@ -1121,6 +1421,7 @@ export type Database = {
           created_by?: string | null;
           fat_mass_kg?: number | null;
           id?: string;
+          is_filled?: boolean | null;
           lean_mass_kg?: number | null;
           notes?: string | null;
           photos_enabled?: boolean;
@@ -1174,15 +1475,102 @@ export type Database = {
           },
         ];
       };
+      user_collection_assignments: {
+        Row: {
+          assigned_at: string;
+          assigned_by: string | null;
+          collection_id: string;
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          assigned_at?: string;
+          assigned_by?: string | null;
+          collection_id: string;
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          assigned_at?: string;
+          assigned_by?: string | null;
+          collection_id?: string;
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_collection_assignments_assigned_by_fkey';
+            columns: ['assigned_by'];
+            isOneToOne: false;
+            referencedRelation: 'app_users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_collection_assignments_assigned_by_fkey';
+            columns: ['assigned_by'];
+            isOneToOne: false;
+            referencedRelation: 'v_app_users_list';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_collection_assignments_assigned_by_fkey';
+            columns: ['assigned_by'];
+            isOneToOne: false;
+            referencedRelation: 'v_user_anamnesis';
+            referencedColumns: ['user_id'];
+          },
+          {
+            foreignKeyName: 'user_collection_assignments_collection_id_fkey';
+            columns: ['collection_id'];
+            isOneToOne: false;
+            referencedRelation: 'recipe_collections';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_collection_assignments_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_collection_assignments_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_app_users_list';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_collection_assignments_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_user_anamnesis';
+            referencedColumns: ['user_id'];
+          },
+        ];
+      };
       user_diet_assignments: {
         Row: {
           assigned_at: string;
           assigned_by: string | null;
           created_at: string;
-          diet_id: string;
+          description: string | null;
+          diet_id: string | null;
+          html_content: string;
           id: string;
           is_active: boolean;
           notes: string | null;
+          objective: Database['public']['Enums']['fitness_objective'];
+          title: string;
           updated_at: string;
           user_id: string;
         };
@@ -1190,10 +1578,14 @@ export type Database = {
           assigned_at?: string;
           assigned_by?: string | null;
           created_at?: string;
-          diet_id: string;
+          description?: string | null;
+          diet_id?: string | null;
+          html_content: string;
           id?: string;
           is_active?: boolean;
           notes?: string | null;
+          objective: Database['public']['Enums']['fitness_objective'];
+          title: string;
           updated_at?: string;
           user_id: string;
         };
@@ -1201,10 +1593,14 @@ export type Database = {
           assigned_at?: string;
           assigned_by?: string | null;
           created_at?: string;
-          diet_id?: string;
+          description?: string | null;
+          diet_id?: string | null;
+          html_content?: string;
           id?: string;
           is_active?: boolean;
           notes?: string | null;
+          objective?: Database['public']['Enums']['fitness_objective'];
+          title?: string;
           updated_at?: string;
           user_id?: string;
         };
@@ -1235,13 +1631,6 @@ export type Database = {
             columns: ['diet_id'];
             isOneToOne: false;
             referencedRelation: 'diet_plans';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'user_diet_assignments_diet_id_fkey';
-            columns: ['diet_id'];
-            isOneToOne: false;
-            referencedRelation: 'v_my_diets';
             referencedColumns: ['id'];
           },
           {
@@ -1377,10 +1766,14 @@ export type Database = {
           assigned_at: string;
           assigned_by: string | null;
           created_at: string;
+          description: string | null;
+          html_content: string;
           id: string;
           is_active: boolean;
           notes: string | null;
-          recipe_id: string;
+          objective: Database['public']['Enums']['fitness_objective'];
+          recipe_id: string | null;
+          title: string;
           updated_at: string;
           user_id: string;
         };
@@ -1388,10 +1781,14 @@ export type Database = {
           assigned_at?: string;
           assigned_by?: string | null;
           created_at?: string;
+          description?: string | null;
+          html_content: string;
           id?: string;
           is_active?: boolean;
           notes?: string | null;
-          recipe_id: string;
+          objective: Database['public']['Enums']['fitness_objective'];
+          recipe_id?: string | null;
+          title: string;
           updated_at?: string;
           user_id: string;
         };
@@ -1399,10 +1796,14 @@ export type Database = {
           assigned_at?: string;
           assigned_by?: string | null;
           created_at?: string;
+          description?: string | null;
+          html_content?: string;
           id?: string;
           is_active?: boolean;
           notes?: string | null;
-          recipe_id?: string;
+          objective?: Database['public']['Enums']['fitness_objective'];
+          recipe_id?: string | null;
+          title?: string;
           updated_at?: string;
           user_id?: string;
         };
@@ -1443,6 +1844,13 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
+            foreignKeyName: 'user_recipe_assignments_recipe_id_fkey';
+            columns: ['recipe_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_my_recipes_all_phases';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'user_recipe_assignments_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
@@ -1465,39 +1873,113 @@ export type Database = {
           },
         ];
       };
+      user_video_progress: {
+        Row: {
+          completed_at: string | null;
+          created_at: string;
+          id: string;
+          playback_position: number;
+          updated_at: string;
+          user_id: string;
+          video_id: string;
+        };
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          playback_position?: number;
+          updated_at?: string;
+          user_id: string;
+          video_id: string;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          playback_position?: number;
+          updated_at?: string;
+          user_id?: string;
+          video_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_video_progress_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_video_progress_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_app_users_list';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_video_progress_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_user_anamnesis';
+            referencedColumns: ['user_id'];
+          },
+          {
+            foreignKeyName: 'user_video_progress_video_id_fkey';
+            columns: ['video_id'];
+            isOneToOne: false;
+            referencedRelation: 'videos';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       user_workout_assignments: {
         Row: {
           assigned_at: string;
           assigned_by: string | null;
           created_at: string;
+          description: string | null;
+          external_url: string | null;
+          html_content: string;
           id: string;
           is_active: boolean;
           notes: string | null;
+          objective: Database['public']['Enums']['fitness_objective'];
+          title: string;
           updated_at: string;
           user_id: string;
-          workout_id: string;
+          workout_id: string | null;
         };
         Insert: {
           assigned_at?: string;
           assigned_by?: string | null;
           created_at?: string;
+          description?: string | null;
+          external_url?: string | null;
+          html_content: string;
           id?: string;
           is_active?: boolean;
           notes?: string | null;
+          objective: Database['public']['Enums']['fitness_objective'];
+          title: string;
           updated_at?: string;
           user_id: string;
-          workout_id: string;
+          workout_id?: string | null;
         };
         Update: {
           assigned_at?: string;
           assigned_by?: string | null;
           created_at?: string;
+          description?: string | null;
+          external_url?: string | null;
+          html_content?: string;
           id?: string;
           is_active?: boolean;
           notes?: string | null;
+          objective?: Database['public']['Enums']['fitness_objective'];
+          title?: string;
           updated_at?: string;
           user_id?: string;
-          workout_id?: string;
+          workout_id?: string | null;
         };
         Relationships: [
           {
@@ -1541,13 +2023,6 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'v_user_anamnesis';
             referencedColumns: ['user_id'];
-          },
-          {
-            foreignKeyName: 'user_workout_assignments_workout_id_fkey';
-            columns: ['workout_id'];
-            isOneToOne: false;
-            referencedRelation: 'v_my_workouts';
-            referencedColumns: ['id'];
           },
           {
             foreignKeyName: 'user_workout_assignments_workout_id_fkey';
@@ -1595,7 +2070,6 @@ export type Database = {
         Row: {
           created_at: string;
           description: string | null;
-          gym_id: string;
           id: string;
           name: string;
           parent_id: string | null;
@@ -1605,7 +2079,6 @@ export type Database = {
         Insert: {
           created_at?: string;
           description?: string | null;
-          gym_id: string;
           id?: string;
           name: string;
           parent_id?: string | null;
@@ -1615,7 +2088,6 @@ export type Database = {
         Update: {
           created_at?: string;
           description?: string | null;
-          gym_id?: string;
           id?: string;
           name?: string;
           parent_id?: string | null;
@@ -1623,13 +2095,6 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
-          {
-            foreignKeyName: 'video_categories_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
           {
             foreignKeyName: 'video_categories_parent_id_fkey';
             columns: ['parent_id'];
@@ -1646,7 +2111,6 @@ export type Database = {
           description: string | null;
           duration_seconds: number | null;
           free: boolean;
-          gym_id: string;
           id: string;
           is_active: boolean;
           position: number;
@@ -1663,7 +2127,6 @@ export type Database = {
           description?: string | null;
           duration_seconds?: number | null;
           free?: boolean;
-          gym_id: string;
           id?: string;
           is_active?: boolean;
           position?: number;
@@ -1680,7 +2143,6 @@ export type Database = {
           description?: string | null;
           duration_seconds?: number | null;
           free?: boolean;
-          gym_id?: string;
           id?: string;
           is_active?: boolean;
           position?: number;
@@ -1699,13 +2161,6 @@ export type Database = {
             referencedRelation: 'video_categories';
             referencedColumns: ['id'];
           },
-          {
-            foreignKeyName: 'videos_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
         ];
       };
       workout_plans: {
@@ -1713,7 +2168,6 @@ export type Database = {
           created_at: string;
           description: string | null;
           external_url: string | null;
-          gym_id: string | null;
           html_content: string;
           id: string;
           is_active: boolean;
@@ -1725,7 +2179,6 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           external_url?: string | null;
-          gym_id?: string | null;
           html_content: string;
           id?: string;
           is_active?: boolean;
@@ -1737,7 +2190,6 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           external_url?: string | null;
-          gym_id?: string | null;
           html_content?: string;
           id?: string;
           is_active?: boolean;
@@ -1745,15 +2197,7 @@ export type Database = {
           title?: string;
           updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'workout_plans_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       youtube_live_events: {
         Row: {
@@ -1761,7 +2205,6 @@ export type Database = {
           created_at: string;
           description: string | null;
           ends_at: string | null;
-          gym_id: string;
           id: string;
           starts_at: string;
           status: Database['public']['Enums']['youtube_live_status'];
@@ -1774,7 +2217,6 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           ends_at?: string | null;
-          gym_id: string;
           id?: string;
           starts_at: string;
           status?: Database['public']['Enums']['youtube_live_status'];
@@ -1787,7 +2229,6 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           ends_at?: string | null;
-          gym_id?: string;
           id?: string;
           starts_at?: string;
           status?: Database['public']['Enums']['youtube_live_status'];
@@ -1795,15 +2236,7 @@ export type Database = {
           updated_at?: string;
           youtube_url?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'youtube_live_events_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
     };
     Views: {
@@ -1817,6 +2250,8 @@ export type Database = {
           store_url_android: string | null;
           store_url_ios: string | null;
           support_email: string | null;
+          theme_female: Json | null;
+          theme_male: Json | null;
           updated_at: string | null;
         };
         Insert: {
@@ -1828,6 +2263,8 @@ export type Database = {
           store_url_android?: string | null;
           store_url_ios?: string | null;
           support_email?: string | null;
+          theme_female?: never;
+          theme_male?: never;
           updated_at?: string | null;
         };
         Update: {
@@ -1839,6 +2276,8 @@ export type Database = {
           store_url_android?: string | null;
           store_url_ios?: string | null;
           support_email?: string | null;
+          theme_female?: never;
+          theme_male?: never;
           updated_at?: string | null;
         };
         Relationships: [];
@@ -1874,17 +2313,17 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: 'app_users_gym_fk';
+            columns: ['gym_id'];
+            isOneToOne: false;
+            referencedRelation: 'gyms';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'survey_assignments_survey_id_fkey';
             columns: ['survey_id'];
             isOneToOne: false;
             referencedRelation: 'surveys';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'surveys_gym_id_fkey';
-            columns: ['gym_id'];
-            isOneToOne: false;
-            referencedRelation: 'gyms';
             referencedColumns: ['id'];
           },
         ];
@@ -1911,6 +2350,8 @@ export type Database = {
           is_active: boolean | null;
           last_checkup_at: string | null;
           last_name: string | null;
+          membership_type_ids: string[] | null;
+          memberships: Json | null;
           phone_number: string | null;
           postal_code: string | null;
           primary_email: string | null;
@@ -1997,7 +2438,7 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'diet_plans_gym_id_fkey';
+            foreignKeyName: 'app_users_gym_fk';
             columns: ['gym_id'];
             isOneToOne: false;
             referencedRelation: 'gyms';
@@ -2018,7 +2459,15 @@ export type Database = {
           title: string | null;
           updated_at: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'app_users_gym_fk';
+            columns: ['gym_id'];
+            isOneToOne: false;
+            referencedRelation: 'gyms';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       v_my_recipes: {
         Row: {
@@ -2034,7 +2483,7 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'recipes_gym_id_fkey';
+            foreignKeyName: 'app_users_gym_fk';
             columns: ['gym_id'];
             isOneToOne: false;
             referencedRelation: 'gyms';
@@ -2055,7 +2504,15 @@ export type Database = {
           title: string | null;
           updated_at: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'app_users_gym_fk';
+            columns: ['gym_id'];
+            isOneToOne: false;
+            referencedRelation: 'gyms';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       v_my_survey_assignments: {
         Row: {
@@ -2093,7 +2550,7 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'workout_plans_gym_id_fkey';
+            foreignKeyName: 'app_users_gym_fk';
             columns: ['gym_id'];
             isOneToOne: false;
             referencedRelation: 'gyms';
@@ -2115,7 +2572,15 @@ export type Database = {
           title: string | null;
           updated_at: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'app_users_gym_fk';
+            columns: ['gym_id'];
+            isOneToOne: false;
+            referencedRelation: 'gyms';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       v_user_anamnesis: {
         Row: {
@@ -2160,6 +2625,8 @@ export type Database = {
       _faq_categories_last_position: { Args: never; Returns: number };
       _faqs_last_position: { Args: { p_category: string }; Returns: number };
       _get_default_gym_id: { Args: never; Returns: string };
+      _is_valid_cta_gradients: { Args: { g: Json }; Returns: boolean };
+      _job_process_scheduled_notifications: { Args: never; Returns: undefined };
       _job_sync_user_flow_out_of_flow: { Args: never; Returns: undefined };
       _storage_can_access_checkup_files: {
         Args: { mode: string; object_name: string };
@@ -2176,13 +2643,24 @@ export type Database = {
         Returns: number;
       };
       bootstrap_current_user: { Args: never; Returns: undefined };
-      custom_access_token_hook: { Args: { event: Json }; Returns: Json };
       expire_overdue_surveys: { Args: never; Returns: undefined };
       faq_categories_resequence: { Args: never; Returns: Json };
       faqs_resequence: { Args: { p_category_id?: string }; Returns: Json };
+      get_customer_location_options: {
+        Args: { p_gym_id: string };
+        Returns: {
+          kind: string;
+          value: string;
+        }[];
+      };
       get_gym_active_videos_by_category: {
         Args: { p_gym_id: string };
         Returns: Json;
+      };
+      get_orphaned_avatars: { Args: { p_limit?: number }; Returns: string[] };
+      get_orphaned_checkup_photos: {
+        Args: { p_limit?: number };
+        Returns: string[];
       };
       get_survey_stats: { Args: { p_survey_id: string }; Returns: Json };
       get_user_fitness_overview: {
@@ -2200,7 +2678,7 @@ export type Database = {
       list_objects_gym: {
         Args: {
           bucketid: string;
-          gym: string;
+          gym?: string;
           limits?: number;
           offsets?: number;
           prefix?: string;
@@ -2217,6 +2695,7 @@ export type Database = {
       };
       me: { Args: never; Returns: Json };
       me_detailed: { Args: never; Returns: Json };
+      now: { Args: never; Returns: string };
       rbac_roles: {
         Args: never;
         Returns: {
@@ -2224,6 +2703,10 @@ export type Database = {
           priority: number;
           role: Database['public']['Enums']['app_role'];
         }[];
+      };
+      reorder_videos_in_category: {
+        Args: { p_category_id: string; p_video_ids: string[] };
+        Returns: undefined;
       };
       set_avatar_key: {
         Args: { p_key: string; p_user_id: string };
@@ -2240,17 +2723,28 @@ export type Database = {
         Args: { p_gym_id?: string; p_months?: number };
         Returns: Json;
       };
+      stats_dashboard_extra: {
+        Args: { p_gym_id?: string; p_months?: number };
+        Returns: Json;
+      };
       submit_survey_assignment: {
         Args: { p_assignment_id: string };
         Returns: boolean;
       };
+      sync_all_memberships_and_roles: { Args: never; Returns: undefined };
       sync_all_user_member_roles: { Args: never; Returns: undefined };
       sync_auth_ban_from_app_users: { Args: never; Returns: undefined };
       sync_user_member_role: { Args: { p_user_id: string }; Returns: undefined };
+      sync_user_membership_statuses: { Args: never; Returns: undefined };
       update_youtube_live_statuses: { Args: never; Returns: undefined };
       user_has_active_membership: {
         Args: { p_user_id: string };
         Returns: boolean;
+      };
+      video_category_page: { Args: { p_category_id: string }; Returns: Json };
+      video_category_total_video_count: {
+        Args: { p_category_id: string };
+        Returns: number;
       };
     };
     Enums: {
@@ -2265,27 +2759,21 @@ export type Database = {
       chat_sender_type: 'user' | 'operator' | 'bot';
       conversation_status: 'active' | 'waiting_operator' | 'archived';
       fitness_objective:
-        | 'dimagrimento'
-        | 'costruzione_muscolare'
-        | 'mantenimento'
-        | '8_settimane_shock';
+        'dimagrimento' | 'costruzione_muscolare' | 'mantenimento' | '8_settimane_shock';
       flow_status_enum: 'in_flow' | 'out_of_flow' | 'no_checkup';
       gender_enum: 'maschio' | 'femmina' | 'non_binario' | 'altro' | 'non_dichiarato';
-      membership_status: 'pending' | 'active' | 'expired';
+      membership_status: 'pending' | 'active' | 'expired' | 'suspended';
       menstrual_cycle_enum:
         | 'regolare'
         | 'irregolare'
-        | 'menopausa'
         | 'non_applicabile'
         | 'non_dichiarato'
+        | 'menopausa'
         | 'in_menopausa'
         | 'preferisco_non_specificare';
       notification_status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
       primary_goal_enum:
-        | 'perdita_di_grasso'
-        | 'tonificazione'
-        | 'rimodellamento'
-        | 'benessere_generale';
+        'perdita_di_grasso' | 'tonificazione' | 'rimodellamento' | 'benessere_generale';
       survey_assignment_status: 'PENDING' | 'COMPLETED' | 'EXPIRED';
       user_notification_delivery_status: 'pending' | 'sent' | 'error';
       user_notification_read_status: 'unread' | 'read';
@@ -2378,7 +2866,30 @@ export type Database = {
         | 'EDITORIAL:READ:ALL'
         | 'EDITORIAL:WRITE:ALL'
         | 'EDITORIAL:WRITE:GYM'
-        | 'FITNESS_RULES:WRITE';
+        | 'FITNESS_RULES:WRITE'
+        | 'CHAT:READ:OWN'
+        | 'CHAT:WRITE:OWN'
+        | 'CHAT:READ:GYM'
+        | 'CHAT:WRITE:GYM'
+        | 'CHAT:DELETE:GYM'
+        | 'CHAT:READ:ALL'
+        | 'CHAT:WRITE:ALL'
+        | 'CHAT:DELETE:ALL'
+        | 'ANAMNESIS:READ:OWN'
+        | 'ANAMNESIS:WRITE:OWN'
+        | 'ANAMNESIS:READ:GYM'
+        | 'ANAMNESIS:WRITE:GYM'
+        | 'ANAMNESIS:DELETE:GYM'
+        | 'ANAMNESIS:READ:ALL'
+        | 'ANAMNESIS:WRITE:ALL'
+        | 'ANAMNESIS:DELETE:ALL'
+        | 'WORKOUT:ASSIGN'
+        | 'DIET:ASSIGN'
+        | 'RECIPE:ASSIGN'
+        | 'SURVEY:ASSIGN'
+        | 'MEMBERSHIP:ASSIGN'
+        | 'SETTINGS:READ:ALL'
+        | 'SETTINGS:WRITE:ALL';
       user_program_status: 'in_cura' | 'iniziato' | 'registrato';
       youtube_live_status: 'scheduled' | 'live' | 'ended' | 'canceled';
     };
@@ -2396,12 +2907,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2421,13 +2932,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2446,13 +2956,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2471,13 +2980,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2488,13 +2996,12 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2504,9 +3011,6 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       app_role: [
@@ -2528,13 +3032,13 @@ export const Constants = {
       ],
       flow_status_enum: ['in_flow', 'out_of_flow', 'no_checkup'],
       gender_enum: ['maschio', 'femmina', 'non_binario', 'altro', 'non_dichiarato'],
-      membership_status: ['pending', 'active', 'expired'],
+      membership_status: ['pending', 'active', 'expired', 'suspended'],
       menstrual_cycle_enum: [
         'regolare',
         'irregolare',
-        'menopausa',
         'non_applicabile',
         'non_dichiarato',
+        'menopausa',
         'in_menopausa',
         'preferisco_non_specificare',
       ],
@@ -2638,6 +3142,29 @@ export const Constants = {
         'EDITORIAL:WRITE:ALL',
         'EDITORIAL:WRITE:GYM',
         'FITNESS_RULES:WRITE',
+        'CHAT:READ:OWN',
+        'CHAT:WRITE:OWN',
+        'CHAT:READ:GYM',
+        'CHAT:WRITE:GYM',
+        'CHAT:DELETE:GYM',
+        'CHAT:READ:ALL',
+        'CHAT:WRITE:ALL',
+        'CHAT:DELETE:ALL',
+        'ANAMNESIS:READ:OWN',
+        'ANAMNESIS:WRITE:OWN',
+        'ANAMNESIS:READ:GYM',
+        'ANAMNESIS:WRITE:GYM',
+        'ANAMNESIS:DELETE:GYM',
+        'ANAMNESIS:READ:ALL',
+        'ANAMNESIS:WRITE:ALL',
+        'ANAMNESIS:DELETE:ALL',
+        'WORKOUT:ASSIGN',
+        'DIET:ASSIGN',
+        'RECIPE:ASSIGN',
+        'SURVEY:ASSIGN',
+        'MEMBERSHIP:ASSIGN',
+        'SETTINGS:READ:ALL',
+        'SETTINGS:WRITE:ALL',
       ],
       user_program_status: ['in_cura', 'iniziato', 'registrato'],
       youtube_live_status: ['scheduled', 'live', 'ended', 'canceled'],

@@ -1,4 +1,7 @@
-export type SurveyAssignmentStatus = 'PENDING' | 'COMPLETED' | 'EXPIRED';
+import { Enums } from '@mr-types/database.types';
+
+// Una sola fonte di verita': l'enum del database, non una copia scritta a mano.
+export type SurveyAssignmentStatus = Enums<'survey_assignment_status'>;
 
 export type SurveyListItem = {
   assignment_id: string;

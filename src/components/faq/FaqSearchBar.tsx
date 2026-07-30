@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import SearchIcon from '@components/ui/icons/SearchIcon';
 import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
 
 type Props = {
   value: string;
@@ -10,10 +11,12 @@ type Props = {
 };
 
 function FaqSearchBar({ value, onChangeText, placeholder = 'Cerca nelle FAQ...' }: Props) {
+  const theme = useTheme();
+
   return (
     <View style={styles.container}>
       <View style={styles.iconWrapper}>
-        <SearchIcon size={20} color="#ED5192" />
+        <SearchIcon size={20} color={theme.secondary} />
       </View>
       <TextInput
         value={value}

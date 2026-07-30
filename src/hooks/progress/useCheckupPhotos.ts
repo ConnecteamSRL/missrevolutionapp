@@ -153,16 +153,19 @@ export const useCheckupPhotos = (userId: string | undefined) => {
       checkupId: string;
       category: CheckupPhotoCategory;
       bytes: Uint8Array;
+      contentType: string;
     }): Promise<CheckupPhotoItem> => {
       if (!userId) throw new Error('Authenticated user missing');
 
       const suffix = Math.random().toString(36).slice(2, 10);
-      const storagePath = `${userId}/${args.checkupId}/${Date.now()}-${suffix}.jpg`;
+      // L'estensione nel path e' l'unico segnale che distingue un PDF da una foto.
+      const extension = args.contentType === 'application/pdf' ? 'pdf' : 'jpg';
+      const storagePath = `${userId}/${args.checkupId}/${Date.now()}-${suffix}.${extension}`;
 
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
         .upload(storagePath, args.bytes, {
-          contentType: 'image/jpeg',
+          contentType: args.contentType,
           cacheControl: '3600',
           upsert: false,
         });
@@ -227,6 +230,7 @@ export const useCheckupPhotos = (userId: string | undefined) => {
       checkupId: string;
       category: CheckupPhotoCategory;
       bytes: Uint8Array;
+      contentType: string;
     }): Promise<void> => {
       await createPhoto(args);
       await fetchPhotos(true);
@@ -243,11 +247,12 @@ export const useCheckupPhotos = (userId: string | undefined) => {
   );
 
   const replacePhoto = useCallback(
-    async (photo: CheckupPhotoItem, bytes: Uint8Array): Promise<void> => {
+    async (photo: CheckupPhotoItem, bytes: Uint8Array, contentType: string): Promise<void> => {
       const replacement = await createPhoto({
         checkupId: photo.checkup_id,
         category: photo.pose_type,
         bytes,
+        contentType,
       });
 
       try {
