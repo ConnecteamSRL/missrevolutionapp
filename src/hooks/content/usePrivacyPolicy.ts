@@ -11,8 +11,10 @@ export const usePrivacyPolicy = () => {
       setLoading(true);
       setError(null);
 
+      // La tabella app_config non e' piu' leggibile senza sessione: il testo
+      // della privacy arriva dalla sua proiezione pubblica.
       const { data, error: apiError } = await supabase
-        .from('app_config')
+        .from('app_config_privacy_policy')
         .select('privacy_policy_html')
         .eq('id', 1)
         .single();

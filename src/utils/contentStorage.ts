@@ -102,8 +102,13 @@ const decodeHtmlEntities = (value: string) =>
 
 const isAbsoluteSrc = (src: string) => /^[a-z][a-z0-9+.-]*:/i.test(src) || src.startsWith('//');
 
-/** Percorso dell'oggetto se il src punta a content-images, altrimenti null. */
-function contentImagePath(rawSrc: string): string | null {
+/**
+ * Percorso dell'oggetto se il valore punta a content-images, altrimenti null.
+ * Vale sia per il src di un <img> nell'HTML sia per un campo libero come
+ * videos.thumbnail_url, dove il null distingue la copertina esterna
+ * (Vimeo, YouTube) da quella caricata dalla libreria immagini.
+ */
+export function contentImagePath(rawSrc: string): string | null {
   const src = decodeHtmlEntities(rawSrc).trim();
   if (!src) return null;
   if (!isAbsoluteSrc(src)) return src;

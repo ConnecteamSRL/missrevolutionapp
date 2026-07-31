@@ -19,4 +19,10 @@ export type AppConfig = Omit<Tables<'app_config_public'>, 'theme_male' | 'theme_
   banner_key_male: string | null;
 };
 
-export type AppConfigPrivacyPolicy = Pick<Tables<'app_config'>, 'privacy_policy_html'>;
+// Il testo della privacy sta su una vista sua: la schermata che lo mostra si
+// apre anche senza sessione, ma non e' roba dell'avvio e non deve viaggiare
+// nella query che l'app fa a ogni apertura.
+export type AppConfigPrivacyPolicy = Pick<
+  Tables<'app_config_privacy_policy'>,
+  'privacy_policy_html'
+>;

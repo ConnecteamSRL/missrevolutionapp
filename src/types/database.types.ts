@@ -2240,6 +2240,21 @@ export type Database = {
       };
     };
     Views: {
+      app_config_privacy_policy: {
+        Row: {
+          id: number | null;
+          privacy_policy_html: string | null;
+        };
+        Insert: {
+          id?: number | null;
+          privacy_policy_html?: string | null;
+        };
+        Update: {
+          id?: number | null;
+          privacy_policy_html?: string | null;
+        };
+        Relationships: [];
+      };
       app_config_public: {
         Row: {
           id: number | null;
@@ -2249,10 +2264,8 @@ export type Database = {
           min_supported_version: string | null;
           store_url_android: string | null;
           store_url_ios: string | null;
-          support_email: string | null;
           theme_female: Json | null;
           theme_male: Json | null;
-          updated_at: string | null;
         };
         Insert: {
           id?: number | null;
@@ -2262,10 +2275,8 @@ export type Database = {
           min_supported_version?: string | null;
           store_url_android?: string | null;
           store_url_ios?: string | null;
-          support_email?: string | null;
           theme_female?: never;
           theme_male?: never;
-          updated_at?: string | null;
         };
         Update: {
           id?: number | null;
@@ -2275,10 +2286,8 @@ export type Database = {
           min_supported_version?: string | null;
           store_url_android?: string | null;
           store_url_ios?: string | null;
-          support_email?: string | null;
           theme_female?: never;
           theme_male?: never;
-          updated_at?: string | null;
         };
         Relationships: [];
       };

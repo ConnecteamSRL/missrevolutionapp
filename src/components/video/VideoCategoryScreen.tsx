@@ -10,6 +10,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { VideoBreadcrumbItem, VideoItem } from '@mr-types/video.types';
 import VideoBreadcrumbs from '@components/video/VideoBreadcrumbs';
 import { useVideoPage } from '@/src/hooks/content/useVideoPage';
+import { useSignedContentImages } from '@/src/hooks/content/useSignedContentImages';
 
 export default function VideoCategoryScreen() {
   const theme = useTheme();
@@ -17,6 +18,13 @@ export default function VideoCategoryScreen() {
   const { data, loading, refreshing, refresh, refetch, error } = useVideoPage(categoryId);
   const [searchText, setSearchText] = useState('');
   const isFirstFocus = useRef(true);
+
+  // Le copertine si firmano qui, sull'elenco completo e in una sola richiesta:
+  // dentro VideoCard sarebbe una firma per riquadro. Si parte dai video non
+  // filtrati, cosi' scrivere nella ricerca non rifa' le firme.
+  const thumbnailUri = useSignedContentImages(
+    useMemo(() => (data?.videos ?? []).map((v) => v.thumbnail_url), [data?.videos]),
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -113,7 +121,12 @@ export default function VideoCategoryScreen() {
           </>
         }
         renderItem={({ item }) => (
-          <VideoCard video={item} categoryName={data.category.name} onPress={handleVideoPress} />
+          <VideoCard
+            video={item}
+            categoryName={data.category.name}
+            thumbnailUri={thumbnailUri(item.thumbnail_url)}
+            onPress={handleVideoPress}
+          />
         )}
       />
     );

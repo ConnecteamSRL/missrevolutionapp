@@ -12,6 +12,12 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 type Props = {
   video: VideoItem;
   categoryName: string;
+  /**
+   * Sorgente della copertina gia' risolta: thumbnail_url puo' essere un
+   * percorso su content-images, che e' privato e va firmato. La firma si fa
+   * una volta per tutta la lista (useSignedContentImages), non per riquadro.
+   */
+  thumbnailUri: string | null;
   onPress?: (video: VideoItem) => void;
 };
 
@@ -25,7 +31,7 @@ const formatDuration = (seconds: number | null) => {
   return `${mmStr}:${ssStr}`;
 };
 
-export default function VideoCard({ video, categoryName, onPress }: Props) {
+export default function VideoCard({ video, categoryName, thumbnailUri, onPress }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -60,12 +66,8 @@ export default function VideoCard({ video, categoryName, onPress }: Props) {
         onPress={() => onPress?.(video)}
       >
         <View style={styles.thumbnailWrapper}>
-          {video.thumbnail_url ? (
-            <Image
-              source={{ uri: video.thumbnail_url }}
-              style={styles.thumbnail}
-              resizeMode="cover"
-            />
+          {thumbnailUri ? (
+            <Image source={{ uri: thumbnailUri }} style={styles.thumbnail} resizeMode="cover" />
           ) : (
             <View style={[styles.thumbnail, styles.thumbnailPlaceholder]}>
               <Text style={styles.thumbnailPlaceholderText}>Nessuna anteprima</Text>
