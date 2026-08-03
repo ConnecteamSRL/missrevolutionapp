@@ -32,7 +32,11 @@ export function useUserMemberships(userId?: string) {
         else setLoading(true);
         setError(null);
 
-        const now = new Date().toISOString().split('T')[0];
+        // La data va presa dal fuso dell'utente: con toISOString(), fra mezzanotte
+        // e le due di notte (ora legale) in Italia si otteneva ancora ieri e un
+        // abbonamento che inizia oggi risultava non ancora iniziato.
+        const today = new Date();
+        const now = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
         const { data: rows, error: err } = await supabase
           .from('user_memberships')

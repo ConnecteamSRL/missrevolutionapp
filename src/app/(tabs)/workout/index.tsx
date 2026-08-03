@@ -103,16 +103,6 @@ export default function WorkoutIndex() {
     [styles, theme],
   );
 
-  const openLive = useCallback(async () => {
-    const url = liveHook.data?.youtube_url;
-    if (!url) return;
-    try {
-      await Linking.openURL(url);
-    } catch (e) {
-      console.error(e);
-    }
-  }, [liveHook.data?.youtube_url]);
-
   return (
     <View style={styles.container}>
       <BackgroundGradientComponent />

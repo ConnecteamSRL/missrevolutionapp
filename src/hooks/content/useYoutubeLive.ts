@@ -6,6 +6,20 @@ export type YoutubeLiveEvent = Tables<'youtube_live_events'>;
 
 const nowIso = () => new Date().toISOString();
 
+/**
+ * Sei ore, la stessa soglia di update_youtube_live_statuses. Serve perche' se
+ * il cron non gira una diretta vecchia resta 'live' nel database e, essendo
+ * preferita a ogni altra qui sotto, nasconde per sempre quelle programmate.
+ */
+const LIVE_SENZA_FINE_SCADE_MS = 6 * 60 * 60 * 1000;
+
+const isScaduta = (e: YoutubeLiveEvent): boolean => {
+  const ora = Date.now();
+  return e.ends_at
+    ? new Date(e.ends_at).getTime() <= ora
+    : new Date(e.starts_at).getTime() <= ora - LIVE_SENZA_FINE_SCADE_MS;
+};
+
 export const useYoutubeLiveEvents = () => {
   const [data, setData] = useState<YoutubeLiveEvent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +46,7 @@ export const useYoutubeLiveEvents = () => {
 
       if (liveErr) throw liveErr;
 
-      if (live) {
+      if (live && !isScaduta(live as YoutubeLiveEvent)) {
         if (reqId === reqIdRef.current) {
           setData(live as YoutubeLiveEvent);
         }

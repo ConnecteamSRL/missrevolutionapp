@@ -133,12 +133,27 @@ export function contentImagePathsInHtml(html: string): string[] {
   return paths;
 }
 
+/**
+ * Un pixel trasparente inline, usato finche' la firma non e' arrivata.
+ * La firma e' asincrona: al primo render la mappa e' ancora vuota, e lasciare
+ * nel src il PERCORSO nudo lo fa risolvere a <Image> come "about:///<percorso>",
+ * che il caricatore nativo rifiuta ("No suitable image URL loader found") — in
+ * sviluppo e' una schermata rossa, in esercizio un riquadro rotto. Il pixel non
+ * chiede niente alla rete, tiene in piedi il riquadro e sparisce da solo appena
+ * l'URL firmato prende il suo posto.
+ */
+const PIXEL_TRASPARENTE =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
 /** Sostituisce i percorsi con gli URL firmati; lascia intatto il resto. */
 export function withContentImageUrls(html: string, urlByPath: Map<string, string>): string {
-  if (urlByPath.size === 0) return html;
   return html.replace(IMG_SRC_ATTRIBUTE, (whole, prefix: string, doubleQuoted, singleQuoted) => {
     const path = contentImagePath(doubleQuoted ?? singleQuoted ?? '');
-    const url = path ? urlByPath.get(path) : undefined;
-    return url ? `${prefix}"${url}"` : whole;
+    // src esterno (Vimeo, YouTube, un https qualsiasi): non ci riguarda.
+    if (!path) return whole;
+    // Percorso del catalogo: o e' firmato, o non esce di qui. Vale anche per i
+    // percorsi che la firma non ha risolto (scartati dalla RLS, file mancante):
+    // prima restavano nudi nel src ed erano lo stesso errore, solo permanente.
+    return `${prefix}"${urlByPath.get(path) ?? PIXEL_TRASPARENTE}"`;
   });
 }

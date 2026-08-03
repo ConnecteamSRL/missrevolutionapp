@@ -111,7 +111,10 @@ export default function HomeBannerComponent() {
     isConfigLoading ||
     isCaching ||
     (isImageBanner && !!cachedUri && isImageLoading) ||
-    (isVideoBanner && !isVideoReady);
+    // Il `!!cachedUri` vale anche per il video: senza, un banner che punta a un
+    // file inesistente non arriva mai a 'readyToPlay' e la rotella non si ferma
+    // piu'. Se non c'e' nulla da riprodurre non c'e' nulla da attendere.
+    (isVideoBanner && !!cachedUri && !isVideoReady);
 
   const renderTextContent = () => (
     <View style={homeStyle.textWrapper}>

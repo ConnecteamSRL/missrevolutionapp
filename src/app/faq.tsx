@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
-import { GraphitFonts } from '@/src/theme';
+import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { supabase } from '@/src/lib/supabase';
@@ -175,6 +175,23 @@ export default function FaqScreen() {
         refreshing={refreshing}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
+        // Senza questo, una categoria senza domande o una ricerca senza esiti
+        // lasciavano l'elenco vuoto e lo schermo muto: l'utente non capiva se
+        // stesse ancora caricando o se non ci fosse nulla.
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyTitle}>
+              {searchQuery.trim()
+                ? 'Nessuna domanda corrisponde alla ricerca'
+                : 'Non ci sono ancora domande qui'}
+            </Text>
+            <Text style={styles.emptySubtitle}>
+              {searchQuery.trim()
+                ? 'Prova con parole diverse oppure cancella la ricerca.'
+                : 'Scegli un’altra categoria oppure chiedi all’assistente qui sopra.'}
+            </Text>
+          </View>
+        }
         renderItem={({ item, index }) => (
           <Animated.View
             layout={LinearTransition.duration(180)}
@@ -225,5 +242,24 @@ const makeStyles = (theme: AppTheme) =>
     },
     listContent: {
       paddingBottom: 24,
+    },
+    emptyWrap: {
+      paddingTop: 26,
+      paddingHorizontal: 10,
+      alignItems: 'center',
+    },
+    emptyTitle: {
+      fontSize: 15,
+      color: colors.text,
+      fontFamily: GraphitFonts.GraphitBold,
+      textAlign: 'center',
+    },
+    emptySubtitle: {
+      marginTop: 8,
+      fontSize: 13,
+      color: colors.textMuted,
+      fontFamily: GraphitFonts.GraphitRegular,
+      textAlign: 'center',
+      lineHeight: 18,
     },
   });

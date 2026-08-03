@@ -17,7 +17,11 @@ const HomeScreen: React.FC = () => {
     error: checkupError,
   } = useLatestCheckup(me?.user_id);
 
-  const isLoadingData = isUserLoading || isCheckupLoading;
+  // Il check-up si aspetta solo se c'e' davvero un profilo da cui prendere
+  // l'id: useLatestCheckup senza userId resta "in caricamento" per sempre, e
+  // senza questa condizione un profilo che non arriva lasciava la home a
+  // girare la rotella all'infinito, senza mai dire cosa fosse successo.
+  const isLoadingData = isUserLoading || (!!me && isCheckupLoading);
 
   if (isLoadingData) {
     return (
@@ -35,7 +39,15 @@ const HomeScreen: React.FC = () => {
     );
   }
 
-  if (!me) return null;
+  // Profilo assente a caricamento finito: e' un errore, non una schermata
+  // vuota. Prima si usciva con null e restava una pagina bianca muta.
+  if (!me) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.errorText}>Errore nel caricamento dati: Riprova più tardi.</Text>
+      </View>
+    );
+  }
 
   return (
     <TabScrollLayout>

@@ -60,7 +60,10 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
     }
     try {
       if (item.data?.route) {
-        router.push(item.data.route as any);
+        // La route arriva senza barra iniziale ('(chat)/chat'): va aggiunta qui
+        // come fa useNotificationRouting, altrimenti expo-router la risolve
+        // relativa alla schermata corrente e la navigazione non arriva.
+        router.push(`/${item.data.route}` as any);
       } else {
         router.push('/');
       }

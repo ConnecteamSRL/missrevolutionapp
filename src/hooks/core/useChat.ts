@@ -137,7 +137,7 @@ export function useChat(gymId: string, userId: string) {
             return [newMsg, ...prev];
           });
         }
-      } catch (err: any) {
+      } catch {
         setError('Impossibile inviare il messaggio');
       } finally {
         setSending(false);

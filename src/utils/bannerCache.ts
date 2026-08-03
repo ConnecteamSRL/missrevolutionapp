@@ -42,7 +42,10 @@ function extensionFromKey(key: string): string {
   return dot !== -1 ? key.slice(dot) : '';
 }
 
-export async function getCachedBannerUri(bannerKey: string, remoteUrl: string): Promise<string> {
+export async function getCachedBannerUri(
+  bannerKey: string,
+  remoteUrl: string,
+): Promise<string | null> {
   try {
     const cached = await readMeta();
 
@@ -73,8 +76,17 @@ export async function getCachedBannerUri(bannerKey: string, remoteUrl: string): 
     const targetFile = new File(bannersDir, `banner${ext}`);
     if (targetFile.exists) targetFile.delete();
 
-    // Download new file
-    const downloaded = await File.downloadFileAsync(remoteUrl, targetFile);
+    // Download new file — downloadFileAsync rifiuta anche quando la risposta
+    // non e' 2xx. Qui si restituisce null e non remoteUrl: se la chiave punta a
+    // un file che non c'e', servire lo stesso URL fa credere al chiamante di
+    // avere un banner e al suo posto resta un rettangolo vuoto (immagine) o una
+    // rotella infinita (video). Con null parte il ripiego.
+    let downloaded: File;
+    try {
+      downloaded = await File.downloadFileAsync(remoteUrl, targetFile);
+    } catch {
+      return null;
+    }
 
     const entry: BannerCacheEntry = {
       bannerKey,

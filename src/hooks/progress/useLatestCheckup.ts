@@ -33,7 +33,7 @@ export const useLatestCheckup = (userId: string | undefined) => {
       if (apiError) throw apiError;
 
       setLatestCheckup(data);
-    } catch (err) {
+    } catch {
       setError('Impossibile recuperare il checkup');
     } finally {
       setIsLoading(false);

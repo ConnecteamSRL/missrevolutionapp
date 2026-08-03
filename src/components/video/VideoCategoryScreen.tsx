@@ -5,7 +5,7 @@ import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import VideoSearchBar from '@components/video/VideoSearchBar';
 import CategoryItem from '@components/video/CategoryItem';
 import VideoCard from '@components/video/VideoCard';
-import { GraphitFonts } from '@/src/theme';
+import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { VideoBreadcrumbItem, VideoItem } from '@mr-types/video.types';
 import VideoBreadcrumbs from '@components/video/VideoBreadcrumbs';
@@ -82,7 +82,16 @@ export default function VideoCategoryScreen() {
       );
     }
 
-    if (!data) return null;
+    // Per una categoria inesistente la RPC risponde null senza errore: prima
+    // qui si usciva con null e restava solo la schermata bianca.
+    if (!data) {
+      return (
+        <View style={styles.centerContainer}>
+          <Text style={styles.emptyTitle}>Questa categoria non è disponibile</Text>
+          <Text style={styles.emptySubtitle}>Torna indietro e scegline una dall’elenco.</Text>
+        </View>
+      );
+    }
 
     const hasContent = filteredData.categories.length > 0 || filteredData.videos.length > 0;
 
@@ -168,5 +177,19 @@ const styles = StyleSheet.create({
     fontFamily: GraphitFonts.GraphitRegular,
     color: '#9CA3AF',
     fontSize: 16,
+  },
+  emptyTitle: {
+    fontFamily: GraphitFonts.GraphitBold,
+    color: colors.text,
+    fontSize: 15,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    marginTop: 8,
+    fontFamily: GraphitFonts.GraphitRegular,
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
   },
 });

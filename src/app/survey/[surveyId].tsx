@@ -34,7 +34,11 @@ export default function SurveyDetailScreen() {
 
   useEffect(() => {
     fetchDetail();
-  }, []);
+    // fetchDetail e' una useCallback con dipendenze primitive (me.user_id e
+    // surveyId): cambia riferimento solo quando l'utente e' finalmente noto,
+    // non a ogni render. Senza questa dipendenza, se al primo giro me era
+    // ancora null la fetch usciva subito e il questionario restava vuoto.
+  }, [fetchDetail]);
 
   useEffect(() => {
     if (survey?.questions) {
@@ -110,7 +114,12 @@ export default function SurveyDetailScreen() {
     }
   };
 
-  const renderQuestion = (question: SurveyQuestion) => {
+  // Il numero mostrato viene dalla POSIZIONE nell'elenco, non da sort_order:
+  // sort_order serve a ordinare, non a contare. Il backoffice lo scrive a
+  // partire da 0, i dati piu' vecchi partono da 1 e dopo una cancellazione
+  // restano dei buchi — leggerlo per numerare mostrava "2. 3. 4." su un
+  // questionario di quattro domande.
+  const renderQuestion = (question: SurveyQuestion, index: number) => {
     const currentAnswer = answers[question.id];
     const isReadOnly = survey?.status !== 'PENDING';
     const type = question.type.toUpperCase();
@@ -120,7 +129,7 @@ export default function SurveyDetailScreen() {
     return (
       <View key={question.id} style={styles.questionCard}>
         <Text style={styles.questionText}>
-          {question.sort_order + 1}. {question.text}
+          {index + 1}. {question.text}
         </Text>
 
         {isText && (

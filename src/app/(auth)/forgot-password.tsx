@@ -45,7 +45,7 @@ export default function ForgotPasswordScreen() {
           params: { email: emailTrim },
         });
       }
-    } catch (err) {
+    } catch {
       Alert.alert('Errore', 'Si è verificato un problema imprevisto.');
     } finally {
       setLoading(false);

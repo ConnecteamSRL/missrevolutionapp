@@ -68,7 +68,18 @@ export default function PrivacyPolicyScreen() {
             </View>
           )}
 
-          <HtmlBadgeCard badgeText="Legale" html={html} selectable onOpenUrl={confirmOpenUrl} />
+          {/* Senza testo caricato la scheda restava vuota, con il solo bollino
+              "Legale": una pagina bianca che sembra un guasto. Meglio dire
+              che il testo non c'e' ancora. */}
+          {html?.trim() ? (
+            <HtmlBadgeCard badgeText="Legale" html={html} selectable onOpenUrl={confirmOpenUrl} />
+          ) : (
+            !error && (
+              <View style={styles.centered}>
+                <Text style={styles.emptyText}>La Privacy Policy non è ancora disponibile.</Text>
+              </View>
+            )
+          )}
         </ScrollView>
       </ContentScreenLayout>
     </View>
@@ -91,6 +102,13 @@ const makeStyles = (theme: AppTheme) =>
 
     scroll: {
       flex: 1,
+    },
+
+    emptyText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#545454',
+      fontSize: 15,
+      textAlign: 'center',
     },
 
     scrollContent: {

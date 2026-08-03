@@ -6,17 +6,13 @@ import { AppThemeRow } from '@mr-types/theme.types';
 // feature_flags) ed e' leggibile senza sessione. Tipizzare AppConfig sulla
 // tabella prometteva colonne che a runtime non arrivano mai.
 //
-// Due gruppi di campi sono scritti a mano:
-// - i temi, perche' la vista li costruisce con to_jsonb e i tipi generati non
-//   possono dire altro che Json;
-// - i banner, perche' la vista li ha acquisiti con la migrazione
-//   20260730095937_banner_globali_su_app_config, successiva alla generazione di
-//   database.types.ts. Rigenerando i tipi si possono togliere.
+// Solo i temi restano scritti a mano: la vista li costruisce con to_jsonb e i
+// tipi generati non possono dire altro che Json. Tutto il resto, banner
+// compresi, arriva da database.types.ts: una seconda definizione a mano
+// divergerebbe dallo schema alla prima migrazione.
 export type AppConfig = Omit<Tables<'app_config_public'>, 'theme_male' | 'theme_female'> & {
   theme_male: AppThemeRow | null;
   theme_female: AppThemeRow | null;
-  banner_key: string | null;
-  banner_key_male: string | null;
 };
 
 // Il testo della privacy sta su una vista sua: la schermata che lo mostra si

@@ -939,7 +939,7 @@ export type Database = {
           created_at: string;
           data: Json;
           error_message: string | null;
-          gym_id: string | null;
+          gym_id: string;
           id: string;
           recipient_ids: string[];
           retry_count: number | null;
@@ -953,7 +953,7 @@ export type Database = {
           created_at?: string;
           data?: Json;
           error_message?: string | null;
-          gym_id?: string | null;
+          gym_id: string;
           id?: string;
           recipient_ids?: string[];
           retry_count?: number | null;
@@ -967,7 +967,7 @@ export type Database = {
           created_at?: string;
           data?: Json;
           error_message?: string | null;
-          gym_id?: string | null;
+          gym_id?: string;
           id?: string;
           recipient_ids?: string[];
           retry_count?: number | null;
@@ -2257,6 +2257,8 @@ export type Database = {
       };
       app_config_public: {
         Row: {
+          banner_key: string | null;
+          banner_key_male: string | null;
           id: number | null;
           latest_version: string | null;
           maintenance_message: string | null;
@@ -2268,6 +2270,8 @@ export type Database = {
           theme_male: Json | null;
         };
         Insert: {
+          banner_key?: string | null;
+          banner_key_male?: string | null;
           id?: number | null;
           latest_version?: string | null;
           maintenance_message?: string | null;
@@ -2279,6 +2283,8 @@ export type Database = {
           theme_male?: never;
         };
         Update: {
+          banner_key?: string | null;
+          banner_key_male?: string | null;
           id?: number | null;
           latest_version?: string | null;
           maintenance_message?: string | null;
@@ -2687,7 +2693,6 @@ export type Database = {
       list_objects_gym: {
         Args: {
           bucketid: string;
-          gym?: string;
           limits?: number;
           offsets?: number;
           prefix?: string;
@@ -2704,7 +2709,6 @@ export type Database = {
       };
       me: { Args: never; Returns: Json };
       me_detailed: { Args: never; Returns: Json };
-      now: { Args: never; Returns: string };
       rbac_roles: {
         Args: never;
         Returns: {

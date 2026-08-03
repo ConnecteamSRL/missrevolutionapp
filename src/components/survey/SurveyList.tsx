@@ -23,12 +23,6 @@ type Props = {
   onPressSurvey: (surveyId: string, title: string) => void;
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: '#FFA500',
-  COMPLETED: '#4CAF50',
-  EXPIRED: '#9E9E9E',
-};
-
 const STATUS_LABELS: Record<string, string> = {
   PENDING: 'Da completare',
   COMPLETED: 'Completato',

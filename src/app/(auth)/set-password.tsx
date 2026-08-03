@@ -76,14 +76,17 @@ const SetPasswordScreen: React.FC = () => {
           setIsInitializing(false);
           redirectToLogin();
         }
-      } catch (error) {
+      } catch {
         setIsInitializing(false);
         redirectToLogin();
       }
     };
 
     initializeScreen();
-  }, []);
+    // signOut e' definito una volta sola dentro create() dello store zustand:
+    // il riferimento non cambia mai, quindi la dipendenza non rilancia l'effetto.
+    // Sta qui per non lasciare in closure una signOut vecchia.
+  }, [signOut]);
 
   useEffect(() => {
     const validateTokens = async () => {
@@ -111,7 +114,7 @@ const SetPasswordScreen: React.FC = () => {
         }
 
         setTokensValid(true);
-      } catch (err) {
+      } catch {
         setTokensValid(false);
         Alert.alert('Errore', 'Impossibile validare il link.', [
           { text: 'OK', onPress: redirectToLogin },

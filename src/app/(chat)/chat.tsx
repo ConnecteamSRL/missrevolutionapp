@@ -8,7 +8,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import { GraphitFonts } from '@/src/theme';
 import { useChat } from '@/src/hooks/core/useChat';
@@ -39,7 +38,6 @@ export default function ChatScreen() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { me, isUserLoading } = useUser();
-  const insets = useSafeAreaInsets();
 
   const params = useLocalSearchParams<{ initialMessage?: string }>();
   const initialMessage = params.initialMessage;

@@ -25,7 +25,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Solo "maschio" prende il tema maschile. Femmina, non binario, altro, non
   // dichiarato e sesso non impostato ricadono tutti sul tema femminile.
-  const row = gender === 'maschio' ? config?.theme_male : config?.theme_female;
+  // Il tema maschile vale solo se e' stato configurato: altrimenti si ricade su
+  // quello predefinito del brand, non sui colori scritti nel codice (stessa
+  // regola del banner maschile, HomeBannerComponent).
+  const row = gender === 'maschio' && config?.theme_male ? config.theme_male : config?.theme_female;
 
   // La dipendenza e' la riga scelta, non il sesso. Il sesso ricordato arriva
   // dalla memoria del telefono poco dopo l'avvio e quasi sempre conferma il
