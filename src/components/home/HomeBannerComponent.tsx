@@ -21,6 +21,12 @@ import { getCachedBannerUri } from '@/src/utils/bannerCache';
 const VIDEO_EXTENSIONS = ['.mp4'];
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 
+// Oltre questo tempo si smette di aspettare il banner e si mostra il ripiego.
+// Il banner e' decorativo: una grafica di riserva vale sempre piu' di una
+// rotella che gira per sempre. Lo scaricamento non viene interrotto, quindi se
+// arriva tardi resta in cache e al prossimo avvio si vede subito.
+const MAX_ATTESA_MS = 10000;
+
 function getMediaType(key: string): 'video' | 'image' | null {
   const lower = key.toLowerCase();
   if (VIDEO_EXTENSIONS.some((ext) => lower.endsWith(ext))) return 'video';
@@ -38,6 +44,7 @@ export default function HomeBannerComponent() {
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [cachedUri, setCachedUri] = useState<string | null>(null);
   const [isCaching, setIsCaching] = useState(false);
+  const [rinunciato, setRinunciato] = useState(false);
   const cacheRequestRef = useRef(0);
 
   const armImage = require('../../../assets/images/misc/arm.png');
@@ -65,22 +72,64 @@ export default function HomeBannerComponent() {
     return getMediaType(bannerKey);
   }, [bannerKey]);
 
+  const isImageBanner = mediaType === 'image';
+  const isVideoBanner = mediaType === 'video';
+
   useEffect(() => {
+    // Banner nuovo: si riparte da capo, compresa l'eventuale rinuncia
+    // precedente e lo stato di caricamento del media.
+    setRinunciato(false);
+    setIsImageLoading(true);
+    setIsVideoReady(false);
+
     if (!bannerKey || !bannerUrl) {
       setCachedUri(null);
+      setIsCaching(false);
       return;
     }
     const requestId = ++cacheRequestRef.current;
     setIsCaching(true);
-    getCachedBannerUri(bannerKey, bannerUrl).then((uri) => {
-      if (requestId === cacheRequestRef.current) {
-        setCachedUri(uri);
-        setIsCaching(false);
-      }
-    });
+    getCachedBannerUri(bannerKey, bannerUrl)
+      .then((uri) => {
+        if (requestId === cacheRequestRef.current) {
+          setCachedUri(uri);
+          setIsCaching(false);
+        }
+      })
+      // Oggi getCachedBannerUri non rifiuta mai, ma senza questo ramo basta un
+      // domani perche' isCaching resti acceso e la rotella non si fermi piu'.
+      .catch(() => {
+        if (requestId === cacheRequestRef.current) {
+          setCachedUri(null);
+          setIsCaching(false);
+        }
+      });
   }, [bannerKey, bannerUrl]);
 
-  const player = useVideoPlayer(mediaType === 'video' && cachedUri ? cachedUri : null, (p) => {
+  const staAspettando =
+    isConfigLoading ||
+    isCaching ||
+    (isImageBanner && !!cachedUri && isImageLoading) ||
+    // Il `!!cachedUri` vale anche per il video: senza, un banner che punta a un
+    // file inesistente non arriva mai a 'readyToPlay' e la rotella non si ferma
+    // piu'. Se non c'e' nulla da riprodurre non c'e' nulla da attendere.
+    (isVideoBanner && !!cachedUri && !isVideoReady);
+
+  // Rete che si impianta a meta' scaricamento, file illeggibile, video che non
+  // diventa mai riproducibile: i motivi per restare in attesa sono troppi per
+  // coprirli uno per uno. Questo e' il freno di sicurezza che vale per tutti.
+  useEffect(() => {
+    if (!staAspettando || rinunciato) return;
+    const timer = setTimeout(() => setRinunciato(true), MAX_ATTESA_MS);
+    return () => clearTimeout(timer);
+  }, [staAspettando, rinunciato]);
+
+  // Dopo la rinuncia il banner si considera non disponibile: il ripiego prende
+  // il suo posto e la rotella si spegne.
+  const bannerUri = rinunciato ? null : cachedUri;
+  const isLoading = staAspettando && !rinunciato;
+
+  const player = useVideoPlayer(isVideoBanner && bannerUri ? bannerUri : null, (p) => {
     p.loop = true;
     p.muted = true;
     p.play();
@@ -97,6 +146,11 @@ export default function HomeBannerComponent() {
       if (payload.status === 'readyToPlay') {
         setIsVideoReady(true);
       }
+      // Un video che va in errore non arrivera' mai a 'readyToPlay': senza
+      // questo ramo si aspetterebbe fino al freno di sicurezza per niente.
+      if (payload.status === 'error') {
+        setCachedUri(null);
+      }
     });
     return () => sub.remove();
   }, [player]);
@@ -104,17 +158,6 @@ export default function HomeBannerComponent() {
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => !prev);
   }, []);
-
-  const isImageBanner = mediaType === 'image';
-  const isVideoBanner = mediaType === 'video';
-  const isLoading =
-    isConfigLoading ||
-    isCaching ||
-    (isImageBanner && !!cachedUri && isImageLoading) ||
-    // Il `!!cachedUri` vale anche per il video: senza, un banner che punta a un
-    // file inesistente non arriva mai a 'readyToPlay' e la rotella non si ferma
-    // piu'. Se non c'e' nulla da riprodurre non c'e' nulla da attendere.
-    (isVideoBanner && !!cachedUri && !isVideoReady);
 
   const renderTextContent = () => (
     <View style={homeStyle.textWrapper}>
@@ -124,7 +167,7 @@ export default function HomeBannerComponent() {
   );
 
   const renderBannerContent = () => {
-    if (isVideoBanner && cachedUri && player) {
+    if (isVideoBanner && bannerUri && player) {
       return (
         <View style={homeStyle.bannerFull}>
           <VideoView
@@ -150,14 +193,23 @@ export default function HomeBannerComponent() {
       );
     }
 
-    if (isImageBanner && cachedUri) {
+    if (isImageBanner && bannerUri) {
       return (
         <ImageBackground
-          source={{ uri: cachedUri }}
+          source={{ uri: bannerUri }}
           style={homeStyle.bannerFull}
           imageStyle={homeStyle.bannerImageCover}
-          onLoadStart={() => setIsImageLoading(true)}
+          // Niente onLoadStart: su iOS arriva a volte DOPO onLoadEnd, e
+          // rimettendo l'attesa a true dopo che l'immagine e' gia' comparsa
+          // lasciava la rotella accesa per sempre. L'attesa parte gia' da true
+          // e viene rimessa a true quando cambia il banner: non serve altro.
           onLoadEnd={() => setIsImageLoading(false)}
+          // Immagine illeggibile o sparita: si passa subito al ripiego invece
+          // di lasciare un rettangolo vuoto fino al freno di sicurezza.
+          onError={() => {
+            setIsImageLoading(false);
+            setCachedUri(null);
+          }}
         />
       );
     }
