@@ -1,12 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, RotateCw } from 'lucide-react-native';
@@ -58,13 +51,10 @@ export default function DocumentViewerScreen() {
     };
   }, [objectPath, reloadKey]);
 
-  const viewerUrl = useMemo(() => {
-    if (!documentUrl) return null;
-    if (Platform.OS === 'android') {
-      return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(documentUrl)}`;
-    }
-    return documentUrl;
-  }, [documentUrl]);
+  // La WebView apre il documento direttamente (su iOS la mostra WKWebView).
+  // Su Android i documenti non arrivano qui: DocumentsSection li apre con il
+  // visore di sistema, senza passare da visori web di terzi.
+  const viewerUrl = documentUrl;
 
   const retry = () => {
     setLoadFailed(false);

@@ -1,5 +1,13 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { File as LocalFile } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -81,21 +89,9 @@ export default function DocumentsSection({ assignmentId }: Props) {
     }, [refetch]),
   );
 
-  const openDocument = useCallback(
-    (doc: Attachment) => {
-      if (!doc.object_path) return;
-      router.push({
-        pathname: '/document-viewer',
-        params: {
-          objectPath: doc.object_path,
-          title: downloadFileName(doc),
-        },
-      });
-    },
-    [router],
-  );
-
-  const downloadDocument = useCallback(async (doc: Attachment) => {
+  // Scarica il documento in cache privata e lo passa al sistema, che lo salva,
+  // lo condivide o (su Android) lo apre con il visore installato.
+  const shareDocument = useCallback(async (doc: Attachment, action: 'Salva' | 'Apri') => {
     if (!doc.object_path) return;
 
     setDownloadingPath(doc.object_path);
@@ -117,7 +113,7 @@ export default function DocumentsSection({ assignmentId }: Props) {
       if (await Sharing.isAvailableAsync()) {
         const extension = doc.object_path.split('.').pop()?.toLowerCase() || '';
         await Sharing.shareAsync(downloaded.uri, {
-          dialogTitle: `Salva ${fileName}`,
+          dialogTitle: `${action} ${fileName}`,
           mimeType: MIME_TYPES[extension],
         });
       } else {
@@ -130,6 +126,27 @@ export default function DocumentsSection({ assignmentId }: Props) {
       setDownloadingPath(null);
     }
   }, []);
+
+  const openDocument = useCallback(
+    (doc: Attachment) => {
+      if (!doc.object_path) return;
+      // La WebView di Android non mostra PDF e documenti Office. Il visore web
+      // di Google avrebbe ricevuto l'URL firmato e il contenuto del documento:
+      // su Android lo apre il visore di sistema, come i PDF dei check-up.
+      if (Platform.OS === 'android') {
+        void shareDocument(doc, 'Apri');
+        return;
+      }
+      router.push({
+        pathname: '/document-viewer',
+        params: {
+          objectPath: doc.object_path,
+          title: downloadFileName(doc),
+        },
+      });
+    },
+    [router, shareDocument],
+  );
 
   if (error) {
     return (
@@ -156,7 +173,7 @@ export default function DocumentsSection({ assignmentId }: Props) {
         Documenti
       </Text>
       <Text style={[styles.sectionHint, { fontSize: Math.round(12 * textSizeMultiplier) }]}>
-        Tocca un documento per aprirlo nell’app.
+        Tocca un documento per aprirlo.
       </Text>
 
       <View style={styles.list}>
@@ -179,7 +196,7 @@ export default function DocumentsSection({ assignmentId }: Props) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.downloadButton}
-              onPress={() => downloadDocument(doc)}
+              onPress={() => shareDocument(doc, 'Salva')}
               activeOpacity={0.85}
               disabled={downloadingPath === doc.object_path}
               accessibilityRole="button"
