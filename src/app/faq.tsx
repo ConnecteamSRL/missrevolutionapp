@@ -37,7 +37,7 @@ const welcomeText = (firstName?: string | null) =>
   `Ciao${firstName ? ` ${firstName}` : ''}! Sono l’assistente AI di Miss Revolution: rispondo alle tue domande sul programma, sull’alimentazione e sugli allenamenti. Puoi scrivermi o mandarmi una foto o un vocale.`;
 
 const CONSENT_MESSAGE =
-  'Per risponderti, i messaggi, le foto e i vocali che invii (anche se contengono informazioni sulla tua salute) vengono elaborati da fornitori di intelligenza artificiale, OpenRouter e Meta, anche negli Stati Uniti. Meta può usarli per migliorare i propri modelli. Acconsenti a questo trattamento?';
+  'Per risponderti, i messaggi, le foto e i vocali che invii (anche se contengono informazioni sulla tua salute) vengono elaborati da fornitori di intelligenza artificiale, OpenRouter e Meta, anche negli Stati Uniti. Meta può usarli per migliorare i propri modelli. Domande e risposte vengono conservate senza collegarle al tuo account, per migliorare il servizio. Acconsenti a questo trattamento?';
 
 export default function FaqScreen() {
   const theme = useTheme();
