@@ -33,7 +33,7 @@
       "softwareKeyboardLayoutMode": "resize",
       "predictiveBackGestureEnabled": false,
       "package": "com.automatiko.missrevolution",
-      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
+      "permissions": ["android.permission.CAMERA"],
       "versionCode": 16
     },
     "plugins": [
@@ -197,15 +197,16 @@
         "expo-camera",
         {
           "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare prodotti e aggiungere foto ai check-up.",
-          "microphonePermission": "Permetti $(PRODUCT_NAME) di accedere al microfono per inviare messaggi vocali all'assistente AI.",
-          "recordAudioAndroid": true
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [
         "expo-image-picker",
         {
           "photosPermission": "Permetti $(PRODUCT_NAME) di accedere alle foto per aggiornare il profilo e i check-up.",
-          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per aggiungere foto ai check-up."
+          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per aggiungere foto ai check-up.",
+          "microphonePermission": false
         }
       ],
       "expo-sqlite",
@@ -224,13 +225,7 @@
           "supportsPictureInPicture": false
         }
       ],
-      "expo-image",
-      [
-        "expo-audio",
-        {
-          "enableBackgroundPlayback": false
-        }
-      ]
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

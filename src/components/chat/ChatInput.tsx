@@ -18,10 +18,8 @@ type Props = {
   canSend?: boolean;
   /** Sopra il campo, per esempio l'anteprima degli allegati. */
   preview?: React.ReactNode;
-  /** Pulsanti tra il testo e l'invio (foto, vocale). */
+  /** Pulsanti tra il testo e l'invio (foto). */
   actions?: React.ReactNode;
-  /** Al posto del testo, per esempio durante una registrazione. */
-  inputReplacement?: React.ReactNode;
 };
 
 export const ChatInput = ({
@@ -34,7 +32,6 @@ export const ChatInput = ({
   canSend,
   preview,
   actions,
-  inputReplacement,
 }: Props) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -54,17 +51,15 @@ export const ChatInput = ({
     <View style={styles.container}>
       {preview}
       <View style={styles.inputWrapper}>
-        {inputReplacement ?? (
-          <TextInput
-            style={styles.input}
-            placeholder={placeholder}
-            placeholderTextColor={'#9C9C9C'}
-            value={text}
-            onChangeText={setText}
-            multiline
-            maxLength={maxLength}
-          />
-        )}
+        <TextInput
+          style={styles.input}
+          placeholder={placeholder}
+          placeholderTextColor={'#9C9C9C'}
+          value={text}
+          onChangeText={setText}
+          multiline
+          maxLength={maxLength}
+        />
         {actions}
         <TouchableOpacity
           style={[styles.sendButton, !sendable && styles.disabledBtn]}

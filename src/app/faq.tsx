@@ -21,11 +21,7 @@ import { AppTheme } from '@mr-types/theme.types';
 import { FaqAgentDraft, FaqAgentMessage } from '@mr-types/faqAgent.types';
 import { useFaqAgentStore } from '@/src/store/faqAgentStore';
 import { fetchFaqAgentConsent, saveFaqAgentConsent } from '@/src/lib/faqAgent';
-import {
-  FAQ_AGENT_MAX_AUDIOS,
-  FAQ_AGENT_MAX_IMAGES,
-  pendingUserMessages,
-} from '@/src/utils/faqAgentBatch';
+import { FAQ_AGENT_MAX_IMAGES, pendingUserMessages } from '@/src/utils/faqAgentBatch';
 import { ChatBubble, ChatDateHeader, formatChatDateLabel } from '@components/chat/ChatBubble';
 import FaqAgentAttachments from '@components/faq/FaqAgentBubble';
 import FaqAgentTypingIndicator from '@components/faq/FaqAgentTypingIndicator';
@@ -34,7 +30,7 @@ import FaqAgentComposer from '@components/faq/FaqAgentComposer';
 const ASSISTANT_LABEL = 'Assistente AI';
 
 const welcomeText = (firstName?: string | null) =>
-  `Ciao${firstName ? ` ${firstName}` : ''}! Sono l’assistente AI di Miss Revolution: rispondo alle tue domande sul programma, sull’alimentazione e sugli allenamenti. Puoi scrivermi o mandarmi una foto o un vocale.`;
+  `Ciao${firstName ? ` ${firstName}` : ''}! Sono l’assistente AI di Miss Revolution: rispondo alle tue domande sul programma, sull’alimentazione e sugli allenamenti. Puoi scrivermi o mandarmi una foto.`;
 
 const CONSENT_MESSAGE =
   'Per risponderti, i messaggi, le foto e i vocali che invii (anche se contengono informazioni sulla tua salute) vengono elaborati da fornitori di intelligenza artificiale, OpenRouter e Meta, anche negli Stati Uniti. Meta può usarli per migliorare i propri modelli. Domande e risposte vengono conservate senza collegarle al tuo account, per migliorare il servizio. Acconsenti a questo trattamento?';
@@ -56,7 +52,6 @@ export default function FaqScreen() {
   const pending = pendingUserMessages(messages);
   const isTyping = pending.length > 0 && !error;
   const pendingImages = pending.reduce((sum, m) => sum + m.images.length, 0);
-  const pendingAudios = pending.reduce((sum, m) => sum + m.audios.length, 0);
 
   // Il consenso dato in passato si legge all'apertura; poi resta in memoria fino al logout.
   useEffect(() => {
@@ -164,9 +159,7 @@ export default function FaqScreen() {
               message={{ content: item.text, created_at: item.createdAt, sender_type: 'user' }}
               isMe
             >
-              {item.images.length > 0 || item.audios.length > 0 ? (
-                <FaqAgentAttachments images={item.images} audios={item.audios} />
-              ) : null}
+              {item.images.length > 0 ? <FaqAgentAttachments images={item.images} /> : null}
             </ChatBubble>
           ) : (
             // Stile delle bolle dell'operatore, con l'etichetta dell'assistente.
@@ -227,11 +220,7 @@ export default function FaqScreen() {
             ) : null
           }
         />
-        <FaqAgentComposer
-          onSend={handleSend}
-          maxImages={FAQ_AGENT_MAX_IMAGES - pendingImages}
-          maxAudios={FAQ_AGENT_MAX_AUDIOS - pendingAudios}
-        />
+        <FaqAgentComposer onSend={handleSend} maxImages={FAQ_AGENT_MAX_IMAGES - pendingImages} />
         <View style={styles.disclaimer}>
           <Text style={styles.disclaimerText}>
             Le risposte sono generate da un’AI e possono contenere errori

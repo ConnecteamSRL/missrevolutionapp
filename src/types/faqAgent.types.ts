@@ -6,19 +6,16 @@ export type FaqAgentTurn = {
   content: string;
 };
 
-export type FaqAgentAudioFormat = 'm4a' | 'aac' | 'mp3' | 'wav';
-
 export type FaqAgentRequest = {
   history: FaqAgentTurn[];
   text: string;
   images: { base64: string; mime_type: 'image/jpeg' | 'image/png' }[];
-  audios: { base64: string; format: FaqAgentAudioFormat }[];
 };
 
 export type FaqAgentResponse = {
   /** Risposta in italiano, testo semplice. */
   reply: string;
-  /** Resa testuale del turno utente (testo + trascrizione dei vocali + descrizione delle foto). */
+  /** Resa testuale del turno utente (testo + descrizione delle foto). */
   user_text: string;
 };
 
@@ -28,16 +25,10 @@ export type FaqAgentImage = {
   base64: string;
 };
 
-export type FaqAgentAudio = {
-  base64: string;
-  durationMillis: number;
-};
-
 /** Quello che l'utente manda con un invio: testo e allegati. */
 export type FaqAgentDraft = {
   text: string;
   images: FaqAgentImage[];
-  audios: FaqAgentAudio[];
 };
 
 export type FaqAgentUserMessage = FaqAgentDraft & {
@@ -45,7 +36,7 @@ export type FaqAgentUserMessage = FaqAgentDraft & {
   role: 'user';
   /**
    * Diventa true quando il servizio ha risposto alla richiesta che lo conteneva;
-   * da quel momento il base64 di foto e vocali e' vuoto.
+   * da quel momento il base64 delle foto e' vuoto.
    */
   answered: boolean;
   /** Ora dell'invio (ISO), per l'orario sotto la bolla e i separatori di data. */

@@ -13,7 +13,7 @@ import {
 } from '@mr-types/faqAgent.types';
 
 // Attesa dopo l'ultimo invio prima di chiamare il servizio: chi scrive a
-// raffiche (testo, poi una foto, poi un vocale) riceve una risposta sola.
+// raffiche (testo, poi una foto, poi un'altra) riceve una risposta sola.
 const DEBOUNCE_MS = 1500;
 
 interface FaqAgentState {
@@ -58,12 +58,11 @@ const cancelPending = () => {
 };
 
 // Un messaggio risposto non riparte piu' (la history e' solo testo): restano
-// miniatura e durata, il base64 (fino a ~1,3 MB per vocale) si libera.
+// la miniatura, il base64 della foto si libera.
 const markAnswered = (m: FaqAgentUserMessage): FaqAgentUserMessage => ({
   ...m,
   answered: true,
   images: m.images.map((image) => ({ ...image, base64: '' })),
-  audios: m.audios.map((audio) => ({ ...audio, base64: '' })),
 });
 
 export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, get) => {

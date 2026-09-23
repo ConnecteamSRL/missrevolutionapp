@@ -80,7 +80,7 @@ export function faqAgentErrorMessage(error: unknown): string {
     case 429:
       return 'Hai inviato molte domande in poco tempo. Aspetta qualche minuto e riprova.';
     case 413:
-      return 'Gli allegati sono troppo pesanti. Prova con meno foto o con un vocale più breve.';
+      return 'Le foto sono troppo pesanti. Prova a mandarne meno.';
     case 504:
       return 'L’assistente ci sta mettendo troppo a rispondere. Riprova tra poco.';
     case null:

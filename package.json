@@ -27,7 +27,6 @@
     "@supabase/supabase-js": "^2.95.3",
     "date-fns": "^4.1.0",
     "expo": "^55.0.0",
-    "expo-audio": "~55.0.18",
     "expo-camera": "~55.0.9",
     "expo-constants": "~55.0.7",
     "expo-device": "~55.0.9",
