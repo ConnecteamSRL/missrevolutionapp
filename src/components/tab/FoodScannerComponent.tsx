@@ -32,6 +32,11 @@ const WARNING_COLOR = '#F59E0B'; // Ambra (non valutabile)
 
 type ScanMode = 'barcode' | 'photo';
 
+// La foto della tabella la legge un modello AI (edge function
+// nutrition-photo-scanner): va detto prima dello scatto e sul risultato.
+const AI_NOTICE =
+  'La lettura dell’etichetta è fatta da un’AI e può sbagliare: non è un parere medico.';
+
 const NUTRIENT_ROWS: { key: ScanNutrient; label: string }[] = [
   { key: 'carbs', label: 'Carboidrati' },
   { key: 'fat', label: 'Grassi' },
@@ -524,6 +529,8 @@ export default function FoodScannerComponent() {
 
           {renderNutritionTable(result)}
 
+          {isOcr && <Text style={styles.aiNote}>{AI_NOTICE}</Text>}
+
           {failedReasons.length > 0 && (
             <View style={[styles.reasonsContainer, !isOk && styles.reasonsContainerWarning]}>
               {failedReasons.map((reason, index) => (
@@ -739,6 +746,7 @@ export default function FoodScannerComponent() {
                       ? 'Inquadra la tabella nutrizionale'
                       : 'Inquadra il codice a barre'}
                   </Text>
+                  {scanMode === 'photo' && <Text style={styles.overlayNote}>{AI_NOTICE}</Text>}
                 </View>
 
                 <View style={[styles.scanFrame, scanMode === 'photo' && styles.scanFramePhoto]} />
@@ -842,6 +850,19 @@ const makeStyles = (theme: AppTheme) =>
     },
     overlayTop: { alignItems: 'center', marginTop: 12, gap: 14 },
     overlayTitle: { fontFamily: GraphitFonts.GraphitRegular, fontSize: 18, color: '#FFFFFF' },
+    overlayNote: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 13,
+      lineHeight: 18,
+      color: '#FFFFFF',
+      textAlign: 'center',
+      marginHorizontal: 24,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: 'rgba(0,0,0,0.45)',
+    },
     modeToggle: {
       flexDirection: 'row',
       backgroundColor: 'rgba(0,0,0,0.45)',
@@ -1029,6 +1050,13 @@ const makeStyles = (theme: AppTheme) =>
       fontSize: 11,
       color: '#6B6B6B',
       marginTop: 8,
+    },
+    aiNote: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      fontSize: 12,
+      lineHeight: 17,
+      color: '#6B6B6B',
+      marginTop: 12,
     },
     // Variante outline coerente coi pill (stesso raggio/padding dei primari)
     outlineButton: {
