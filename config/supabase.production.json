@@ -1,4 +1,5 @@
 {
   "SUPABASE_URL": "https://nduyrlvdhwejvhnmqylm.supabase.co",
-  "SUPABASE_ANON_KEY": "sb_publishable_XeJFKo8zb9LkRD8vXUNNtg_0N2ZCLp7"
+  "SUPABASE_ANON_KEY": "sb_publishable_XeJFKo8zb9LkRD8vXUNNtg_0N2ZCLp7",
+  "FAQ_AGENT_URL": "https://faq-agent.missrevolution.automatiko.ai"
 }

@@ -197,7 +197,7 @@
         "expo-camera",
         {
           "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare prodotti e aggiungere foto ai check-up.",
-          "microphonePermission": "Permetti $(PRODUCT_NAME) di accedere al microfono",
+          "microphonePermission": "Permetti $(PRODUCT_NAME) di accedere al microfono per inviare messaggi vocali all'assistente AI.",
           "recordAudioAndroid": true
         }
       ],
@@ -224,7 +224,13 @@
           "supportsPictureInPicture": false
         }
       ],
-      "expo-image"
+      "expo-image",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
