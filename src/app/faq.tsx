@@ -232,16 +232,18 @@ export default function FaqScreen() {
           maxImages={FAQ_AGENT_MAX_IMAGES - pendingImages}
           maxAudios={FAQ_AGENT_MAX_AUDIOS - pendingAudios}
         />
-        <Text style={styles.disclaimer}>
-          Le risposte sono generate da un’AI e possono contenere errori ·{' '}
-          <Text
-            style={styles.disclaimerLink}
+        <View style={styles.disclaimer}>
+          <Text style={styles.disclaimerText}>
+            Le risposte sono generate da un’AI e possono contenere errori
+          </Text>
+          <TouchableOpacity
             onPress={() => router.push('/privacy-policy')}
             accessibilityRole="link"
+            hitSlop={{ top: 8, bottom: 8, left: 16, right: 16 }}
           >
-            Informativa privacy
-          </Text>
-        </Text>
+            <Text style={[styles.disclaimerText, styles.disclaimerLink]}>Informativa privacy</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </ContentScreenLayout>
   );
@@ -284,8 +286,13 @@ const makeStyles = (theme: AppTheme) =>
       fontFamily: GraphitFonts.GraphitBold,
       fontSize: 13,
     },
+    // Il padding sotto tiene il link staccato dalla tastiera quando e' aperta.
     disclaimer: {
+      alignItems: 'center',
       marginTop: -4,
+      paddingBottom: 8,
+    },
+    disclaimerText: {
       fontFamily: GraphitFonts.GraphitRegular,
       fontSize: 11,
       lineHeight: 15,
