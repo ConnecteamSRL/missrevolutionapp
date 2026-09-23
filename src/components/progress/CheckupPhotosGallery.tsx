@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { File as PickedFile, Paths } from 'expo-file-system';
+import { File as PickedFile } from 'expo-file-system';
 import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { SaveFormat } from 'expo-image-manipulator';
@@ -24,6 +24,7 @@ import type { CheckupHistoryItem } from '@/src/hooks/progress/useCheckupHistory'
 import type { CheckupPhotoCategory, CheckupPhotoItem } from '@/src/hooks/progress/useCheckupPhotos';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { GraphitFonts } from '@/src/theme';
+import { cartellaDocumenti } from '@/src/utils/cacheUtente';
 import { AppTheme } from '@mr-types/theme.types';
 
 const UI = {
@@ -237,10 +238,10 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
     try {
       setBusyKey(photo.id);
       // Il PDF non passa da un visore web di terzi: si scarica in cache privata
-      // e lo apre il visore di sistema.
+      // (svuotata al logout) e lo apre il visore di sistema.
       const downloaded = await PickedFile.downloadFileAsync(
         photo.signedUrl,
-        new PickedFile(Paths.cache, `checkup-${photo.id}.pdf`),
+        new PickedFile(cartellaDocumenti(), `checkup-${photo.id}.pdf`),
         { idempotent: true },
       );
       if (await Sharing.isAvailableAsync()) {

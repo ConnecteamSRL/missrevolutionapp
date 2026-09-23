@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { File as LocalFile, Paths } from 'expo-file-system';
+import { File as LocalFile } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Download, File, FileSpreadsheet, FileText, Presentation } from 'lucide-react-native';
 import { colors, GraphitFonts } from '@/src/theme';
@@ -9,6 +9,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { Attachment, useAttachments } from '@/src/hooks/content/useAttachments';
 import { signContentDocument } from '@/src/utils/contentStorage';
+import { cartellaDocumenti } from '@/src/utils/cacheUtente';
 import {
   CONTENT_TEXT_SIZE_MULTIPLIERS,
   useContentTextSizeStore,
@@ -108,7 +109,7 @@ export default function DocumentsSection({ assignmentId }: Props) {
       const fileName = downloadFileName(doc);
       const downloaded = await LocalFile.downloadFileAsync(
         url,
-        new LocalFile(Paths.cache, fileName),
+        new LocalFile(cartellaDocumenti(), fileName),
         {
           idempotent: true,
         },

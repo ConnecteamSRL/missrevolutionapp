@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logoutOneSignal } from '../lib/onesignal';
 import { clearPendingRoute } from '../lib/onesignalClickHandler';
 import { clearBannerCache } from '../utils/bannerCache';
+import { svuotaCacheUtente } from '../utils/cacheUtente';
 import { useFaqAgentStore } from './faqAgentStore';
 import { useConsensiStore } from './consensiStore';
 
@@ -33,6 +34,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     useConsensiStore.getState().reset();
     console.log('Clearing banner cache on sign out');
     await clearBannerCache();
+    await svuotaCacheUtente();
     console.log('Clearing AsyncStorage on sign out');
     await AsyncStorage.clear();
     set({ session: null, user: null, isLoading: false });
