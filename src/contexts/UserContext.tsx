@@ -26,11 +26,14 @@ export const UserProvider: React.FC<Props> = ({ children }) => {
   const [me, setMe] = useState<MeDetailed | null>(null);
   const [isUserLoading, setIsUserLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const hasSession = !!session;
 
+  // OneSignal e la richiesta del permesso per le notifiche partono solo dopo il login.
   useEffect(() => {
+    if (!hasSession) return;
     initOneSignalOnce();
     void requestPushPermissionOnce();
-  }, []);
+  }, [hasSession]);
 
   useEffect(() => {
     const externalId = session?.user?.id ?? null;

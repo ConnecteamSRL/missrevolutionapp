@@ -5,8 +5,10 @@ const APP_ID = 'd094b9fe-d1d1-4d90-83b8-a8c3bb8aca85';
 
 let didInit = false;
 let lastExternalId: string | null = null;
-let lastEmail: string | null = null;
+let removedEmail: string | null = null;
 
+// OneSignal si avvia solo con una sessione attiva (chi lo chiama lo sa): prima
+// del login non deve ricevere niente, neppure l'identificativo del telefono.
 export function initOneSignalOnce() {
   if (didInit) return;
 
@@ -21,29 +23,36 @@ export async function syncOneSignalUser(params: {
   externalId: string | null;
   email: string | null;
 }) {
-  initOneSignalOnce();
-
   const { externalId, email } = params;
 
   if (!externalId) {
-    if (lastExternalId !== null) {
-      await OneSignal.logout();
-    }
-    lastExternalId = null;
-    lastEmail = null;
+    // Senza sessione OneSignal non parte: si scollega solo se era gia' partito.
+    logoutOneSignal();
     return;
   }
+
+  initOneSignalOnce();
 
   if (externalId !== lastExternalId) {
     await OneSignal.login(externalId);
     lastExternalId = externalId;
-    lastEmail = null;
+    removedEmail = null;
   }
 
-  if (email && email !== lastEmail) {
-    await OneSignal.User.addEmail(email);
-    lastEmail = email;
+  // A OneSignal basta l'id dell'utente. Le versioni precedenti gli davano
+  // anche l'email (addEmail): quella gia' registrata si toglie.
+  if (email && email !== removedEmail) {
+    OneSignal.User.removeEmail(email);
+    removedEmail = email;
   }
+}
+
+/** Scollega il telefono dall'utente, se OneSignal era partito. */
+export function logoutOneSignal() {
+  if (!didInit || lastExternalId === null) return;
+  OneSignal.logout();
+  lastExternalId = null;
+  removedEmail = null;
 }
 
 export async function requestPushPermissionOnce() {

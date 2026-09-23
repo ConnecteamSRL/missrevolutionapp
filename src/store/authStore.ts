@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { AuthSession, AuthUser } from '../types/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { OneSignal } from 'react-native-onesignal';
+import { logoutOneSignal } from '../lib/onesignal';
 import { clearPendingRoute } from '../lib/onesignalClickHandler';
 import { clearBannerCache } from '../utils/bannerCache';
 import { useFaqAgentStore } from './faqAgentStore';
@@ -37,7 +37,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     await AsyncStorage.clear();
     set({ session: null, user: null, isLoading: false });
     console.log('Signing out from OneSignal');
-    OneSignal.logout();
+    logoutOneSignal();
     clearPendingRoute();
   },
 }));
