@@ -89,3 +89,20 @@ export function faqAgentErrorMessage(error: unknown): string {
       return 'L’assistente non è riuscito a rispondere. Riprova tra poco.';
   }
 }
+
+/** True se l'utente ha gia' acconsentito al trattamento dei dati da parte dell'assistente. */
+export async function fetchFaqAgentConsent(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('ai_assistant_consents')
+    .select('user_id')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data !== null;
+}
+
+/** Registra il consenso. Se la riga c'e' gia' (lettura iniziale fallita) va bene cosi'. */
+export async function saveFaqAgentConsent(userId: string): Promise<void> {
+  const { error } = await supabase.from('ai_assistant_consents').insert({ user_id: userId });
+  if (error && error.code !== '23505') throw error;
+}

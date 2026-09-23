@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -38,7 +37,7 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { FaqAgentAudio, FaqAgentDraft, FaqAgentImage } from '@mr-types/faqAgent.types';
-import SendIcon from '@components/ui/icons/SendIcon';
+import { ChatInput } from '@components/chat/ChatInput';
 import { formatVoiceDuration } from '@components/faq/FaqAgentBubble';
 
 const MAX_PHOTO_SIDE = 1280;
@@ -89,7 +88,8 @@ function RecordingDot() {
 }
 
 type Props = {
-  onSend: (draft: FaqAgentDraft) => void;
+  /** True se il messaggio e' partito: solo allora il campo si svuota. */
+  onSend: (draft: FaqAgentDraft) => Promise<boolean>;
   /** Foto e vocali ancora ammessi: i messaggi in attesa di risposta occupano posti. */
   maxImages: number;
   maxAudios: number;
@@ -106,6 +106,7 @@ export default function FaqAgentComposer({ onSend, maxImages, maxAudios }: Props
   const [audios, setAudios] = useState<FaqAgentAudio[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const recorder = useAudioRecorder(VOICE_RECORDING);
   const recorderState = useAudioRecorderState(recorder, 250);
@@ -262,9 +263,13 @@ export default function FaqAgentComposer({ onSend, maxImages, maxAudios }: Props
     [],
   );
 
-  const handleSend = () => {
+  // Testo e allegati restano nel campo se l'invio non parte (consenso negato).
+  const handleSend = async () => {
     if (!canSend) return;
-    onSend({ text: text.trim(), images, audios });
+    setIsSending(true);
+    const sent = await onSend({ text: text.trim(), images, audios });
+    setIsSending(false);
+    if (!sent) return;
     setText('');
     setImages([]);
     setAudios([]);
@@ -272,116 +277,109 @@ export default function FaqAgentComposer({ onSend, maxImages, maxAudios }: Props
 
   const hasAttachments = images.length > 0 || audios.length > 0;
 
-  return (
-    <View style={themed.container}>
-      {hasAttachments && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={themed.previewRow}
-          keyboardShouldPersistTaps="handled"
-        >
-          {images.map((image, index) => (
-            <View key={`${image.uri}-${index}`} style={themed.previewThumbWrap}>
-              <Image source={{ uri: image.uri }} style={themed.previewThumb} contentFit="cover" />
-              <TouchableOpacity
-                style={themed.removeButton}
-                onPress={() => setImages((prev) => prev.filter((_, i) => i !== index))}
-                accessibilityRole="button"
-                accessibilityLabel={`Rimuovi la foto ${index + 1}`}
-                hitSlop={8}
-              >
-                <X color={colors.white} size={12} strokeWidth={3} />
-              </TouchableOpacity>
-            </View>
-          ))}
-          {audios.map((audio, index) => (
-            <View key={`audio-${index}`} style={themed.previewVoice}>
-              <AudioLines color={theme.secondary} size={16} />
-              <Text style={themed.previewVoiceText}>
-                Vocale · {formatVoiceDuration(audio.durationMillis)}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setAudios((prev) => prev.filter((_, i) => i !== index))}
-                accessibilityRole="button"
-                accessibilityLabel={`Rimuovi il vocale ${index + 1}`}
-                hitSlop={8}
-              >
-                <X color={colors.textMuted} size={16} />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </ScrollView>
-      )}
-
-      <View style={themed.inputWrapper}>
-        {isRecording ? (
-          <View style={themed.recordingInfo}>
-            <RecordingDot />
-            <Text style={themed.recordingText}>
-              {formatVoiceDuration(recorderState.durationMillis)} /{' '}
-              {formatVoiceDuration(MAX_RECORDING_MS)}
-            </Text>
-            <Text style={themed.recordingHint} numberOfLines={1}>
-              Registrazione in corso
-            </Text>
-          </View>
-        ) : (
-          <>
-            <TouchableOpacity
-              style={themed.iconButton}
-              onPress={choosePhotoSource}
-              disabled={isProcessing}
-              accessibilityRole="button"
-              accessibilityLabel="Allega una foto"
-            >
-              <Camera color={theme.secondary} size={22} />
-            </TouchableOpacity>
-            <TextInput
-              style={themed.input}
-              placeholder="Scrivi la tua domanda..."
-              placeholderTextColor={colors.textPlaceholder}
-              value={text}
-              onChangeText={setText}
-              multiline
-              maxLength={1000}
-              accessibilityLabel="Messaggio per l’assistente"
-            />
-          </>
-        )}
-
-        {isProcessing ? (
-          <View style={themed.iconButton}>
-            <ActivityIndicator size="small" color={theme.accent} />
-          </View>
-        ) : (
+  const preview = hasAttachments ? (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={themed.previewScroll}
+      contentContainerStyle={themed.previewRow}
+      keyboardShouldPersistTaps="handled"
+    >
+      {images.map((image, index) => (
+        <View key={`${image.uri}-${index}`} style={themed.previewThumbWrap}>
+          <Image source={{ uri: image.uri }} style={themed.previewThumb} contentFit="cover" />
           <TouchableOpacity
-            style={[themed.iconButton, isRecording && themed.stopButton]}
-            onPress={isRecording ? stopRecording : startRecording}
+            style={themed.removeButton}
+            onPress={() => setImages((prev) => prev.filter((_, i) => i !== index))}
             accessibilityRole="button"
-            accessibilityLabel={
-              isRecording ? 'Ferma la registrazione' : 'Registra un messaggio vocale'
-            }
+            accessibilityLabel={`Rimuovi la foto ${index + 1}`}
+            hitSlop={8}
           >
-            {isRecording ? (
-              <Square color={colors.white} fill={colors.white} size={14} />
-            ) : (
-              <Mic color={theme.secondary} size={22} />
-            )}
+            <X color={colors.white} size={12} strokeWidth={3} />
           </TouchableOpacity>
-        )}
+        </View>
+      ))}
+      {audios.map((audio, index) => (
+        <View key={`audio-${index}`} style={themed.previewVoice}>
+          <AudioLines color={theme.secondary} size={16} />
+          <Text style={themed.previewVoiceText}>
+            Vocale · {formatVoiceDuration(audio.durationMillis)}
+          </Text>
+          <TouchableOpacity
+            onPress={() => setAudios((prev) => prev.filter((_, i) => i !== index))}
+            accessibilityRole="button"
+            accessibilityLabel={`Rimuovi il vocale ${index + 1}`}
+            hitSlop={8}
+          >
+            <X color={colors.textMuted} size={16} />
+          </TouchableOpacity>
+        </View>
+      ))}
+    </ScrollView>
+  ) : null;
 
-        <TouchableOpacity
-          style={[themed.sendButton, !canSend && themed.disabled]}
-          onPress={handleSend}
-          disabled={!canSend}
-          accessibilityRole="button"
-          accessibilityLabel="Invia"
-        >
-          <SendIcon color={colors.white} size={20} />
-        </TouchableOpacity>
-      </View>
+  const recordingInfo = isRecording ? (
+    <View style={themed.recordingInfo}>
+      <RecordingDot />
+      <Text style={themed.recordingText}>
+        {formatVoiceDuration(recorderState.durationMillis)} /{' '}
+        {formatVoiceDuration(MAX_RECORDING_MS)}
+      </Text>
+      <Text style={themed.recordingHint} numberOfLines={1}>
+        Registrazione in corso
+      </Text>
     </View>
+  ) : null;
+
+  const actions = (
+    <>
+      {!isRecording && (
+        <TouchableOpacity
+          style={themed.iconButton}
+          onPress={choosePhotoSource}
+          disabled={isProcessing}
+          accessibilityRole="button"
+          accessibilityLabel="Allega una foto"
+        >
+          <Camera color={theme.secondary} size={22} />
+        </TouchableOpacity>
+      )}
+      {isProcessing ? (
+        <View style={themed.iconButton}>
+          <ActivityIndicator size="small" color={theme.accent} />
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={[themed.iconButton, isRecording && themed.stopButton]}
+          onPress={isRecording ? stopRecording : startRecording}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isRecording ? 'Ferma la registrazione' : 'Registra un messaggio vocale'
+          }
+        >
+          {isRecording ? (
+            <Square color={colors.white} fill={colors.white} size={14} />
+          ) : (
+            <Mic color={theme.secondary} size={22} />
+          )}
+        </TouchableOpacity>
+      )}
+    </>
+  );
+
+  return (
+    <ChatInput
+      onSend={handleSend}
+      isLoading={isSending}
+      value={text}
+      onChangeText={setText}
+      placeholder="Scrivi la tua domanda..."
+      maxLength={1000}
+      canSend={canSend}
+      preview={preview}
+      actions={actions}
+      inputReplacement={recordingInfo}
+    />
   );
 }
 
@@ -396,10 +394,8 @@ const styles = StyleSheet.create({
 
 const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
-    container: {
-      paddingTop: 8,
-      paddingBottom: 4,
-      gap: 8,
+    previewScroll: {
+      marginBottom: 8,
     },
     previewRow: {
       gap: 8,
@@ -444,49 +440,19 @@ const makeStyles = (theme: AppTheme) =>
       fontFamily: GraphitFonts.GraphitMedium,
       fontSize: 13,
     },
-    inputWrapper: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      backgroundColor: colors.white,
-      borderRadius: 26,
-      borderWidth: 1,
-      borderColor: theme.border,
-      padding: 5,
-      gap: 2,
-    },
-    iconButton: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    stopButton: {
-      backgroundColor: '#E53935',
-    },
-    input: {
-      flex: 1,
-      color: colors.text,
-      fontFamily: GraphitFonts.GraphitRegular,
-      fontSize: 15,
-      minHeight: 42,
-      maxHeight: 120,
-      paddingTop: 11,
-      paddingBottom: 11,
-      paddingHorizontal: 4,
-    },
+    // Stessa altezza del campo di testo di ChatInput, che qui sostituisce.
     recordingInfo: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      height: 42,
-      paddingLeft: 12,
+      height: 36,
+      marginRight: 8,
     },
     recordingText: {
       color: colors.text,
       fontFamily: GraphitFonts.GraphitBold,
-      fontSize: 15,
+      fontSize: 14,
       fontVariant: ['tabular-nums'],
     },
     recordingHint: {
@@ -495,15 +461,15 @@ const makeStyles = (theme: AppTheme) =>
       fontFamily: GraphitFonts.GraphitRegular,
       fontSize: 13,
     },
-    sendButton: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      backgroundColor: theme.secondary,
+    iconButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       justifyContent: 'center',
       alignItems: 'center',
+      marginRight: 2,
     },
-    disabled: {
-      opacity: 0.5,
+    stopButton: {
+      backgroundColor: '#E53935',
     },
   });

@@ -11,7 +11,7 @@ import {
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import { GraphitFonts } from '@/src/theme';
 import { useChat } from '@/src/hooks/core/useChat';
-import { ChatBubble } from '@components/chat/ChatBubble';
+import { ChatBubble, ChatDateHeader, formatChatDateLabel } from '@components/chat/ChatBubble';
 import { ChatInput } from '@components/chat/ChatInput';
 import ChatPinnedBanner from '@components/chat/ChatPinnedBanner';
 import { useUser } from '@/src/contexts/UserContext';
@@ -72,26 +72,10 @@ export default function ChatScreen() {
     void markChatRead();
   }, [markChatRead, messages.length]);
 
-  const formatDateLabel = useCallback((dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-
-    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const startOfTarget = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-    const diffMs = startOfToday.getTime() - startOfTarget.getTime();
-    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return 'Oggi';
-    if (diffDays === 1) return 'Ieri';
-
-    return date.toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
-  }, []);
-
   const renderItem = useCallback(
     ({ item, index }: { item: any; index: number }) => {
       const isMe = item.sender_type === 'user';
-      const currentLabel = formatDateLabel(item.created_at);
+      const currentLabel = formatChatDateLabel(item.created_at);
 
       let showDateHeader = false;
 
@@ -100,23 +84,19 @@ export default function ChatScreen() {
       } else {
         const nextItem = messages[index + 1];
         if (nextItem) {
-          const nextLabel = formatDateLabel(nextItem.created_at);
+          const nextLabel = formatChatDateLabel(nextItem.created_at);
           if (nextLabel !== currentLabel) showDateHeader = true;
         }
       }
 
       return (
         <View>
-          {showDateHeader && (
-            <View style={styles.dateHeaderContainer}>
-              <Text style={styles.dateHeaderText}>{currentLabel}</Text>
-            </View>
-          )}
+          {showDateHeader && <ChatDateHeader label={currentLabel} />}
           <ChatBubble message={item} isMe={isMe} />
         </View>
       );
     },
-    [messages, formatDateLabel, styles],
+    [messages],
   );
 
   if (isUserLoading) {
@@ -232,20 +212,5 @@ const makeStyles = (theme: AppTheme) =>
       color: '#888',
       textAlign: 'center',
       lineHeight: 22,
-    },
-    dateHeaderContainer: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 6,
-    },
-    dateHeaderText: {
-      paddingHorizontal: 12,
-      paddingVertical: 4,
-      borderRadius: 16,
-      backgroundColor: 'rgba(0,0,0,0.06)',
-      fontFamily: GraphitFonts.GraphitRegular,
-      fontSize: 12,
-      color: '#555',
-      textTransform: 'capitalize',
     },
   });

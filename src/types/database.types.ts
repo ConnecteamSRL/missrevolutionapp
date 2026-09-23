@@ -8,6 +8,21 @@ export type Database = {
   };
   public: {
     Tables: {
+      ai_assistant_consents: {
+        Row: {
+          accepted_at: string;
+          user_id: string;
+        };
+        Insert: {
+          accepted_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          accepted_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       app_config: {
         Row: {
           banner_key: string | null;
@@ -2772,7 +2787,10 @@ export type Database = {
       chat_sender_type: 'user' | 'operator' | 'bot';
       conversation_status: 'active' | 'waiting_operator' | 'archived';
       fitness_objective:
-        'dimagrimento' | 'costruzione_muscolare' | 'mantenimento' | '8_settimane_shock';
+        | 'dimagrimento'
+        | 'costruzione_muscolare'
+        | 'mantenimento'
+        | '8_settimane_shock';
       flow_status_enum: 'in_flow' | 'out_of_flow' | 'no_checkup';
       gender_enum: 'maschio' | 'femmina' | 'non_binario' | 'altro' | 'non_dichiarato';
       membership_status: 'pending' | 'active' | 'expired' | 'suspended';
@@ -2786,7 +2804,10 @@ export type Database = {
         | 'preferisco_non_specificare';
       notification_status: 'draft' | 'scheduled' | 'sent' | 'cancelled';
       primary_goal_enum:
-        'perdita_di_grasso' | 'tonificazione' | 'rimodellamento' | 'benessere_generale';
+        | 'perdita_di_grasso'
+        | 'tonificazione'
+        | 'rimodellamento'
+        | 'benessere_generale';
       survey_assignment_status: 'PENDING' | 'COMPLETED' | 'EXPIRED';
       user_notification_delivery_status: 'pending' | 'sent' | 'error';
       user_notification_read_status: 'unread' | 'read';
@@ -2920,12 +2941,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2945,12 +2966,13 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    | keyof DefaultSchema['Tables']
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2969,12 +2991,13 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    | keyof DefaultSchema['Tables']
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2993,12 +3016,13 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    | keyof DefaultSchema['Enums']
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -3009,12 +3033,13 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    | keyof DefaultSchema['CompositeTypes']
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }

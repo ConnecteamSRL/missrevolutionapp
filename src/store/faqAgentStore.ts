@@ -23,15 +23,23 @@ interface FaqAgentState {
   history: FaqAgentTurn[];
   /** Messaggio della bolla d'errore; null se non c'e' errore. */
   error: string | null;
+  /** L'utente ha una riga in ai_assistant_consents: il primo invio non chiede piu' il consenso. */
+  consentGiven: boolean;
 }
 
 interface FaqAgentActions {
   send: (draft: FaqAgentDraft) => void;
   retry: () => void;
+  setConsentGiven: () => void;
   reset: () => void;
 }
 
-const INITIAL_STATE: FaqAgentState = { messages: [], history: [], error: null };
+const INITIAL_STATE: FaqAgentState = {
+  messages: [],
+  history: [],
+  error: null,
+  consentGiven: false,
+};
 
 // Stato fuori da React: la conversazione resta viva finche' l'app e' aperta,
 // anche uscendo dalla schermata, e sparisce alla chiusura o al logout.
@@ -81,7 +89,12 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
           ...state.messages.map((m) =>
             m.role === 'user' && answeredIds.has(m.id) ? markAnswered(m) : m,
           ),
-          { id: `a${++messageSeq}`, role: 'assistant', text: result.reply },
+          {
+            id: `a${++messageSeq}`,
+            role: 'assistant',
+            text: result.reply,
+            createdAt: new Date().toISOString(),
+          },
         ],
         history: appendFaqAgentTurns(state.history, result.user_text, result.reply),
       }));
@@ -102,7 +115,13 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
       set((state) => ({
         messages: [
           ...state.messages,
-          { ...draft, id: `u${++messageSeq}`, role: 'user', answered: false },
+          {
+            ...draft,
+            id: `u${++messageSeq}`,
+            role: 'user',
+            answered: false,
+            createdAt: new Date().toISOString(),
+          },
         ],
         error: null,
       }));
@@ -113,6 +132,7 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
       set({ error: null });
       void flush();
     },
+    setConsentGiven: () => set({ consentGiven: true }),
     reset: () => {
       cancelPending();
       set(INITIAL_STATE);

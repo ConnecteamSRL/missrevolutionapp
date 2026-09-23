@@ -48,12 +48,16 @@ export type FaqAgentUserMessage = FaqAgentDraft & {
    * da quel momento il base64 di foto e vocali e' vuoto.
    */
   answered: boolean;
+  /** Ora dell'invio (ISO), per l'orario sotto la bolla e i separatori di data. */
+  createdAt: string;
 };
 
 export type FaqAgentAssistantMessage = {
   id: string;
   role: 'assistant';
   text: string;
+  /** Ora di arrivo della risposta (ISO). */
+  createdAt: string;
 };
 
 export type FaqAgentMessage = FaqAgentUserMessage | FaqAgentAssistantMessage;

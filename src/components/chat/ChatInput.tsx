@@ -8,36 +8,70 @@ import SendIcon from '@components/ui/icons/SendIcon';
 type Props = {
   onSend: (text: string) => void;
   isLoading?: boolean;
+  // Facoltativi, usati dalla chat con l'assistente AI (FAQ).
+  /** Testo gestito da fuori: chi lo passa lo svuota quando l'invio e' andato a buon fine. */
+  value?: string;
+  onChangeText?: (text: string) => void;
+  placeholder?: string;
+  maxLength?: number;
+  /** Invio possibile anche senza testo, per esempio con i soli allegati. */
+  canSend?: boolean;
+  /** Sopra il campo, per esempio l'anteprima degli allegati. */
+  preview?: React.ReactNode;
+  /** Pulsanti tra il testo e l'invio (foto, vocale). */
+  actions?: React.ReactNode;
+  /** Al posto del testo, per esempio durante una registrazione. */
+  inputReplacement?: React.ReactNode;
 };
 
-export const ChatInput = ({ onSend, isLoading }: Props) => {
+export const ChatInput = ({
+  onSend,
+  isLoading,
+  value,
+  onChangeText,
+  placeholder = 'Chiedimi qualsiasi cosa...',
+  maxLength = 500,
+  canSend,
+  preview,
+  actions,
+  inputReplacement,
+}: Props) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [text, setText] = useState('');
+  const [ownText, setOwnText] = useState('');
+  const text = value ?? ownText;
+  const setText = onChangeText ?? setOwnText;
+  const sendable = canSend ?? !!text.trim();
 
   const handleSend = () => {
-    if (text.trim()) {
+    if (sendable) {
       onSend(text);
-      setText('');
+      if (value === undefined) setOwnText('');
     }
   };
 
   return (
     <View style={styles.container}>
+      {preview}
       <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          placeholder="Chiedimi qualsiasi cosa..."
-          placeholderTextColor={'#9C9C9C'}
-          value={text}
-          onChangeText={setText}
-          multiline
-          maxLength={500}
-        />
+        {inputReplacement ?? (
+          <TextInput
+            style={styles.input}
+            placeholder={placeholder}
+            placeholderTextColor={'#9C9C9C'}
+            value={text}
+            onChangeText={setText}
+            multiline
+            maxLength={maxLength}
+          />
+        )}
+        {actions}
         <TouchableOpacity
-          style={[styles.sendButton, !text.trim() && styles.disabledBtn]}
+          style={[styles.sendButton, !sendable && styles.disabledBtn]}
           onPress={handleSend}
-          disabled={!text.trim() || isLoading}
+          disabled={!sendable || isLoading}
+          accessibilityRole="button"
+          accessibilityLabel="Invia"
         >
           {isLoading ? (
             <ActivityIndicator size="small" color={theme.accent} />
