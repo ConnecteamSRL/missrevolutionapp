@@ -20,7 +20,6 @@
       },
       "infoPlist": {
         "UIBackgroundModes": ["remote-notification"],
-        "NSLocationWhenInUseUsageDescription": "L'app potrebbe utilizzare la posizione per migliorare l'esperienza utente tramite servizi di terze parti.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "buildNumber": "33"
@@ -33,6 +32,7 @@
       "softwareKeyboardLayoutMode": "resize",
       "predictiveBackGestureEnabled": false,
       "package": "com.automatiko.missrevolution",
+      "allowBackup": false,
       "permissions": ["android.permission.CAMERA"],
       "versionCode": 16
     },
@@ -196,7 +196,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare prodotti e aggiungere foto ai check-up.",
+          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i prodotti (le etichette fotografate le legge un'AI), aggiungere foto ai check-up e mandarle all'assistente AI.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }
@@ -204,13 +204,18 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Permetti $(PRODUCT_NAME) di accedere alle foto per aggiornare il profilo e i check-up.",
-          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per aggiungere foto ai check-up.",
+          "photosPermission": "Permetti $(PRODUCT_NAME) di accedere alle foto per aggiornare il profilo, aggiungere foto ai check-up e mandarle all'assistente AI.",
+          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i prodotti (le etichette fotografate le legge un'AI), aggiungere foto ai check-up e mandarle all'assistente AI.",
           "microphonePermission": false
         }
       ],
       "expo-sqlite",
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       "expo-notifications",
       [
         "onesignal-expo-plugin",
