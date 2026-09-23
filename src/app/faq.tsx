@@ -20,6 +20,7 @@ import { AppTheme } from '@mr-types/theme.types';
 import { FaqAgentDraft, FaqAgentMessage } from '@mr-types/faqAgent.types';
 import { useFaqAgentStore } from '@/src/store/faqAgentStore';
 import { useConsensiStore } from '@/src/store/consensiStore';
+import { chiediConsensoAssistente } from '@/src/utils/consensoAssistente';
 import { FAQ_AGENT_MAX_IMAGES, pendingUserMessages } from '@/src/utils/faqAgentBatch';
 import { ChatBubble, ChatDateHeader, formatChatDateLabel } from '@components/chat/ChatBubble';
 import FaqAgentAttachments from '@components/faq/FaqAgentBubble';
@@ -30,37 +31,6 @@ const ASSISTANT_LABEL = 'Assistente AI';
 
 const welcomeText = (firstName?: string | null) =>
   `Ciao${firstName ? ` ${firstName}` : ''}! Sono l’assistente AI di Miss Revolution: rispondo alle tue domande sul programma, sull’alimentazione e sugli allenamenti. Puoi scrivermi o mandarmi una foto.`;
-
-const CONSENSO_NON_REGISTRATO =
-  'Non è stato possibile registrare il consenso. Controlla la connessione e riprova.';
-
-/**
- * Chiede il consenso all'assistente con il testo corrente del registro (lo
- * stesso che finisce nella prova) e, se viene dato, lo registra.
- * True solo se dopo la scrittura il consenso risulta valido.
- */
-const chiediConsensoAssistente = (testo: string) =>
-  new Promise<boolean>((resolve) => {
-    Alert.alert(ASSISTANT_LABEL, testo, [
-      { text: 'No, grazie', style: 'cancel', onPress: () => resolve(false) },
-      {
-        text: 'Acconsento',
-        onPress: () => {
-          useConsensiStore
-            .getState()
-            .registra(['assistente_ai'], 'dato')
-            .then(
-              (stato) => resolve(stato.assistente_ai.valido),
-              (err) => {
-                if (__DEV__) console.error('[faq-agent] consenso', err);
-                Alert.alert('Errore', CONSENSO_NON_REGISTRATO);
-                resolve(false);
-              },
-            );
-        },
-      },
-    ]);
-  });
 
 export default function FaqScreen() {
   const theme = useTheme();

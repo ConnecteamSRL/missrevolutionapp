@@ -16,14 +16,13 @@ import { AppTheme } from '@mr-types/theme.types';
 import { useAppUserProfile } from '@/src/hooks/core/useAppUserProfile';
 import { MaterialIcons } from '@expo/vector-icons';
 import MembershipsSection from '@components/core/MembershipsSection';
+import PrivacySection from '@components/core/PrivacySection';
 import { logout } from '@/src/hooks/auth/useLogout';
-import { useRouter } from 'expo-router';
 
 export default function Profile() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const router = useRouter();
   const { me } = useUser();
   const userId = me?.profile.user_id;
   const { data, loading } = useAppUserProfile(userId);
@@ -123,18 +122,9 @@ export default function Profile() {
 
         <MembershipsSection />
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={() => router.push('/privacy-policy')}
-            style={styles.actionButton}
-            activeOpacity={0.8}
-          >
-            <View style={styles.actionRow}>
-              <MaterialIcons name="privacy-tip" size={20} color="#1F1F1F" />
-              <Text style={styles.actionText}>Privacy Policy</Text>
-            </View>
-          </TouchableOpacity>
+        <PrivacySection />
 
+        <View style={styles.buttonContainer}>
           <TouchableOpacity
             onPress={handleSignOut}
             disabled={signOutLoading}
