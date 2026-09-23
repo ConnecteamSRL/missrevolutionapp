@@ -12,11 +12,24 @@ const FAQ_AGENT_URL =
 // cosi' il 504 lo decide il servizio e una risposta quasi pronta non si butta.
 const TIMEOUT_MS = 120_000;
 
-/** Errore del servizio: `status` e' lo stato HTTP, null se la rete non risponde. */
-type FaqAgentError = Error & { status: number | null };
+/**
+ * Errore del servizio: `status` e' lo stato HTTP, null se la rete non risponde.
+ * `detail` e' il campo omonimo della risposta d'errore, quando c'e'.
+ */
+type FaqAgentError = Error & { status: number | null; detail?: string };
 
-const faqAgentError = (status: number | null): FaqAgentError =>
-  Object.assign(new Error(`faq-agent ${status ?? 'network'}`), { status });
+const faqAgentError = (status: number | null, detail?: string): FaqAgentError =>
+  Object.assign(new Error(`faq-agent ${status ?? 'network'}`), { status, detail });
+
+/**
+ * Il servizio verifica da se' il consenso all'assistente (consenso_valido) e
+ * risponde 403 `consenso_mancante` se manca: mai dato, revocato anche da un
+ * altro telefono, o dato su un testo che nel frattempo e' cambiato.
+ */
+export const isConsensoMancante = (error: unknown): boolean => {
+  const { status, detail } = (error as Partial<FaqAgentError> | null) ?? {};
+  return status === 403 && detail === 'consenso_mancante';
+};
 
 /**
  * Chiama POST /v1/chat con il token della sessione Supabase corrente.
@@ -64,7 +77,13 @@ export async function askFaqAgent(
     signal.removeEventListener('abort', abort);
   }
 
-  if (!response.ok) throw faqAgentError(response.status);
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw faqAgentError(
+      response.status,
+      typeof body?.detail === 'string' ? body.detail : undefined,
+    );
+  }
 
   const data = await response.json().catch(() => null);
   if (typeof data?.reply !== 'string' || typeof data?.user_text !== 'string') {
@@ -74,6 +93,9 @@ export async function askFaqAgent(
 }
 
 export function faqAgentErrorMessage(error: unknown): string {
+  if (isConsensoMancante(error)) {
+    return 'Per usare l’assistente serve il tuo consenso.';
+  }
   switch ((error as Partial<FaqAgentError> | null)?.status ?? null) {
     case 401:
       return 'La tua sessione è scaduta. Esci e accedi di nuovo per continuare a usare l’assistente.';
@@ -88,21 +110,4 @@ export function faqAgentErrorMessage(error: unknown): string {
     default:
       return 'L’assistente non è riuscito a rispondere. Riprova tra poco.';
   }
-}
-
-/** True se l'utente ha gia' acconsentito al trattamento dei dati da parte dell'assistente. */
-export async function fetchFaqAgentConsent(userId: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from('ai_assistant_consents')
-    .select('user_id')
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) throw error;
-  return data !== null;
-}
-
-/** Registra il consenso. Se la riga c'e' gia' (lettura iniziale fallita) va bene cosi'. */
-export async function saveFaqAgentConsent(userId: string): Promise<void> {
-  const { error } = await supabase.from('ai_assistant_consents').insert({ user_id: userId });
-  if (error && error.code !== '23505') throw error;
 }

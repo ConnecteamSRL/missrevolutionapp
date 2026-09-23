@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { askFaqAgent, faqAgentErrorMessage } from '../lib/faqAgent';
+import { askFaqAgent, faqAgentErrorMessage, isConsensoMancante } from '../lib/faqAgent';
 import {
   appendFaqAgentTurns,
   buildFaqAgentRequest,
@@ -23,14 +23,16 @@ interface FaqAgentState {
   history: FaqAgentTurn[];
   /** Messaggio della bolla d'errore; null se non c'e' errore. */
   error: string | null;
-  /** L'utente ha una riga in ai_assistant_consents: il primo invio non chiede piu' il consenso. */
-  consentGiven: boolean;
+  /**
+   * Il servizio ha risposto 403 consenso_mancante: la schermata richiede il
+   * consenso e, se viene dato, riprova.
+   */
+  consensoMancante: boolean;
 }
 
 interface FaqAgentActions {
   send: (draft: FaqAgentDraft) => void;
   retry: () => void;
-  setConsentGiven: () => void;
   reset: () => void;
 }
 
@@ -38,7 +40,7 @@ const INITIAL_STATE: FaqAgentState = {
   messages: [],
   history: [],
   error: null,
-  consentGiven: false,
+  consensoMancante: false,
 };
 
 // Stato fuori da React: la conversazione resta viva finche' l'app e' aperta,
@@ -101,7 +103,7 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
       // Richiesta superata da un nuovo invio o da un logout: nessun errore da mostrare.
       if (seq !== requestSeq) return;
       if (__DEV__) console.error('[faq-agent]', error);
-      set({ error: faqAgentErrorMessage(error) });
+      set({ error: faqAgentErrorMessage(error), consensoMancante: isConsensoMancante(error) });
     } finally {
       if (inFlight === controller) inFlight = null;
     }
@@ -123,15 +125,15 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
           },
         ],
         error: null,
+        consensoMancante: false,
       }));
       flushTimer = setTimeout(flush, DEBOUNCE_MS);
     },
     retry: () => {
       cancelPending();
-      set({ error: null });
+      set({ error: null, consensoMancante: false });
       void flush();
     },
-    setConsentGiven: () => set({ consentGiven: true }),
     reset: () => {
       cancelPending();
       set(INITIAL_STATE);

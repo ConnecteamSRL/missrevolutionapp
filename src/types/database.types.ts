@@ -8,18 +8,36 @@ export type Database = {
   };
   public: {
     Tables: {
-      ai_assistant_consents: {
+      ai_assistant_logs: {
         Row: {
-          accepted_at: string;
-          user_id: string;
+          domanda: string;
+          foto: number;
+          giorno: string;
+          id: number;
+          latenza_ms: number | null;
+          modello: string | null;
+          rinvio_gruppo: boolean;
+          risposta: string;
         };
         Insert: {
-          accepted_at?: string;
-          user_id?: string;
+          domanda: string;
+          foto?: number;
+          giorno?: string;
+          id?: never;
+          latenza_ms?: number | null;
+          modello?: string | null;
+          rinvio_gruppo?: boolean;
+          risposta: string;
         };
         Update: {
-          accepted_at?: string;
-          user_id?: string;
+          domanda?: string;
+          foto?: number;
+          giorno?: string;
+          id?: never;
+          latenza_ms?: number | null;
+          modello?: string | null;
+          rinvio_gruppo?: boolean;
+          risposta?: string;
         };
         Relationships: [];
       };
@@ -38,6 +56,7 @@ export type Database = {
           store_url_android: string | null;
           store_url_ios: string | null;
           support_email: string | null;
+          terms_html: string | null;
           theme_female_id: string | null;
           theme_male_id: string | null;
           updated_at: string | null;
@@ -56,6 +75,7 @@ export type Database = {
           store_url_android?: string | null;
           store_url_ios?: string | null;
           support_email?: string | null;
+          terms_html?: string | null;
           theme_female_id?: string | null;
           theme_male_id?: string | null;
           updated_at?: string | null;
@@ -74,6 +94,7 @@ export type Database = {
           store_url_android?: string | null;
           store_url_ios?: string | null;
           support_email?: string | null;
+          terms_html?: string | null;
           theme_female_id?: string | null;
           theme_male_id?: string | null;
           updated_at?: string | null;
@@ -154,6 +175,7 @@ export type Database = {
       };
       app_users: {
         Row: {
+          abbonamento_attivo: boolean;
           address_line1: string | null;
           address_line2: string | null;
           app_role: Database['public']['Enums']['app_role'];
@@ -172,8 +194,12 @@ export type Database = {
           gym_id: string | null;
           id: string;
           is_active: boolean;
+          is_coach: boolean;
+          is_commercial: boolean;
           last_checkup_at: string | null;
           last_name: string | null;
+          nascondi_allenamenti: boolean;
+          nascondi_diete: boolean;
           phone_number: string | null;
           postal_code: string | null;
           primary_email: string;
@@ -181,8 +207,10 @@ export type Database = {
           region: string | null;
           training_started_at: string | null;
           updated_at: string;
+          vede_tutte_le_palestre: boolean;
         };
         Insert: {
+          abbonamento_attivo?: boolean;
           address_line1?: string | null;
           address_line2?: string | null;
           app_role?: Database['public']['Enums']['app_role'];
@@ -201,8 +229,12 @@ export type Database = {
           gym_id?: string | null;
           id: string;
           is_active?: boolean;
+          is_coach?: boolean;
+          is_commercial?: boolean;
           last_checkup_at?: string | null;
           last_name?: string | null;
+          nascondi_allenamenti?: boolean;
+          nascondi_diete?: boolean;
           phone_number?: string | null;
           postal_code?: string | null;
           primary_email: string;
@@ -210,8 +242,10 @@ export type Database = {
           region?: string | null;
           training_started_at?: string | null;
           updated_at?: string;
+          vede_tutte_le_palestre?: boolean;
         };
         Update: {
+          abbonamento_attivo?: boolean;
           address_line1?: string | null;
           address_line2?: string | null;
           app_role?: Database['public']['Enums']['app_role'];
@@ -230,8 +264,12 @@ export type Database = {
           gym_id?: string | null;
           id?: string;
           is_active?: boolean;
+          is_coach?: boolean;
+          is_commercial?: boolean;
           last_checkup_at?: string | null;
           last_name?: string | null;
+          nascondi_allenamenti?: boolean;
+          nascondi_diete?: boolean;
           phone_number?: string | null;
           postal_code?: string | null;
           primary_email?: string;
@@ -239,6 +277,7 @@ export type Database = {
           region?: string | null;
           training_started_at?: string | null;
           updated_at?: string;
+          vede_tutte_le_palestre?: boolean;
         };
         Relationships: [
           {
@@ -425,6 +464,50 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'v_user_anamnesis';
             referencedColumns: ['user_id'];
+          },
+        ];
+      };
+      consensi: {
+        Row: {
+          azione: string;
+          creato_il: string;
+          documenti: Json | null;
+          finalita: string;
+          id: number;
+          piattaforma: string | null;
+          user_id: string;
+          versione: string;
+          versione_app: string | null;
+        };
+        Insert: {
+          azione: string;
+          creato_il?: string;
+          documenti?: Json | null;
+          finalita: string;
+          id?: never;
+          piattaforma?: string | null;
+          user_id?: string;
+          versione: string;
+          versione_app?: string | null;
+        };
+        Update: {
+          azione?: string;
+          creato_il?: string;
+          documenti?: Json | null;
+          finalita?: string;
+          id?: never;
+          piattaforma?: string | null;
+          user_id?: string;
+          versione?: string;
+          versione_app?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'consensi_versione_finalita_fkey';
+            columns: ['versione', 'finalita'];
+            isOneToOne: false;
+            referencedRelation: 'testi_consenso';
+            referencedColumns: ['versione', 'finalita'];
           },
         ];
       };
@@ -640,6 +723,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      documenti_legali: {
+        Row: {
+          html: string;
+          id: number;
+          pubblicato_il: string;
+          tipo: string;
+          versione: number;
+        };
+        Insert: {
+          html: string;
+          id?: never;
+          pubblicato_il?: string;
+          tipo: string;
+          versione: number;
+        };
+        Update: {
+          html?: string;
+          id?: never;
+          pubblicato_il?: string;
+          tipo?: string;
+          versione?: number;
+        };
+        Relationships: [];
+      };
       faq_categories: {
         Row: {
           created_at: string;
@@ -755,6 +862,7 @@ export type Database = {
       };
       gym_editorial_configs: {
         Row: {
+          banner_key: string | null;
           created_at: string;
           gym_id: string;
           pinned_message_enabled: boolean;
@@ -762,6 +870,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          banner_key?: string | null;
           created_at?: string;
           gym_id: string;
           pinned_message_enabled?: boolean;
@@ -769,6 +878,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          banner_key?: string | null;
           created_at?: string;
           gym_id?: string;
           pinned_message_enabled?: boolean;
@@ -1001,6 +1111,82 @@ export type Database = {
           },
         ];
       };
+      quick_sheets: {
+        Row: {
+          allergies: string | null;
+          cannot_eat: string | null;
+          celiac: string | null;
+          created_at: string;
+          doctor_indications: string | null;
+          id: string;
+          intolerances: string | null;
+          program_start: string | null;
+          protocol_assigned: string | null;
+          protocol_notes: string | null;
+          relevant_medications: string | null;
+          reported_difficulties: string | null;
+          updated_at: string;
+          user_id: string;
+          vegetarian_vegan: string | null;
+        };
+        Insert: {
+          allergies?: string | null;
+          cannot_eat?: string | null;
+          celiac?: string | null;
+          created_at?: string;
+          doctor_indications?: string | null;
+          id?: string;
+          intolerances?: string | null;
+          program_start?: string | null;
+          protocol_assigned?: string | null;
+          protocol_notes?: string | null;
+          relevant_medications?: string | null;
+          reported_difficulties?: string | null;
+          updated_at?: string;
+          user_id: string;
+          vegetarian_vegan?: string | null;
+        };
+        Update: {
+          allergies?: string | null;
+          cannot_eat?: string | null;
+          celiac?: string | null;
+          created_at?: string;
+          doctor_indications?: string | null;
+          id?: string;
+          intolerances?: string | null;
+          program_start?: string | null;
+          protocol_assigned?: string | null;
+          protocol_notes?: string | null;
+          relevant_medications?: string | null;
+          reported_difficulties?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          vegetarian_vegan?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'quick_sheets_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'app_users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'quick_sheets_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'v_app_users_list';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'quick_sheets_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'v_user_anamnesis';
+            referencedColumns: ['user_id'];
+          },
+        ];
+      };
       recipe_collections: {
         Row: {
           created_at: string;
@@ -1061,6 +1247,42 @@ export type Database = {
           objective?: Database['public']['Enums']['fitness_objective'];
           title?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      registro_accessi: {
+        Row: {
+          attore: string | null;
+          azione: string;
+          dettagli: Json | null;
+          id: number;
+          interessato: string | null;
+          quando: string;
+          record_id: string | null;
+          ruolo: string | null;
+          tabella: string | null;
+        };
+        Insert: {
+          attore?: string | null;
+          azione: string;
+          dettagli?: Json | null;
+          id?: never;
+          interessato?: string | null;
+          quando?: string;
+          record_id?: string | null;
+          ruolo?: string | null;
+          tabella?: string | null;
+        };
+        Update: {
+          attore?: string | null;
+          azione?: string;
+          dettagli?: Json | null;
+          id?: never;
+          interessato?: string | null;
+          quando?: string;
+          record_id?: string | null;
+          ruolo?: string | null;
+          tabella?: string | null;
         };
         Relationships: [];
       };
@@ -1139,6 +1361,42 @@ export type Database = {
           scan_mode?: string;
           status?: string;
           user_id?: string | null;
+        };
+        Relationships: [];
+      };
+      support_users: {
+        Row: {
+          created_at: string;
+          display_name: string | null;
+          id: string;
+          is_active: boolean;
+          must_change_password: boolean;
+          password_hash: string;
+          role: string;
+          updated_at: string;
+          username: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name?: string | null;
+          id?: string;
+          is_active?: boolean;
+          must_change_password?: boolean;
+          password_hash: string;
+          role?: string;
+          updated_at?: string;
+          username: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string | null;
+          id?: string;
+          is_active?: boolean;
+          must_change_password?: boolean;
+          password_hash?: string;
+          role?: string;
+          updated_at?: string;
+          username?: string;
         };
         Relationships: [];
       };
@@ -1345,6 +1603,187 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      testi_consenso: {
+        Row: {
+          creato_il: string;
+          finalita: string;
+          testo: string;
+          versione: string;
+        };
+        Insert: {
+          creato_il?: string;
+          finalita: string;
+          testo: string;
+          versione: string;
+        };
+        Update: {
+          creato_il?: string;
+          finalita?: string;
+          testo?: string;
+          versione?: string;
+        };
+        Relationships: [];
+      };
+      ticket_attachments: {
+        Row: {
+          comment_id: string | null;
+          content_type: string | null;
+          created_at: string;
+          file_name: string;
+          id: string;
+          size_bytes: number | null;
+          storage_path: string;
+          ticket_id: string;
+          uploaded_by: string;
+        };
+        Insert: {
+          comment_id?: string | null;
+          content_type?: string | null;
+          created_at?: string;
+          file_name: string;
+          id?: string;
+          size_bytes?: number | null;
+          storage_path: string;
+          ticket_id: string;
+          uploaded_by: string;
+        };
+        Update: {
+          comment_id?: string | null;
+          content_type?: string | null;
+          created_at?: string;
+          file_name?: string;
+          id?: string;
+          size_bytes?: number | null;
+          storage_path?: string;
+          ticket_id?: string;
+          uploaded_by?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'ticket_attachments_comment_id_fkey';
+            columns: ['comment_id'];
+            isOneToOne: false;
+            referencedRelation: 'ticket_comments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ticket_attachments_ticket_id_fkey';
+            columns: ['ticket_id'];
+            isOneToOne: false;
+            referencedRelation: 'tickets';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ticket_attachments_uploaded_by_fkey';
+            columns: ['uploaded_by'];
+            isOneToOne: false;
+            referencedRelation: 'support_users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      ticket_comments: {
+        Row: {
+          author_id: string;
+          body: string;
+          created_at: string;
+          id: string;
+          is_internal: boolean;
+          ticket_id: string;
+        };
+        Insert: {
+          author_id: string;
+          body: string;
+          created_at?: string;
+          id?: string;
+          is_internal?: boolean;
+          ticket_id: string;
+        };
+        Update: {
+          author_id?: string;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          is_internal?: boolean;
+          ticket_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'ticket_comments_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'support_users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ticket_comments_ticket_id_fkey';
+            columns: ['ticket_id'];
+            isOneToOne: false;
+            referencedRelation: 'tickets';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      tickets: {
+        Row: {
+          app_user_id: string | null;
+          assigned_to: string | null;
+          created_at: string;
+          created_by: string;
+          description: string;
+          id: string;
+          priority: string;
+          resolved_at: string | null;
+          seq: number;
+          status: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          app_user_id?: string | null;
+          assigned_to?: string | null;
+          created_at?: string;
+          created_by: string;
+          description?: string;
+          id?: string;
+          priority?: string;
+          resolved_at?: string | null;
+          seq?: never;
+          status?: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          app_user_id?: string | null;
+          assigned_to?: string | null;
+          created_at?: string;
+          created_by?: string;
+          description?: string;
+          id?: string;
+          priority?: string;
+          resolved_at?: string | null;
+          seq?: never;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'tickets_assigned_to_fkey';
+            columns: ['assigned_to'];
+            isOneToOne: false;
+            referencedRelation: 'support_users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tickets_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'support_users';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       user_checkup_photos: {
         Row: {
@@ -1776,6 +2215,46 @@ export type Database = {
           },
         ];
       };
+      user_permissions: {
+        Row: {
+          created_at: string;
+          permission: Database['public']['Enums']['user_permission'];
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          permission: Database['public']['Enums']['user_permission'];
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          permission?: Database['public']['Enums']['user_permission'];
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_permissions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'app_users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_permissions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_app_users_list';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_permissions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'v_user_anamnesis';
+            referencedColumns: ['user_id'];
+          },
+        ];
+      };
       user_recipe_assignments: {
         Row: {
           assigned_at: string;
@@ -2085,6 +2564,7 @@ export type Database = {
         Row: {
           created_at: string;
           description: string | null;
+          gym_id: string | null;
           id: string;
           name: string;
           parent_id: string | null;
@@ -2094,6 +2574,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           description?: string | null;
+          gym_id?: string | null;
           id?: string;
           name: string;
           parent_id?: string | null;
@@ -2103,6 +2584,7 @@ export type Database = {
         Update: {
           created_at?: string;
           description?: string | null;
+          gym_id?: string | null;
           id?: string;
           name?: string;
           parent_id?: string | null;
@@ -2220,6 +2702,7 @@ export type Database = {
           created_at: string;
           description: string | null;
           ends_at: string | null;
+          gym_id: string | null;
           id: string;
           starts_at: string;
           status: Database['public']['Enums']['youtube_live_status'];
@@ -2232,6 +2715,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           ends_at?: string | null;
+          gym_id?: string | null;
           id?: string;
           starts_at: string;
           status?: Database['public']['Enums']['youtube_live_status'];
@@ -2244,6 +2728,7 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           ends_at?: string | null;
+          gym_id?: string | null;
           id?: string;
           starts_at?: string;
           status?: Database['public']['Enums']['youtube_live_status'];
@@ -2255,6 +2740,30 @@ export type Database = {
       };
     };
     Views: {
+      app_config_documenti: {
+        Row: {
+          id: number | null;
+          support_email: string | null;
+          terms_html: string | null;
+          versione_informativa: number | null;
+          versione_termini: number | null;
+        };
+        Insert: {
+          id?: number | null;
+          support_email?: string | null;
+          terms_html?: string | null;
+          versione_informativa?: never;
+          versione_termini?: never;
+        };
+        Update: {
+          id?: number | null;
+          support_email?: string | null;
+          terms_html?: string | null;
+          versione_informativa?: never;
+          versione_termini?: never;
+        };
+        Relationships: [];
+      };
       app_config_privacy_policy: {
         Row: {
           id: number | null;
@@ -2380,6 +2889,7 @@ export type Database = {
           is_active: boolean | null;
           last_checkup_at: string | null;
           last_name: string | null;
+          membership_started_at: string | null;
           membership_type_ids: string[] | null;
           memberships: Json | null;
           phone_number: string | null;
@@ -2389,6 +2899,70 @@ export type Database = {
           region: string | null;
           training_started_at: string | null;
           updated_at: string | null;
+        };
+        Insert: {
+          address_line1?: string | null;
+          address_line2?: string | null;
+          app_role?: Database['public']['Enums']['app_role'] | null;
+          birth_date?: string | null;
+          city?: string | null;
+          coach_full_name?: never;
+          coach_id?: string | null;
+          commercial_full_name?: never;
+          commercial_id?: string | null;
+          created_at?: string | null;
+          cura_started_at?: string | null;
+          first_name?: string | null;
+          flow_deadline_at?: string | null;
+          flow_status?: Database['public']['Enums']['flow_status_enum'] | null;
+          gender?: Database['public']['Enums']['gender_enum'] | null;
+          gym_id?: string | null;
+          id?: string | null;
+          is_active?: boolean | null;
+          last_checkup_at?: string | null;
+          last_name?: string | null;
+          membership_started_at?: never;
+          membership_type_ids?: never;
+          memberships?: never;
+          phone_number?: string | null;
+          postal_code?: string | null;
+          primary_email?: string | null;
+          program_status?: Database['public']['Enums']['user_program_status'] | null;
+          region?: string | null;
+          training_started_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          address_line1?: string | null;
+          address_line2?: string | null;
+          app_role?: Database['public']['Enums']['app_role'] | null;
+          birth_date?: string | null;
+          city?: string | null;
+          coach_full_name?: never;
+          coach_id?: string | null;
+          commercial_full_name?: never;
+          commercial_id?: string | null;
+          created_at?: string | null;
+          cura_started_at?: string | null;
+          first_name?: string | null;
+          flow_deadline_at?: string | null;
+          flow_status?: Database['public']['Enums']['flow_status_enum'] | null;
+          gender?: Database['public']['Enums']['gender_enum'] | null;
+          gym_id?: string | null;
+          id?: string | null;
+          is_active?: boolean | null;
+          last_checkup_at?: string | null;
+          last_name?: string | null;
+          membership_started_at?: never;
+          membership_type_ids?: never;
+          memberships?: never;
+          phone_number?: string | null;
+          postal_code?: string | null;
+          primary_email?: string | null;
+          program_status?: Database['public']['Enums']['user_program_status'] | null;
+          region?: string | null;
+          training_started_at?: string | null;
+          updated_at?: string | null;
         };
         Relationships: [
           {
@@ -2553,6 +3127,7 @@ export type Database = {
           survey_id: string | null;
           survey_title: string | null;
           user_id: string | null;
+          valid_from: string | null;
           valid_until: string | null;
         };
         Relationships: [
@@ -2652,27 +3227,62 @@ export type Database = {
       };
     };
     Functions: {
+      _clienti_da_eliminare: {
+        Args: { p_mesi?: number };
+        Returns: {
+          motivo: string;
+          user_id: string;
+        }[];
+      };
+      _compat_uri: { Args: { input: string }; Returns: string };
       _faq_categories_last_position: { Args: never; Returns: number };
       _faqs_last_position: { Args: { p_category: string }; Returns: number };
       _get_default_gym_id: { Args: never; Returns: string };
       _is_valid_cta_gradients: { Args: { g: Json }; Returns: boolean };
+      _job_cleanup_orphan_storage: { Args: never; Returns: undefined };
       _job_process_scheduled_notifications: { Args: never; Returns: undefined };
+      _job_pulizia_conservazione: { Args: never; Returns: undefined };
       _job_sync_user_flow_out_of_flow: { Args: never; Returns: undefined };
+      _permesso_da_abbonamento: {
+        Args: never;
+        Returns: Database['public']['Enums']['user_permission'];
+      };
+      _stato_consensi_di: {
+        Args: { p_user_id: string };
+        Returns: {
+          azione: string;
+          data: string;
+          finalita: string;
+          testo_corrente: string;
+          valido: boolean;
+          versione_corrente: string;
+          versione_data: string;
+        }[];
+      };
       _storage_can_access_checkup_files: {
         Args: { mode: string; object_name: string };
         Returns: boolean;
       };
-      assign_survey_to_gym_roles: {
+      assign_survey_to_gym_clients: {
         Args: {
+          p_abbonati?: boolean;
           p_gym_id: string;
-          p_roles: Database['public']['Enums']['app_role'][];
           p_survey_id: string;
           p_valid_from?: string;
           p_valid_until?: string;
         };
         Returns: number;
       };
+      assign_survey_to_users: {
+        Args: { p_survey_id: string; p_user_ids: string[] };
+        Returns: number;
+      };
       bootstrap_current_user: { Args: never; Returns: undefined };
+      consenso_valido: { Args: { p_finalita: string }; Returns: boolean };
+      count_content_image_usage: {
+        Args: { objectpath: string };
+        Returns: number;
+      };
       expire_overdue_surveys: { Args: never; Returns: undefined };
       faq_categories_resequence: { Args: never; Returns: Json };
       faqs_resequence: { Args: { p_category_id?: string }; Returns: Json };
@@ -2692,6 +3302,16 @@ export type Database = {
         Args: { p_limit?: number };
         Returns: string[];
       };
+      get_staff_options: {
+        Args: { p_gym_id: string };
+        Returns: {
+          first_name: string;
+          id: string;
+          is_coach: boolean;
+          is_commercial: boolean;
+          last_name: string;
+        }[];
+      };
       get_survey_stats: { Args: { p_survey_id: string }; Returns: Json };
       get_user_fitness_overview: {
         Args: {
@@ -2704,6 +3324,10 @@ export type Database = {
       get_user_survey_details: {
         Args: { p_survey_id: string; p_user_id: string };
         Returns: Json;
+      };
+      imposta_nascondi_app: {
+        Args: { p_cosa: string; p_user_id: string; p_valore: boolean };
+        Returns: undefined;
       };
       list_objects_gym: {
         Args: {
@@ -2732,6 +3356,22 @@ export type Database = {
           role: Database['public']['Enums']['app_role'];
         }[];
       };
+      registra_lettura: {
+        Args: { p_interessato: string; p_tabella: string };
+        Returns: undefined;
+      };
+      registra_scambio_assistente: {
+        Args: {
+          p_chiave: string;
+          p_domanda: string;
+          p_foto?: number;
+          p_latenza_ms?: number;
+          p_modello?: string;
+          p_rinvio_gruppo?: boolean;
+          p_risposta: string;
+        };
+        Returns: undefined;
+      };
       reorder_videos_in_category: {
         Args: { p_category_id: string; p_video_ids: string[] };
         Returns: undefined;
@@ -2747,6 +3387,31 @@ export type Database = {
         };
         Returns: undefined;
       };
+      staff_display_name: { Args: { p_id: string }; Returns: string };
+      stato_consensi: {
+        Args: never;
+        Returns: {
+          azione: string;
+          data: string;
+          finalita: string;
+          testo_corrente: string;
+          valido: boolean;
+          versione_corrente: string;
+          versione_data: string;
+        }[];
+      };
+      stato_consensi_utente: {
+        Args: { p_user_id: string };
+        Returns: {
+          azione: string;
+          data: string;
+          finalita: string;
+          testo_corrente: string;
+          valido: boolean;
+          versione_corrente: string;
+          versione_data: string;
+        }[];
+      };
       stats_dashboard: {
         Args: { p_gym_id?: string; p_months?: number };
         Returns: Json;
@@ -2760,9 +3425,12 @@ export type Database = {
         Returns: boolean;
       };
       sync_all_memberships_and_roles: { Args: never; Returns: undefined };
-      sync_all_user_member_roles: { Args: never; Returns: undefined };
       sync_auth_ban_from_app_users: { Args: never; Returns: undefined };
-      sync_user_member_role: { Args: { p_user_id: string }; Returns: undefined };
+      sync_stato_abbonamento: {
+        Args: { p_user_id: string };
+        Returns: undefined;
+      };
+      sync_stato_abbonamento_tutti: { Args: never; Returns: undefined };
       sync_user_membership_statuses: { Args: never; Returns: undefined };
       update_youtube_live_statuses: { Args: never; Returns: undefined };
       user_has_active_membership: {
@@ -2776,14 +3444,7 @@ export type Database = {
       };
     };
     Enums: {
-      app_role:
-        | 'developer'
-        | 'super_admin'
-        | 'group_admin'
-        | 'medical_admin'
-        | 'operator'
-        | 'member'
-        | 'user';
+      app_role: 'admin' | 'operator' | 'client';
       chat_sender_type: 'user' | 'operator' | 'bot';
       conversation_status: 'active' | 'waiting_operator' | 'archived';
       fitness_objective:
@@ -2923,7 +3584,14 @@ export type Database = {
         | 'SURVEY:ASSIGN'
         | 'MEMBERSHIP:ASSIGN'
         | 'SETTINGS:READ:ALL'
-        | 'SETTINGS:WRITE:ALL';
+        | 'SETTINGS:WRITE:ALL'
+        | 'WORKOUT:READ:ASSIGNED'
+        | 'DIET:READ:ASSIGNED'
+        | 'RECIPE:READ:ASSIGNED'
+        | 'QUICK_SHEET:READ:ALL'
+        | 'QUICK_SHEET:READ:GYM'
+        | 'QUICK_SHEET:WRITE:ALL'
+        | 'QUICK_SHEET:WRITE:GYM';
       user_program_status: 'in_cura' | 'iniziato' | 'registrato';
       youtube_live_status: 'scheduled' | 'live' | 'ended' | 'canceled';
     };
@@ -3051,15 +3719,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: [
-        'developer',
-        'super_admin',
-        'group_admin',
-        'medical_admin',
-        'operator',
-        'member',
-        'user',
-      ],
+      app_role: ['admin', 'operator', 'client'],
       chat_sender_type: ['user', 'operator', 'bot'],
       conversation_status: ['active', 'waiting_operator', 'archived'],
       fitness_objective: [
@@ -3203,6 +3863,13 @@ export const Constants = {
         'MEMBERSHIP:ASSIGN',
         'SETTINGS:READ:ALL',
         'SETTINGS:WRITE:ALL',
+        'WORKOUT:READ:ASSIGNED',
+        'DIET:READ:ASSIGNED',
+        'RECIPE:READ:ASSIGNED',
+        'QUICK_SHEET:READ:ALL',
+        'QUICK_SHEET:READ:GYM',
+        'QUICK_SHEET:WRITE:ALL',
+        'QUICK_SHEET:WRITE:GYM',
       ],
       user_program_status: ['in_cura', 'iniziato', 'registrato'],
       youtube_live_status: ['scheduled', 'live', 'ended', 'canceled'],

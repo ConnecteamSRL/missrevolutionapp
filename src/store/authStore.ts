@@ -5,6 +5,7 @@ import { OneSignal } from 'react-native-onesignal';
 import { clearPendingRoute } from '../lib/onesignalClickHandler';
 import { clearBannerCache } from '../utils/bannerCache';
 import { useFaqAgentStore } from './faqAgentStore';
+import { useConsensiStore } from './consensiStore';
 
 interface AuthState {
   session: AuthSession;
@@ -27,8 +28,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setSession: (session, user) => set({ session, user, isLoading: false }),
   setIsLoading: (isLoading) => set({ isLoading }),
   signOut: async () => {
-    // La conversazione con l'assistente AI e' dell'utente che esce.
+    // La conversazione con l'assistente AI e lo stato dei consensi sono dell'utente che esce.
     useFaqAgentStore.getState().reset();
+    useConsensiStore.getState().reset();
     console.log('Clearing banner cache on sign out');
     await clearBannerCache();
     console.log('Clearing AsyncStorage on sign out');

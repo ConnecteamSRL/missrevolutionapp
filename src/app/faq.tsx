@@ -16,11 +16,10 @@ import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useUser } from '@/src/contexts/UserContext';
-import { useAuthStore } from '@/src/store/authStore';
 import { AppTheme } from '@mr-types/theme.types';
 import { FaqAgentDraft, FaqAgentMessage } from '@mr-types/faqAgent.types';
 import { useFaqAgentStore } from '@/src/store/faqAgentStore';
-import { fetchFaqAgentConsent, saveFaqAgentConsent } from '@/src/lib/faqAgent';
+import { useConsensiStore } from '@/src/store/consensiStore';
 import { FAQ_AGENT_MAX_IMAGES, pendingUserMessages } from '@/src/utils/faqAgentBatch';
 import { ChatBubble, ChatDateHeader, formatChatDateLabel } from '@components/chat/ChatBubble';
 import FaqAgentAttachments from '@components/faq/FaqAgentBubble';
@@ -32,84 +31,100 @@ const ASSISTANT_LABEL = 'Assistente AI';
 const welcomeText = (firstName?: string | null) =>
   `Ciao${firstName ? ` ${firstName}` : ''}! Sono l’assistente AI di Miss Revolution: rispondo alle tue domande sul programma, sull’alimentazione e sugli allenamenti. Puoi scrivermi o mandarmi una foto.`;
 
-const CONSENT_MESSAGE =
-  'Per risponderti, i messaggi, le foto e i vocali che invii (anche se contengono informazioni sulla tua salute) vengono elaborati da fornitori di intelligenza artificiale, OpenRouter e Meta, anche negli Stati Uniti. Meta può usarli per migliorare i propri modelli. Domande e risposte vengono conservate senza collegarle al tuo account, per migliorare il servizio. Acconsenti a questo trattamento?';
+const CONSENSO_NON_REGISTRATO =
+  'Non è stato possibile registrare il consenso. Controlla la connessione e riprova.';
+
+/**
+ * Chiede il consenso all'assistente con il testo corrente del registro (lo
+ * stesso che finisce nella prova) e, se viene dato, lo registra.
+ * True solo se dopo la scrittura il consenso risulta valido.
+ */
+const chiediConsensoAssistente = (testo: string) =>
+  new Promise<boolean>((resolve) => {
+    Alert.alert(ASSISTANT_LABEL, testo, [
+      { text: 'No, grazie', style: 'cancel', onPress: () => resolve(false) },
+      {
+        text: 'Acconsento',
+        onPress: () => {
+          useConsensiStore
+            .getState()
+            .registra(['assistente_ai'], 'dato')
+            .then(
+              (stato) => resolve(stato.assistente_ai.valido),
+              (err) => {
+                if (__DEV__) console.error('[faq-agent] consenso', err);
+                Alert.alert('Errore', CONSENSO_NON_REGISTRATO);
+                resolve(false);
+              },
+            );
+        },
+      },
+    ]);
+  });
 
 export default function FaqScreen() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const router = useRouter();
   const { me } = useUser();
-  const userId = useAuthStore((s) => s.user?.id);
 
   const messages = useFaqAgentStore((s) => s.messages);
   const error = useFaqAgentStore((s) => s.error);
   const send = useFaqAgentStore((s) => s.send);
   const retry = useFaqAgentStore((s) => s.retry);
-  const consentGiven = useFaqAgentStore((s) => s.consentGiven);
-  const setConsentGiven = useFaqAgentStore((s) => s.setConsentGiven);
+  const consensoMancante = useFaqAgentStore((s) => s.consensoMancante);
 
   const pending = pendingUserMessages(messages);
   const isTyping = pending.length > 0 && !error;
   const pendingImages = pending.reduce((sum, m) => sum + m.images.length, 0);
 
-  // Il consenso dato in passato si legge all'apertura; poi resta in memoria fino al logout.
-  useEffect(() => {
-    if (consentGiven || !userId) return;
-    fetchFaqAgentConsent(userId)
-      .then((given) => {
-        if (given) setConsentGiven();
-      })
-      .catch((err) => {
-        if (__DEV__) console.error('[faq-agent] consent', err);
-      });
-  }, [consentGiven, userId, setConsentGiven]);
-
-  // Consenso esplicito al primo invio: il messaggio parte solo con «Acconsento».
-  const askConsent = useCallback(
-    (uid: string) =>
-      new Promise<boolean>((resolve) => {
-        Alert.alert(ASSISTANT_LABEL, CONSENT_MESSAGE, [
-          {
-            text: 'Leggi l’informativa',
-            onPress: () => {
-              resolve(false);
-              router.push('/privacy-policy');
-            },
-          },
-          { text: 'Annulla', style: 'cancel', onPress: () => resolve(false) },
-          {
-            text: 'Acconsento',
-            onPress: () => {
-              saveFaqAgentConsent(uid).then(
-                () => {
-                  setConsentGiven();
-                  resolve(true);
-                },
-                (err) => {
-                  if (__DEV__) console.error('[faq-agent] consent', err);
-                  Alert.alert(
-                    'Errore',
-                    'Non è stato possibile registrare il consenso. Controlla la connessione e riprova.',
-                  );
-                  resolve(false);
-                },
-              );
-            },
-          },
-        ]);
-      }),
-    [router, setConsentGiven],
-  );
-
+  // Consenso esplicito al primo invio, o dopo una revoca: il messaggio parte
+  // solo con «Acconsento». Lo stato e' quello letto al login e aggiornato a
+  // ogni scelta; il servizio lo ricontrolla comunque (403 qui sotto).
   const handleSend = useCallback(
     async (draft: FaqAgentDraft) => {
-      if (!consentGiven && (!userId || !(await askConsent(userId)))) return false;
+      let stato = useConsensiStore.getState().stato;
+      if (!stato) {
+        try {
+          stato = await useConsensiStore.getState().carica();
+        } catch (err) {
+          if (__DEV__) console.error('[faq-agent] consenso', err);
+          Alert.alert('Errore', 'Controlla la connessione e riprova.');
+          return false;
+        }
+      }
+      if (!stato.assistente_ai.valido) {
+        const dato = await chiediConsensoAssistente(stato.assistente_ai.testo_corrente);
+        if (!dato) return false;
+      }
       send(draft);
       return true;
     },
-    [consentGiven, userId, askConsent, send],
+    [send],
   );
+
+  // Il servizio non ha trovato un consenso valido (revocato da un altro
+  // telefono, o testo cambiato): si rilegge lo stato e, se manca davvero, si
+  // richiede; con «Acconsento» i messaggi in attesa ripartono. Se invece lo
+  // stato risulta valido non si riprova da soli, per non girare in tondo:
+  // resta il pulsante «Riprova».
+  useEffect(() => {
+    if (!consensoMancante) return;
+    let attivo = true;
+    useConsensiStore
+      .getState()
+      .carica()
+      .then(async (stato) => {
+        if (!attivo || stato.assistente_ai.valido) return;
+        if (await chiediConsensoAssistente(stato.assistente_ai.testo_corrente)) retry();
+      })
+      .catch((err) => {
+        if (__DEV__) console.error('[faq-agent] consenso', err);
+      });
+    return () => {
+      attivo = false;
+    };
+  }, [consensoMancante, retry]);
 
   // Lista invertita come nella chat con lo staff: l'ultimo messaggio sta in basso
   // e il benvenuto e' il piu' vecchio. Il suo orario e' l'apertura della
