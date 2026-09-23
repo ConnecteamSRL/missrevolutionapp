@@ -1,160 +1,20 @@
-import React, { useCallback, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React from 'react';
 
-import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
-import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
-import HtmlBadgeCard from '@components/core/HtmlBadgeCard';
-
-import { GraphitFonts } from '@/src/theme';
-import { useTheme } from '@/src/contexts/ThemeContext';
-import { AppTheme } from '@mr-types/theme.types';
-import { confirmOpenExternalUrl } from '@/src/utils/openExternalLink.utils';
+import DocumentoLegaleScreen from '@components/core/DocumentoLegaleScreen';
 import { usePrivacyPolicy } from '@/src/hooks/content/usePrivacyPolicy';
 
-const UI_GENERIC_ERROR = 'Impossibile caricare la Privacy Policy. Riprova.';
-
 export default function PrivacyPolicyScreen() {
-  const theme = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
-
   const { html, loading, error, refetch } = usePrivacyPolicy();
 
-  const confirmOpenUrl = useCallback((url: string) => {
-    confirmOpenExternalUrl(url);
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.root}>
-        <BackgroundGradientComponent />
-        <ContentScreenLayout title="Privacy Policy">
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={theme.accent} />
-          </View>
-        </ContentScreenLayout>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.root}>
-      <BackgroundGradientComponent />
-
-      <ContentScreenLayout title="Privacy Policy">
-        <ScrollView
-          style={styles.scroll}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          nestedScrollEnabled
-        >
-          {!!error && (
-            <View style={styles.statusBannerError}>
-              <View style={styles.bannerHeader}>
-                <View style={styles.bannerDot} />
-                <Text style={styles.statusTextError}>{UI_GENERIC_ERROR}</Text>
-              </View>
-
-              <TouchableOpacity style={styles.retryButton} onPress={refetch} activeOpacity={0.85}>
-                <Text style={styles.retryButtonText}>Riprova</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Senza testo caricato la scheda restava vuota, con il solo bollino
-              "Legale": una pagina bianca che sembra un guasto. Meglio dire
-              che il testo non c'e' ancora. */}
-          {html?.trim() ? (
-            <HtmlBadgeCard badgeText="Legale" html={html} selectable onOpenUrl={confirmOpenUrl} />
-          ) : (
-            !error && (
-              <View style={styles.centered}>
-                <Text style={styles.emptyText}>La Privacy Policy non è ancora disponibile.</Text>
-              </View>
-            )
-          )}
-        </ScrollView>
-      </ContentScreenLayout>
-    </View>
+    <DocumentoLegaleScreen
+      title="Informativa privacy"
+      html={html}
+      loading={loading}
+      hasError={!!error}
+      onRetry={refetch}
+      errorText="Impossibile caricare l’Informativa privacy. Riprova."
+      emptyText="L’Informativa privacy non è ancora disponibile."
+    />
   );
 }
-
-const makeStyles = (theme: AppTheme) =>
-  StyleSheet.create({
-    root: {
-      flex: 1,
-      backgroundColor: '#fff',
-    },
-
-    centered: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-    },
-
-    scroll: {
-      flex: 1,
-    },
-
-    emptyText: {
-      fontFamily: GraphitFonts.GraphitRegular,
-      color: '#545454',
-      fontSize: 15,
-      textAlign: 'center',
-    },
-
-    scrollContent: {
-      flexGrow: 1,
-      paddingBottom: 40,
-    },
-
-    statusBannerError: {
-      backgroundColor: theme.surface,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: theme.secondary,
-      paddingVertical: 12,
-      paddingHorizontal: 14,
-      marginBottom: 16,
-    },
-    bannerHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    bannerDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: theme.secondary,
-    },
-    statusTextError: {
-      flex: 1,
-      fontFamily: GraphitFonts.GraphitRegular,
-      color: '#D00000',
-      fontSize: 14,
-      lineHeight: 18,
-    },
-    retryButton: {
-      marginTop: 10,
-      backgroundColor: '#FFFFFF',
-      paddingVertical: 12,
-      borderRadius: 16,
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    retryButtonText: {
-      color: theme.secondary,
-      fontSize: 14,
-      fontFamily: GraphitFonts.GraphitBold,
-    },
-  });

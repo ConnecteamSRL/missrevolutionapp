@@ -163,12 +163,13 @@ const LoginScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* FOOTER PRIVACY POLICY */}
+          {/* L'informativa non si «accetta»: si mette a disposizione. I Termini e
+              il consenso ai dati sulla salute si chiedono dopo il login. */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Continuando, accetti la nostra{' '}
+              Come trattiamo i tuoi dati è spiegato nell’
               <Text style={styles.linkText} onPress={handleOpenPrivacy}>
-                Privacy Policy
+                Informativa privacy
               </Text>
             </Text>
           </View>

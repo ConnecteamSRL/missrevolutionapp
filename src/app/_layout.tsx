@@ -3,15 +3,16 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { AppConfigProvider, useAppConfig } from '@/src/contexts/AppConfigContext';
-import { UserProvider } from '@/src/contexts/UserContext';
+import { UserProvider, useUser } from '@/src/contexts/UserContext';
 import { ChatUnreadProvider } from '@/src/contexts/ChatUnreadContext';
 import { ThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
 import { useSupabaseAuth } from '@/src/hooks/core/useSupabaseAuth';
 import { useAuthStore } from '@/src/store/authStore';
+import { consensiRichiesti, useConsensiStore } from '@/src/store/consensiStore';
 import { useContentTextSizeStore } from '@/src/store/contentTextSizeStore';
 import { useGenderStore } from '@/src/store/genderStore';
 import { useNotificationRouting } from '@/src/hooks/core/useNotificationRouting';
@@ -40,13 +41,46 @@ const LoadingScreen: React.FC = () => {
 const AppEntryPoint: React.FC = () => {
   const { config, isLoading: isConfigLoading } = useAppConfig();
   const { session, isLoading: isAuthLoading } = useAuthStore();
+  const { me, error: userError } = useUser();
+  const statoConsensi = useConsensiStore((s) => s.stato);
+  const erroreConsensi = useConsensiStore((s) => s.errore);
 
   useSupabaseAuth();
 
   const isLoggedIn: boolean = !!session;
+  const userId = session?.user?.id ?? null;
   const isAppReady = !isConfigLoading && !isAuthLoading;
 
-  useNotificationRouting(isAppReady, isLoggedIn);
+  // Lo stato dei consensi si legge a ogni accesso, e all'avvio con una sessione
+  // salvata; al logout lo azzera signOut.
+  useEffect(() => {
+    if (!userId) return;
+    useConsensiStore
+      .getState()
+      .carica()
+      .catch((err) => {
+        if (__DEV__) console.error('[consensi]', err);
+      });
+  }, [userId]);
+
+  // Senza i consensi richiesti (Termini per tutti, dati sulla salute per i
+  // clienti) l'unica schermata raggiungibile e' quella dei consensi. Finche'
+  // stato e ruolo non sono noti vale come «non validi»: si chiude, non si apre.
+  const ruolo = me?.role;
+  const consensiOk =
+    !!statoConsensi &&
+    !!ruolo &&
+    consensiRichiesti(ruolo).every((finalita) => statoConsensi[finalita].valido);
+  const consensiInAttesa = isLoggedIn && (!statoConsensi || !me) && !erroreConsensi && !userError;
+
+  // Al primo ingresso con una sessione salvata si aspettano anche i consensi,
+  // cosi' chi li ha gia' dati va dritto alle tab. Dopo lo Stack non si smonta
+  // piu': a un nuovo login l'attesa la mostra la schermata dei consensi.
+  const [avviata, setAvviata] = useState(false);
+  const pronta = isAppReady && !consensiInAttesa;
+  if (pronta && !avviata) setAvviata(true);
+
+  useNotificationRouting(isAppReady, isLoggedIn && consensiOk);
 
   const updateRequired = useMemo(() => {
     if (!config?.min_supported_version) return false;
@@ -59,7 +93,7 @@ const AppEntryPoint: React.FC = () => {
     }
   }, [isAppReady]);
 
-  if (!isAppReady) {
+  if (!isAppReady || (!avviata && !pronta)) {
     return <LoadingScreen />;
   }
 
@@ -82,7 +116,11 @@ const AppEntryPoint: React.FC = () => {
         <Stack.Screen name="(auth)/set-password" />
       </Stack.Protected>
 
-      <Stack.Protected guard={isLoggedIn}>
+      <Stack.Protected guard={isLoggedIn && !consensiOk}>
+        <Stack.Screen name="consensi" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={isLoggedIn && consensiOk}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="video/index" />
         <Stack.Screen name="video/[categoryId]" />
@@ -105,6 +143,7 @@ const AppEntryPoint: React.FC = () => {
         name={'privacy-policy'}
         options={{ headerShown: false, presentation: 'modal' }}
       />
+      <Stack.Screen name="termini" options={{ headerShown: false, presentation: 'modal' }} />
     </Stack>
   );
 };

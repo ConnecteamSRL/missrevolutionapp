@@ -1,0 +1,174 @@
+import React, { useCallback, useMemo } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
+import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
+import HtmlBadgeCard from '@components/core/HtmlBadgeCard';
+
+import { GraphitFonts } from '@/src/theme';
+import { useTheme } from '@/src/contexts/ThemeContext';
+import { AppTheme } from '@mr-types/theme.types';
+import { confirmOpenExternalUrl } from '@/src/utils/openExternalLink.utils';
+
+type Props = {
+  title: string;
+  html: string | null;
+  loading: boolean;
+  hasError: boolean;
+  onRetry: () => void;
+  errorText: string;
+  emptyText: string;
+};
+
+/** Schermata di un documento legale in HTML (Informativa privacy, Termini d'uso). */
+export default function DocumentoLegaleScreen({
+  title,
+  html,
+  loading,
+  hasError,
+  onRetry,
+  errorText,
+  emptyText,
+}: Props) {
+  const theme = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  const confirmOpenUrl = useCallback((url: string) => {
+    confirmOpenExternalUrl(url);
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.root}>
+        <BackgroundGradientComponent />
+        <ContentScreenLayout title={title}>
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={theme.accent} />
+          </View>
+        </ContentScreenLayout>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.root}>
+      <BackgroundGradientComponent />
+
+      <ContentScreenLayout title={title}>
+        <ScrollView
+          style={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled
+        >
+          {hasError && (
+            <View style={styles.statusBannerError}>
+              <View style={styles.bannerHeader}>
+                <View style={styles.bannerDot} />
+                <Text style={styles.statusTextError}>{errorText}</Text>
+              </View>
+
+              <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.85}>
+                <Text style={styles.retryButtonText}>Riprova</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Senza testo caricato la scheda restava vuota, con il solo bollino
+              "Legale": una pagina bianca che sembra un guasto. Meglio dire
+              che il testo non c'e' ancora. */}
+          {html?.trim() ? (
+            <HtmlBadgeCard badgeText="Legale" html={html} selectable onOpenUrl={confirmOpenUrl} />
+          ) : (
+            !hasError && (
+              <View style={styles.centered}>
+                <Text style={styles.emptyText}>{emptyText}</Text>
+              </View>
+            )
+          )}
+        </ScrollView>
+      </ContentScreenLayout>
+    </View>
+  );
+}
+
+const makeStyles = (theme: AppTheme) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: '#fff',
+    },
+
+    centered: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+    },
+
+    scroll: {
+      flex: 1,
+    },
+
+    emptyText: {
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#545454',
+      fontSize: 15,
+      textAlign: 'center',
+    },
+
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 40,
+    },
+
+    statusBannerError: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.secondary,
+      paddingVertical: 12,
+      paddingHorizontal: 14,
+      marginBottom: 16,
+    },
+    bannerHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    bannerDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: theme.secondary,
+    },
+    statusTextError: {
+      flex: 1,
+      fontFamily: GraphitFonts.GraphitRegular,
+      color: '#D00000',
+      fontSize: 14,
+      lineHeight: 18,
+    },
+    retryButton: {
+      marginTop: 10,
+      backgroundColor: '#FFFFFF',
+      paddingVertical: 12,
+      borderRadius: 16,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    retryButtonText: {
+      color: theme.secondary,
+      fontSize: 14,
+      fontFamily: GraphitFonts.GraphitBold,
+    },
+  });
