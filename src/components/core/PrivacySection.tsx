@@ -108,7 +108,10 @@ export default function PrivacySection() {
       // L'utente non esiste piu': il logout completo fallirebbe sul server,
       // basta chiudere la sessione sul telefono, anche se la rete cade proprio ora.
       await chiudiSessioneLocale();
-      Alert.alert('Account eliminato', 'Il tuo account e i tuoi dati sono stati cancellati.');
+      Alert.alert(
+        'Account eliminato',
+        'Abbiamo cancellato il tuo account con profilo, anamnesi, check-up e foto, chat, progressi e notifiche. Restano solo il registro dei tuoi consensi e quello dell’eliminazione, come spiegato nell’Informativa privacy.',
+      );
     } catch (err) {
       if (__DEV__) console.error('[privacy] elimina account', err);
       Alert.alert(
@@ -124,7 +127,7 @@ export default function PrivacySection() {
   const confermaEliminazione = () => {
     Alert.alert(
       'Eliminare l’account?',
-      'Cancelleremo subito il tuo account e tutti i tuoi dati: profilo, anamnesi, check-up e foto, chat e progressi. Non si potrà annullare.',
+      'Cancelleremo subito il tuo account con profilo, anamnesi, check-up e foto, chat, progressi e notifiche. Resteranno solo il registro dei tuoi consensi e quello dell’eliminazione, come spiegato nell’Informativa privacy. Non si potrà annullare.',
       [
         { text: 'Annulla', style: 'cancel' },
         {
