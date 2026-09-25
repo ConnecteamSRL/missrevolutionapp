@@ -55,11 +55,16 @@ export const UserProvider: React.FC<Props> = ({ children }) => {
     try {
       const { data, error } = await supabase.rpc('me_detailed');
       if (error) throw error;
+      // Con una sessione valida me_detailed torna null solo se la persona non
+      // c'e' piu' in app_users (per esempio eliminata dal backoffice mentre il
+      // token vale ancora): e' un errore, altrimenti il layout aspetterebbe per
+      // sempre un profilo che non arriva, senza «Riprova» ne' «Esci».
+      if (!data) throw new Error('me_detailed: nessun profilo per questa sessione');
       // me_detailed e' `returns jsonb`, quindi i tipi generati si fermano a
       // Json e overrideTypes rifiuta di restringerlo (Json comprende anche
       // Json[]): il passaggio da unknown e' l'unico modo di dichiarare qui la
       // forma vera. Si toglie se la funzione passera' a un tipo composito.
-      setMe((data as unknown as MeDetailed | null) ?? null);
+      setMe(data as unknown as MeDetailed);
     } catch (err) {
       console.error('Errore nel recupero di me_detailed', err);
       setError('Errore durante il caricamento dei dati utente');
