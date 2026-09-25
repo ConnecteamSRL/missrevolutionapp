@@ -17,8 +17,7 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useUser } from '@/src/contexts/UserContext';
 import { consensiRichiesti, useConsensiStore } from '@/src/store/consensiStore';
-import { logout } from '@/src/hooks/auth/useLogout';
-import { supabase } from '@/src/lib/supabase';
+import { chiudiSessioneLocale, logout } from '@/src/hooks/auth/useLogout';
 import { AppTheme } from '@mr-types/theme.types';
 
 // Le frasi del testo dei Termini che diventano link, scritte come nel registro
@@ -107,7 +106,7 @@ export default function ConsensiScreen() {
     try {
       await logout();
     } catch {
-      await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+      await chiudiSessioneLocale();
     } finally {
       setUscendo(false);
     }

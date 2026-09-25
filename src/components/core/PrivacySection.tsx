@@ -18,7 +18,7 @@ import { useConsensiStore } from '@/src/store/consensiStore';
 import { useDocumentiLegali } from '@/src/hooks/content/useDocumentiLegali';
 import { chiediConsensoAssistente } from '@/src/utils/consensoAssistente';
 import { eliminaAccount } from '@/src/lib/eliminaAccount';
-import { supabase } from '@/src/lib/supabase';
+import { chiudiSessioneLocale } from '@/src/hooks/auth/useLogout';
 import { AppTheme } from '@mr-types/theme.types';
 
 const DANGER = '#D32F2F';
@@ -106,8 +106,8 @@ export default function PrivacySection() {
         return;
       }
       // L'utente non esiste piu': il logout completo fallirebbe sul server,
-      // basta chiudere la sessione sul telefono (signOut svuota il resto).
-      await supabase.auth.signOut({ scope: 'local' });
+      // basta chiudere la sessione sul telefono, anche se la rete cade proprio ora.
+      await chiudiSessioneLocale();
       Alert.alert('Account eliminato', 'Il tuo account e i tuoi dati sono stati cancellati.');
     } catch (err) {
       if (__DEV__) console.error('[privacy] elimina account', err);
