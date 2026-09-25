@@ -32,6 +32,25 @@ const ASSISTANT_LABEL = 'Assistente AI';
 const welcomeText = (firstName?: string | null) =>
   `Ciao${firstName ? ` ${firstName}` : ''}! Sono l’assistente AI di Miss Revolution: rispondo alle tue domande sul programma, sull’alimentazione e sugli allenamenti. Puoi scrivermi o mandarmi una foto.`;
 
+// Consenso esplicito prima di ogni invio, compreso «Riprova» che rimanda i
+// messaggi in attesa: al primo invio, o dopo una revoca, si parte solo con
+// «Acconsento». Lo stato e' quello letto al login e aggiornato a ogni scelta;
+// il servizio lo ricontrolla comunque (403 consenso_mancante).
+async function consensoAssistenteOk(): Promise<boolean> {
+  let stato = useConsensiStore.getState().stato;
+  if (!stato) {
+    try {
+      stato = await useConsensiStore.getState().carica();
+    } catch (err) {
+      if (__DEV__) console.error('[faq-agent] consenso', err);
+      Alert.alert('Errore', 'Controlla la connessione e riprova.');
+      return false;
+    }
+  }
+  if (stato.assistente_ai.valido) return true;
+  return chiediConsensoAssistente(stato.assistente_ai.testo_corrente);
+}
+
 export default function FaqScreen() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -48,30 +67,18 @@ export default function FaqScreen() {
   const isTyping = pending.length > 0 && !error;
   const pendingImages = pending.reduce((sum, m) => sum + m.images.length, 0);
 
-  // Consenso esplicito al primo invio, o dopo una revoca: il messaggio parte
-  // solo con «Acconsento». Lo stato e' quello letto al login e aggiornato a
-  // ogni scelta; il servizio lo ricontrolla comunque (403 qui sotto).
   const handleSend = useCallback(
     async (draft: FaqAgentDraft) => {
-      let stato = useConsensiStore.getState().stato;
-      if (!stato) {
-        try {
-          stato = await useConsensiStore.getState().carica();
-        } catch (err) {
-          if (__DEV__) console.error('[faq-agent] consenso', err);
-          Alert.alert('Errore', 'Controlla la connessione e riprova.');
-          return false;
-        }
-      }
-      if (!stato.assistente_ai.valido) {
-        const dato = await chiediConsensoAssistente(stato.assistente_ai.testo_corrente);
-        if (!dato) return false;
-      }
+      if (!(await consensoAssistenteOk())) return false;
       send(draft);
       return true;
     },
     [send],
   );
+
+  const handleRetry = useCallback(async () => {
+    if (await consensoAssistenteOk()) retry();
+  }, [retry]);
 
   // Il servizio non ha trovato un consenso valido (revocato da un altro
   // telefono, o testo cambiato): si rilegge lo stato e, se manca davvero, si
@@ -185,7 +192,7 @@ export default function FaqScreen() {
                 <Text style={styles.errorText}>{error}</Text>
                 <TouchableOpacity
                   style={styles.retryButton}
-                  onPress={retry}
+                  onPress={() => void handleRetry()}
                   accessibilityRole="button"
                   accessibilityLabel="Riprova a inviare il messaggio"
                 >
