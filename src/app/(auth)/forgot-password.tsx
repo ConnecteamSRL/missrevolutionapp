@@ -17,6 +17,7 @@ import { supabase } from '@/src/lib/supabase';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
+import { useLogo } from '@/src/hooks/core/useLogo';
 
 export default function ForgotPasswordScreen() {
   const theme = useTheme();
@@ -24,7 +25,7 @@ export default function ForgotPasswordScreen() {
 
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const logo = require('../../../assets/images/logo-ext.png');
+  const logo = useLogo();
 
   const handleResetRequest = async () => {
     const emailTrim = email.trim().toLowerCase();

@@ -4,9 +4,10 @@ import { Image } from 'expo-image';
 import NotificationButton from '@components/tab/NotificationButton';
 import UserAvatarComponent from '@components/tab/UserAvatarComponent';
 import { useRouter } from 'expo-router';
+import { useLogo } from '@/src/hooks/core/useLogo';
 
 export default function HeaderTabComponent() {
-  const logo = require('../../../assets/images/logo-ext.png');
+  const logo = useLogo();
   const router = useRouter();
 
   return (

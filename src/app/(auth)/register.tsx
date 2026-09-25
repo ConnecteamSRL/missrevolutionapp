@@ -19,6 +19,7 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@components/layouts/DismissKeyboardView';
+import { useLogo } from '@/src/hooks/core/useLogo';
 
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 
@@ -33,7 +34,7 @@ export default function RegisterScreen() {
   const [password2, setPassword2] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const logo = require('../../../assets/images/logo-ext.png');
+  const logo = useLogo();
 
   const isValid = useMemo(() => {
     const e = normalizeEmail(email);

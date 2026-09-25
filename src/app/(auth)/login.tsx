@@ -23,6 +23,7 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
+import { useLogo } from '@/src/hooks/core/useLogo';
 
 const LoginScreen: React.FC = () => {
   const theme = useTheme();
@@ -34,7 +35,7 @@ const LoginScreen: React.FC = () => {
   const [isValid, setIsValid] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const logo = require('../../../assets/images/logo-ext.png');
+  const logo = useLogo();
 
   const handleEmailChange = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
     setEmail(e.nativeEvent.text);

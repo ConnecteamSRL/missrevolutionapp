@@ -22,6 +22,7 @@ import { chiudiSessioneLocale, logout } from '@/src/hooks/auth/useLogout';
 import { useEliminaAccount } from '@/src/hooks/auth/useEliminaAccount';
 import { useDocumentiLegali } from '@/src/hooks/content/useDocumentiLegali';
 import { AppTheme } from '@mr-types/theme.types';
+import { useLogo } from '@/src/hooks/core/useLogo';
 
 // Le frasi del testo dei Termini che diventano link, scritte come nel registro
 // (apostrofo dritto). Se un giorno il testo non le contiene piu', i link
@@ -98,7 +99,7 @@ export default function ConsensiScreen() {
   const { eliminando, confermaEliminazione } = useEliminaAccount(email);
   const occupato = inviando || uscendo || eliminando;
 
-  const logo = require('../../assets/images/logo-ext.png');
+  const logo = useLogo();
   const richiesti = me ? consensiRichiesti(me.role) : null;
 
   const riprova = () => {

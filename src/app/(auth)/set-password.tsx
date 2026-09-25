@@ -25,6 +25,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
 import { useAuthStore } from '@/src/store/authStore';
+import { useLogo } from '@/src/hooks/core/useLogo';
 
 const SetPasswordScreen: React.FC = () => {
   const theme = useTheme();
@@ -39,7 +40,7 @@ const SetPasswordScreen: React.FC = () => {
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
   const [tokens, setTokens] = useState<{ access_token?: string; refresh_token?: string }>({});
 
-  const logo = require('../../../assets/images/logo-ext.png');
+  const logo = useLogo();
 
   const redirectToLogin = () => {
     router.replace('/(auth)/login');
