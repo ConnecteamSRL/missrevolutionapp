@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -51,16 +51,24 @@ const AppEntryPoint: React.FC = () => {
   const userId = session?.user?.id ?? null;
   const isAppReady = !isConfigLoading && !isAuthLoading;
 
-  // Lo stato dei consensi si legge a ogni accesso, e all'avvio con una sessione
-  // salvata; al logout lo azzera signOut.
+  // Lo stato dei consensi si legge a ogni accesso, all'avvio con una sessione
+  // salvata e a ogni ritorno in primo piano, cosi' una revoca fatta da un altro
+  // telefono o un testo aggiornato valgono senza riavviare l'app; al logout lo
+  // azzera signOut. Se la rilettura fallisce (offline) resta lo stato di prima.
   useEffect(() => {
     if (!userId) return;
-    useConsensiStore
-      .getState()
-      .carica()
-      .catch((err) => {
-        if (__DEV__) console.error('[consensi]', err);
-      });
+    const carica = () =>
+      useConsensiStore
+        .getState()
+        .carica()
+        .catch((err) => {
+          if (__DEV__) console.error('[consensi]', err);
+        });
+    void carica();
+    const subscription = AppState.addEventListener('change', (stato) => {
+      if (stato === 'active') void carica();
+    });
+    return () => subscription.remove();
   }, [userId]);
 
   // Senza i consensi richiesti (Termini per tutti, dati sulla salute per i
