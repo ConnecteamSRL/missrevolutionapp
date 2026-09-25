@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,6 +19,8 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useUser } from '@/src/contexts/UserContext';
 import { consensiRichiesti, useConsensiStore } from '@/src/store/consensiStore';
 import { chiudiSessioneLocale, logout } from '@/src/hooks/auth/useLogout';
+import { useEliminaAccount } from '@/src/hooks/auth/useEliminaAccount';
+import { useDocumentiLegali } from '@/src/hooks/content/useDocumentiLegali';
 import { AppTheme } from '@mr-types/theme.types';
 
 // Le frasi del testo dei Termini che diventano link, scritte come nel registro
@@ -87,6 +90,13 @@ export default function ConsensiScreen() {
   const errore = useConsensiStore((s) => s.errore);
   const [inviando, setInviando] = useState(false);
   const [uscendo, setUscendo] = useState(false);
+  // Anche senza consensi la persona deve poter scrivere per i suoi diritti ed
+  // eliminare l'account (la cliente che ha revocato i dati sulla salute non
+  // arriva al Profilo): contatto e flusso sono gli stessi di Profilo → Privacy.
+  const { data: documenti } = useDocumentiLegali();
+  const email = documenti?.support_email?.trim() || null;
+  const { eliminando, confermaEliminazione } = useEliminaAccount(email);
+  const occupato = inviando || uscendo || eliminando;
 
   const logo = require('../../assets/images/logo-ext.png');
   const richiesti = me ? consensiRichiesti(me.role) : null;
@@ -140,7 +150,7 @@ export default function ConsensiScreen() {
     <TouchableOpacity
       style={styles.secondaryButton}
       onPress={esci}
-      disabled={uscendo || inviando}
+      disabled={occupato}
       accessibilityRole="button"
     >
       {uscendo ? (
@@ -180,13 +190,44 @@ export default function ConsensiScreen() {
             style={styles.termsText}
             linkStyle={styles.linkText}
           />
+
+          <Text style={styles.noteText}>
+            Per accedere ai tuoi dati, averne una copia o correggerli scrivi a{' '}
+            {email ? (
+              <Text
+                style={styles.linkText}
+                onPress={() => void Linking.openURL(`mailto:${email}`).catch(() => {})}
+                accessibilityRole="link"
+              >
+                {email}
+              </Text>
+            ) : (
+              'l’indirizzo indicato nell’Informativa privacy'
+            )}
+            .
+          </Text>
+
+          {me?.role === 'client' && (
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={confermaEliminazione}
+              disabled={occupato}
+              accessibilityRole="button"
+            >
+              {eliminando ? (
+                <ActivityIndicator size="small" color={theme.accent} />
+              ) : (
+                <Text style={styles.noteText}>Elimina account</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </ScrollView>
 
         <View style={styles.footer}>
           <TouchableOpacity
-            style={[styles.primaryButton, (inviando || uscendo) && styles.buttonDisabled]}
+            style={[styles.primaryButton, occupato && styles.buttonDisabled]}
             onPress={acconsenti}
-            disabled={inviando || uscendo}
+            disabled={occupato}
             accessibilityRole="button"
           >
             {inviando ? (
@@ -269,6 +310,13 @@ const makeStyles = (theme: AppTheme) =>
       color: theme.secondary,
       textDecorationLine: 'underline',
       fontFamily: GraphitFonts.GraphitBold,
+    },
+    noteText: {
+      fontSize: 13,
+      lineHeight: 19,
+      textAlign: 'center',
+      color: colors.textMuted,
+      fontFamily: GraphitFonts.GraphitRegular,
     },
     footer: { paddingHorizontal: 20, paddingBottom: 12, gap: 4 },
     centered: {
