@@ -45,6 +45,7 @@ export type Database = {
         Row: {
           banner_key: string | null;
           banner_key_male: string | null;
+          faq_benvenuto: string | null;
           feature_flags: Json | null;
           id: number;
           latest_version: string;
@@ -64,6 +65,7 @@ export type Database = {
         Insert: {
           banner_key?: string | null;
           banner_key_male?: string | null;
+          faq_benvenuto?: string | null;
           feature_flags?: Json | null;
           id?: number;
           latest_version?: string;
@@ -83,6 +85,7 @@ export type Database = {
         Update: {
           banner_key?: string | null;
           banner_key_male?: string | null;
+          faq_benvenuto?: string | null;
           feature_flags?: Json | null;
           id?: number;
           latest_version?: string;
@@ -2740,6 +2743,21 @@ export type Database = {
       };
     };
     Views: {
+      app_config_assistente: {
+        Row: {
+          faq_benvenuto: string | null;
+          id: number | null;
+        };
+        Insert: {
+          faq_benvenuto?: string | null;
+          id?: number | null;
+        };
+        Update: {
+          faq_benvenuto?: string | null;
+          id?: number | null;
+        };
+        Relationships: [];
+      };
       app_config_documenti: {
         Row: {
           id: number | null;

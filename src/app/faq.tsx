@@ -20,6 +20,7 @@ import { AppTheme } from '@mr-types/theme.types';
 import { FaqAgentDraft, FaqAgentMessage } from '@mr-types/faqAgent.types';
 import { useFaqAgentStore } from '@/src/store/faqAgentStore';
 import { useConsensiStore } from '@/src/store/consensiStore';
+import { supabase } from '@/src/lib/supabase';
 import { chiediConsensoAssistente } from '@/src/utils/consensoAssistente';
 import { FAQ_AGENT_MAX_IMAGES, pendingUserMessages } from '@/src/utils/faqAgentBatch';
 import { ChatBubble, ChatDateHeader, formatChatDateLabel } from '@components/chat/ChatBubble';
@@ -29,8 +30,49 @@ import FaqAgentComposer from '@components/faq/FaqAgentComposer';
 
 const ASSISTANT_LABEL = 'Assistente AI';
 
-const welcomeText = (firstName?: string | null) =>
-  `Ciao${firstName ? ` ${firstName}` : ''}! Sono l’assistente AI di Miss Revolution: rispondo alle tue domande sul programma, sull’alimentazione e sugli allenamenti. Puoi scrivermi o mandarmi una foto.`;
+// Il benvenuto si modifica dal backoffice (app_config.faq_benvenuto, letto
+// dalla vista app_config_assistente); {nome} e' il nome della cliente. Questo
+// e' il testo di quando la lettura fallisce o il campo e' vuoto.
+const BENVENUTO_PREDEFINITO =
+  'Ciao {nome}! Sono l’assistente AI di Miss Revolution: rispondo alle tue domande sul programma, sull’alimentazione e sugli allenamenti. Puoi scrivermi o mandarmi una foto.';
+
+const welcomeText = (modello: string, firstName?: string | null) =>
+  modello
+    .replace(/\{nome\}/g, firstName?.trim() ?? '')
+    // Senza nome «Ciao {nome}!» diventa «Ciao!», non «Ciao !».
+    .replace(/[ \t]+([!?,.;:])/g, '$1')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+
+// L'ultimo testo letto resta per le aperture successive della schermata.
+let benvenutoLetto: string | null = null;
+
+/** Il modello del benvenuto; null finche' la prima lettura non e' finita. */
+function useBenvenuto(): string | null {
+  const [modello, setModello] = useState(benvenutoLetto);
+  useEffect(() => {
+    let attivo = true;
+    supabase
+      .from('app_config_assistente')
+      .select('faq_benvenuto')
+      .eq('id', 1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          // Senza rete resta l'ultimo testo letto, o quello predefinito.
+          if (__DEV__) console.error('[faq-agent] benvenuto', error);
+          benvenutoLetto = benvenutoLetto ?? BENVENUTO_PREDEFINITO;
+        } else {
+          benvenutoLetto = data?.faq_benvenuto?.trim() ? data.faq_benvenuto : BENVENUTO_PREDEFINITO;
+        }
+        if (attivo) setModello(benvenutoLetto);
+      });
+    return () => {
+      attivo = false;
+    };
+  }, []);
+  return modello;
+}
 
 // Consenso esplicito prima di ogni invio, compreso «Riprova» che rimanda i
 // messaggi in attesa: al primo invio, o dopo una revoca, si parte solo con
@@ -110,12 +152,22 @@ export default function FaqScreen() {
   const firstAt = messages[0]?.createdAt;
   const welcomeAt = firstAt && firstAt < openedAt ? firstAt : openedAt;
   const firstName = me?.profile?.first_name;
+  const benvenuto = useBenvenuto();
   const data = useMemo<FaqAgentMessage[]>(
     () => [
       ...[...messages].reverse(),
-      { id: 'welcome', role: 'assistant', text: welcomeText(firstName), createdAt: welcomeAt },
+      ...(benvenuto === null
+        ? []
+        : [
+            {
+              id: 'welcome',
+              role: 'assistant' as const,
+              text: welcomeText(benvenuto, firstName),
+              createdAt: welcomeAt,
+            },
+          ]),
     ],
-    [messages, firstName, welcomeAt],
+    [messages, benvenuto, firstName, welcomeAt],
   );
   const listRef = useRef<FlatList<FaqAgentMessage>>(null);
 
