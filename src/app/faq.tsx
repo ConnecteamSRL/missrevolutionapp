@@ -24,6 +24,7 @@ import { supabase } from '@/src/lib/supabase';
 import { chiediConsensoAssistente } from '@/src/utils/consensoAssistente';
 import { FAQ_AGENT_MAX_IMAGES, pendingUserMessages } from '@/src/utils/faqAgentBatch';
 import { ChatBubble, ChatDateHeader, formatChatDateLabel } from '@components/chat/ChatBubble';
+import { senzaFormattazione } from '@components/chat/TestoFormattato';
 import FaqAgentAttachments from '@components/faq/FaqAgentBubble';
 import FaqAgentTypingIndicator from '@components/faq/FaqAgentTypingIndicator';
 import FaqAgentComposer from '@components/faq/FaqAgentComposer';
@@ -179,7 +180,10 @@ export default function FaqScreen() {
   // quella gia' presente quando si rientra nella schermata.
   const lastMessage = messages[messages.length - 1];
   const announcement =
-    error ?? (lastMessage?.role === 'assistant' ? `Assistente: ${lastMessage.text}` : null);
+    error ??
+    (lastMessage?.role === 'assistant'
+      ? `Assistente: ${senzaFormattazione(lastMessage.text)}`
+      : null);
   const announcedRef = useRef(announcement);
   useEffect(() => {
     if (announcement && announcement !== announcedRef.current) {
@@ -211,6 +215,7 @@ export default function FaqScreen() {
               message={{ content: item.text, created_at: item.createdAt, sender_type: 'operator' }}
               isMe={false}
               label={ASSISTANT_LABEL}
+              formattato
             />
           )}
         </View>

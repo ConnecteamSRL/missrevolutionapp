@@ -6,6 +6,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { ChatMessage } from '@/src/types/chat.types';
 import UserAvatarComponent from '@components/tab/UserAvatarComponent';
+import TestoFormattato from '@components/chat/TestoFormattato';
 
 type Props = {
   message: Pick<ChatMessage, 'content' | 'created_at' | 'sender_type'>;
@@ -17,6 +18,8 @@ type Props = {
   showTime?: boolean;
   /** Contenuto sopra il testo: allegati o indicatore di scrittura. */
   children?: React.ReactNode;
+  /** Il testo ha la formattazione ridotta dell'assistente AI (grassetto, paragrafi, elenchi). */
+  formattato?: boolean;
 };
 
 export const ChatBubble = ({
@@ -26,6 +29,7 @@ export const ChatBubble = ({
   label,
   showTime = true,
   children,
+  formattato = false,
 }: Props) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -65,17 +69,28 @@ export const ChatBubble = ({
             </Text>
           )}
           {children}
-          {!!message.content && (
-            <Text
-              style={[
-                styles.text,
-                isMe ? styles.rightText : isBot ? styles.botText : styles.leftText,
-                children ? styles.textBelowChildren : null,
-              ]}
-            >
-              {message.content}
-            </Text>
-          )}
+          {!!message.content &&
+            (formattato ? (
+              <View style={children ? styles.textBelowChildren : null}>
+                <TestoFormattato
+                  testo={message.content}
+                  style={[
+                    styles.text,
+                    isMe ? styles.rightText : isBot ? styles.botText : styles.leftText,
+                  ]}
+                />
+              </View>
+            ) : (
+              <Text
+                style={[
+                  styles.text,
+                  isMe ? styles.rightText : isBot ? styles.botText : styles.leftText,
+                  children ? styles.textBelowChildren : null,
+                ]}
+              >
+                {message.content}
+              </Text>
+            ))}
         </View>
 
         {isMe && showMyAvatar && (
