@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import { askFaqAgent, faqAgentErrorMessage, isConsensoMancante } from '../lib/faqAgent';
+import {
+  askFaqAgent,
+  faqAgentErrorMessage,
+  isAbbonamentoNonAttivo,
+  isConsensoMancante,
+} from '../lib/faqAgent';
+import { useAccessoStore } from './accessoStore';
 import {
   appendFaqAgentTurns,
   buildFaqAgentRequest,
@@ -104,6 +110,13 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
       if (seq !== requestSeq) return;
       if (__DEV__) console.error('[faq-agent]', error);
       set({ error: faqAgentErrorMessage(error), consensoMancante: isConsensoMancante(error) });
+      // Abbonamento non piu' valido: rilette le date, il layout passa alla sua schermata.
+      if (isAbbonamentoNonAttivo(error)) {
+        useAccessoStore
+          .getState()
+          .carica()
+          .catch(() => {});
+      }
     } finally {
       if (inFlight === controller) inFlight = null;
     }

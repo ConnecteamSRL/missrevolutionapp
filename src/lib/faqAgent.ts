@@ -32,6 +32,16 @@ export const isConsensoMancante = (error: unknown): boolean => {
 };
 
 /**
+ * Il servizio verifica anche l'abbonamento (stato_accesso) e risponde 403
+ * `abbonamento_non_attivo` se non e' valido: scaduto mentre la chat era aperta,
+ * o una build che non ha ancora la schermata dell'abbonamento.
+ */
+export const isAbbonamentoNonAttivo = (error: unknown): boolean => {
+  const { status, detail } = (error as Partial<FaqAgentError> | null) ?? {};
+  return status === 403 && detail === 'abbonamento_non_attivo';
+};
+
+/**
  * Chiama POST /v1/chat con il token della sessione Supabase corrente.
  * Se `signal` viene annullato rilancia l'AbortError cosi' com'e'; ogni altro
  * fallimento diventa un FaqAgentError (timeout di 120 s = 504).
@@ -95,6 +105,9 @@ export async function askFaqAgent(
 export function faqAgentErrorMessage(error: unknown): string {
   if (isConsensoMancante(error)) {
     return 'Per usare l’assistente serve il tuo consenso.';
+  }
+  if (isAbbonamentoNonAttivo(error)) {
+    return 'Il tuo abbonamento non è attivo.';
   }
   switch ((error as Partial<FaqAgentError> | null)?.status ?? null) {
     case 401:

@@ -7,6 +7,7 @@ import { clearBannerCache } from '../utils/bannerCache';
 import { svuotaCacheUtente } from '../utils/cacheUtente';
 import { useFaqAgentStore } from './faqAgentStore';
 import { useConsensiStore } from './consensiStore';
+import { useAccessoStore } from './accessoStore';
 
 interface AuthState {
   session: AuthSession;
@@ -29,9 +30,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
   setSession: (session, user) => set({ session, user, isLoading: false }),
   setIsLoading: (isLoading) => set({ isLoading }),
   signOut: async () => {
-    // La conversazione con l'assistente AI e lo stato dei consensi sono dell'utente che esce.
+    // La conversazione con l'assistente AI, lo stato dei consensi e quello
+    // dell'abbonamento sono dell'utente che esce.
     useFaqAgentStore.getState().reset();
     useConsensiStore.getState().reset();
+    useAccessoStore.getState().reset();
     console.log('Clearing banner cache on sign out');
     await clearBannerCache();
     await svuotaCacheUtente();

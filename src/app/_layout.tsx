@@ -13,6 +13,7 @@ import { ThemeProvider, useTheme } from '@/src/contexts/ThemeContext';
 import { useSupabaseAuth } from '@/src/hooks/core/useSupabaseAuth';
 import { useAuthStore } from '@/src/store/authStore';
 import { consensiRichiesti, useConsensiStore } from '@/src/store/consensiStore';
+import { useAccessoStore } from '@/src/store/accessoStore';
 import { useContentTextSizeStore } from '@/src/store/contentTextSizeStore';
 import { useGenderStore } from '@/src/store/genderStore';
 import { useNotificationRouting } from '@/src/hooks/core/useNotificationRouting';
@@ -44,6 +45,8 @@ const AppEntryPoint: React.FC = () => {
   const { me, error: userError } = useUser();
   const statoConsensi = useConsensiStore((s) => s.stato);
   const erroreConsensi = useConsensiStore((s) => s.errore);
+  const statoAccesso = useAccessoStore((s) => s.stato);
+  const erroreAccesso = useAccessoStore((s) => s.errore);
 
   useSupabaseAuth();
 
@@ -51,19 +54,27 @@ const AppEntryPoint: React.FC = () => {
   const userId = session?.user?.id ?? null;
   const isAppReady = !isConfigLoading && !isAuthLoading;
 
-  // Lo stato dei consensi si legge a ogni accesso, all'avvio con una sessione
+  // Consensi e abbonamento si leggono a ogni accesso, all'avvio con una sessione
   // salvata e a ogni ritorno in primo piano, cosi' una revoca fatta da un altro
-  // telefono o un testo aggiornato valgono senza riavviare l'app; al logout lo
-  // azzera signOut. Se la rilettura fallisce (offline) resta lo stato di prima.
+  // telefono, un testo aggiornato o un abbonamento scaduto nella notte valgono
+  // senza riavviare l'app; al logout li azzera signOut. Se la rilettura
+  // fallisce (offline) resta lo stato di prima.
   useEffect(() => {
     if (!userId) return;
-    const carica = () =>
+    const carica = () => {
       useConsensiStore
         .getState()
         .carica()
         .catch((err) => {
           if (__DEV__) console.error('[consensi]', err);
         });
+      useAccessoStore
+        .getState()
+        .carica()
+        .catch((err) => {
+          if (__DEV__) console.error('[accesso]', err);
+        });
+    };
     void carica();
     const subscription = AppState.addEventListener('change', (stato) => {
       if (stato === 'active') void carica();
@@ -81,11 +92,18 @@ const AppEntryPoint: React.FC = () => {
     consensiRichiesti(ruolo).every((finalita) => statoConsensi[finalita].valido);
   const consensiInAttesa = isLoggedIn && (!statoConsensi || !me) && !erroreConsensi && !userError;
 
+  // Senza un abbonamento valido (in corso, o che parte entro 7 giorni) si vede
+  // solo la schermata dell'abbonamento, con la chat della palestra e il
+  // profilo. Finche' lo stato non e' noto, o se non si riesce a leggerlo, vale
+  // come «senza»: la schermata mostra l'attesa o l'errore con «Riprova».
+  const accessoOk = !!statoAccesso?.accesso;
+  const accessoInAttesa = isLoggedIn && !statoAccesso && !erroreAccesso;
+
   // Al primo ingresso con una sessione salvata si aspettano anche i consensi,
   // cosi' chi li ha gia' dati va dritto alle tab. Dopo lo Stack non si smonta
   // piu': a un nuovo login l'attesa la mostra la schermata dei consensi.
   const [avviata, setAvviata] = useState(false);
-  const pronta = isAppReady && !consensiInAttesa;
+  const pronta = isAppReady && !consensiInAttesa && !accessoInAttesa;
   if (pronta && !avviata) setAvviata(true);
 
   useNotificationRouting(isAppReady, isLoggedIn && consensiOk);
@@ -128,15 +146,17 @@ const AppEntryPoint: React.FC = () => {
         <Stack.Screen name="consensi" />
       </Stack.Protected>
 
-      <Stack.Protected guard={isLoggedIn && consensiOk}>
+      <Stack.Protected guard={isLoggedIn && consensiOk && !accessoOk}>
+        <Stack.Screen name="abbonamento" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={isLoggedIn && consensiOk && accessoOk}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="video/index" />
         <Stack.Screen name="video/[categoryId]" />
         <Stack.Screen name="(video)/[videoId]" />
-        <Stack.Screen name="document-viewer" options={{ presentation: 'modal' }} />
         <Stack.Screen name="faq" />
         <Stack.Screen name="notifications" />
-        <Stack.Screen name="profile" />
         <Stack.Screen name="recipes" />
         <Stack.Screen name="survey/index" />
         <Stack.Screen name="survey/[surveyId]" />
@@ -144,7 +164,13 @@ const AppEntryPoint: React.FC = () => {
         <Stack.Screen name="(recipe)/[recipeId]" />
         <Stack.Screen name="(diet)/[dietId]" />
         <Stack.Screen name="archive/[contentType]" />
+      </Stack.Protected>
+
+      {/* Anche senza abbonamento: la chat per rinnovare, il profilo con la privacy. */}
+      <Stack.Protected guard={isLoggedIn && consensiOk}>
+        <Stack.Screen name="profile" />
         <Stack.Screen name="(chat)/chat" />
+        <Stack.Screen name="document-viewer" options={{ presentation: 'modal' }} />
       </Stack.Protected>
 
       <Stack.Screen

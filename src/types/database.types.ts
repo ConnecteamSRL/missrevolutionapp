@@ -3406,6 +3406,16 @@ export type Database = {
         Returns: undefined;
       };
       staff_display_name: { Args: { p_id: string }; Returns: string };
+      stato_accesso: {
+        Args: never;
+        Returns: {
+          accesso: boolean;
+          apre_il: string;
+          fine: string;
+          inizio: string;
+          motivo: string;
+        }[];
+      };
       stato_consensi: {
         Args: never;
         Returns: {
