@@ -35,6 +35,11 @@ export async function svuotaCacheUtente(): Promise<void> {
   try {
     for (const voce of new Directory(Paths.cache).list()) {
       if (voce instanceof File && DOCUMENTO_SCIOLTO.test(voce.name)) voce.delete();
+      // iOS: la cache HTTP di sistema (NSURLCache) tiene su disco le risposte
+      // delle API, check-up e chat comprese, in <cache>/<bundle id>/Cache.db e
+      // fsCachedData. Visto nel simulatore il 2026-09-25: 44 risposte ancora li'
+      // dopo il logout. La cartella si riconosce da Cache.db.
+      if (voce instanceof Directory && new File(voce, 'Cache.db').exists) voce.delete();
     }
   } catch {}
 }
