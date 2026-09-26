@@ -28,7 +28,7 @@ export function useEliminaAccount(email: string | null) {
       await chiudiSessioneLocale();
       Alert.alert(
         'Account eliminato',
-        'Abbiamo cancellato il tuo account con profilo, anamnesi, check-up e foto, chat, progressi e notifiche. Restano solo il registro dei tuoi consensi e quello dell’eliminazione, come spiegato nell’Informativa privacy.',
+        'Abbiamo cancellato il tuo account con profilo, anamnesi, check-up e foto, chat, progressi e notifiche. Restano solo la prova dei tuoi consensi e il registro delle operazioni, per i tempi indicati nell’Informativa privacy.',
       );
     } catch (err) {
       if (__DEV__) console.error('[privacy] elimina account', err);
@@ -45,7 +45,7 @@ export function useEliminaAccount(email: string | null) {
   const confermaEliminazione = () => {
     Alert.alert(
       'Eliminare l’account?',
-      'Cancelleremo subito il tuo account con profilo, anamnesi, check-up e foto, chat, progressi e notifiche. Resteranno solo il registro dei tuoi consensi e quello dell’eliminazione, come spiegato nell’Informativa privacy. Non si potrà annullare.',
+      'Cancelleremo subito il tuo account con profilo, anamnesi, check-up e foto, chat, progressi e notifiche. Resteranno solo la prova dei tuoi consensi e il registro delle operazioni, per i tempi indicati nell’Informativa privacy. Non si potrà annullare.',
       [
         { text: 'Annulla', style: 'cancel' },
         {

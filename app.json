@@ -196,7 +196,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i prodotti (le etichette fotografate le legge un'AI), aggiungere foto ai check-up e mandarle all'assistente AI.",
+          "cameraPermission": "Permetti a $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i prodotti (le etichette fotografate le legge un'AI), aggiungere foto ai check-up e mandarle all'assistente AI.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }
@@ -204,8 +204,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Permetti $(PRODUCT_NAME) di accedere alle foto per aggiornare il profilo, aggiungere foto ai check-up e mandarle all'assistente AI.",
-          "cameraPermission": "Permetti $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i prodotti (le etichette fotografate le legge un'AI), aggiungere foto ai check-up e mandarle all'assistente AI.",
+          "photosPermission": "Permetti a $(PRODUCT_NAME) di accedere alle foto per aggiornare il profilo, aggiungere foto ai check-up e mandarle all'assistente AI.",
+          "cameraPermission": "Permetti a $(PRODUCT_NAME) di accedere alla fotocamera per scansionare i prodotti (le etichette fotografate le legge un'AI), aggiungere foto ai check-up e mandarle all'assistente AI.",
           "microphonePermission": false
         }
       ],

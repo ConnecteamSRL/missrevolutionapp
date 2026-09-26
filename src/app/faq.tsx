@@ -328,7 +328,7 @@ export default function FaqScreen() {
         <FaqAgentComposer onSend={handleSend} maxImages={FAQ_AGENT_MAX_IMAGES - pendingImages} />
         <View style={styles.disclaimer}>
           <Text style={styles.disclaimerText}>
-            Le risposte sono generate da un’AI e possono contenere errori
+            Risposte di un’AI: possono sbagliare e non sono pareri medici
           </Text>
           <TouchableOpacity
             onPress={() => router.push('/privacy-policy')}
