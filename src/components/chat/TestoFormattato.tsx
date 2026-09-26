@@ -96,6 +96,8 @@ const styles = StyleSheet.create({
   elenco: { gap: 4 },
   voce: { flexDirection: 'row' },
   segno: { minWidth: 18 },
-  testoVoce: { flex: 1 },
+  // flexShrink e non flex: 1, che azzera la larghezza naturale della voce e lascia
+  // la bolla larga quanto il paragrafo piu' corto («Dipende dalla fase:»).
+  testoVoce: { flexShrink: 1 },
   grassetto: { fontFamily: GraphitFonts.GraphitBold },
 });
