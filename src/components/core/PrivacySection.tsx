@@ -54,9 +54,9 @@ export default function PrivacySection() {
     setAggiornando(true);
     try {
       if (attivo) {
-        await chiediConsensoAssistente(stato.assistente_ai.testo_corrente);
+        await chiediConsensoAssistente(stato.assistente_ai, 'profilo');
       } else {
-        await useConsensiStore.getState().registra(['assistente_ai'], 'revocato');
+        await useConsensiStore.getState().registra(['assistente_ai'], 'revocato', 'profilo');
       }
     } catch (err) {
       if (__DEV__) console.error('[privacy] assistente', err);
@@ -79,7 +79,7 @@ export default function PrivacySection() {
           onPress: () => {
             useConsensiStore
               .getState()
-              .registra(['dati_salute'], 'revocato')
+              .registra(['dati_salute'], 'revocato', 'profilo')
               .catch((err) => {
                 if (__DEV__) console.error('[privacy] dati salute', err);
                 Alert.alert(

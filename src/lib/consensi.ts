@@ -12,6 +12,15 @@ export type Finalita = 'termini' | 'dati_salute' | 'assistente_ai';
 
 export const FINALITA: Finalita[] = ['termini', 'dati_salute', 'assistente_ai'];
 
+/**
+ * La frase sotto «Accedi». Prima del login il registro non si legge, quindi
+ * sta anche qui: deve essere identica al testo corrente dei Termini
+ * (testi_consenso 'termini-2026-09-26'). Il consenso al login si registra solo
+ * se lo e', cosi' la prova dice esattamente cosa c'era a schermo.
+ */
+export const TESTO_TERMINI_AL_LOGIN =
+  "Continuando accetti i Termini d'uso e dichiari di aver letto l'Informativa privacy.";
+
 type RigaStato = Database['public']['Functions']['stato_consensi']['Returns'][number];
 
 /**
@@ -62,11 +71,18 @@ export type VoceConsenso = {
 };
 
 /**
+ * Il gesto con cui la persona ha risposto, salvato in documenti.via: la frase
+ * sotto «Accedi», l'avviso dei Termini, il benvenuto per i dati sulla salute, il
+ * popup dell'assistente, l'interruttore del Profilo.
+ */
+export type Via = 'login' | 'avviso' | 'benvenuto' | 'popup' | 'profilo';
+
+/**
  * Scrive una riga per voce, tutte in un solo insert. Utente e data li mette il
  * database. Il consenso ai Termini porta le versioni di Informativa e Termini
  * pubblicate in quel momento: senza, per il database non e' valido.
  */
-export async function registraConsensi(voci: VoceConsenso[]): Promise<void> {
+export async function registraConsensi(voci: VoceConsenso[], via: Via): Promise<void> {
   let documenti: Json = null;
   if (voci.some((voce) => voce.finalita === 'termini')) {
     const { data, error } = await supabase
@@ -75,7 +91,7 @@ export async function registraConsensi(voci: VoceConsenso[]): Promise<void> {
       .eq('id', 1)
       .single();
     if (error) throw error;
-    documenti = { informativa: data.versione_informativa, termini: data.versione_termini };
+    documenti = { informativa: data.versione_informativa, termini: data.versione_termini, via };
   }
 
   const { error } = await supabase.from('consensi').insert(
@@ -85,7 +101,7 @@ export async function registraConsensi(voci: VoceConsenso[]): Promise<void> {
       versione: voce.versione,
       // Ogni riga deve avere le stesse chiavi: con un insert multiplo PostgREST
       // altrimenti risponde PGRST102.
-      documenti: voce.finalita === 'termini' ? documenti : null,
+      documenti: voce.finalita === 'termini' ? documenti : { via },
       piattaforma: Platform.OS,
       versione_app: VERSIONE_APP,
     })),

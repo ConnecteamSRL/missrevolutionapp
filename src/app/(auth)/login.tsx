@@ -24,6 +24,7 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
 import { useLogo } from '@/src/hooks/core/useLogo';
+import { useConsensiStore } from '@/src/store/consensiStore';
 
 const LoginScreen: React.FC = () => {
   const theme = useTheme();
@@ -54,6 +55,10 @@ const LoginScreen: React.FC = () => {
     if (loading) return;
 
     setLoading(true);
+    // La persona ha toccato «Accedi» con la frase dei Termini subito sopra:
+    // a login riuscito il consenso ai Termini si registra da solo.
+    const consensi = useConsensiStore.getState();
+    const tentativo = consensi.iniziaTerminiAlLogin();
     try {
       const normalizedEmail = email.trim().toLowerCase();
 
@@ -63,6 +68,7 @@ const LoginScreen: React.FC = () => {
       });
 
       if (error?.code === 'email_not_confirmed') {
+        consensi.annullaTerminiAlLogin(tentativo);
         router.replace({
           pathname: '/confirm-signup',
           params: { email: normalizedEmail },
@@ -71,10 +77,14 @@ const LoginScreen: React.FC = () => {
       }
 
       if (error) {
+        consensi.annullaTerminiAlLogin(tentativo);
         Alert.alert('Errore di Login', 'Credenziali non valide. Riprova.');
         return;
       }
+
+      void consensi.accettaTerminiAlLogin(tentativo);
     } catch {
+      consensi.annullaTerminiAlLogin(tentativo);
       Alert.alert('Errore di Login', 'Credenziali non valide. Riprova.');
     } finally {
       setLoading(false);
@@ -88,6 +98,10 @@ const LoginScreen: React.FC = () => {
 
   function handleOpenPrivacy(): void {
     router.push('/privacy-policy');
+  }
+
+  function handleOpenTermini(): void {
+    router.push('/termini');
   }
 
   return (
@@ -155,6 +169,23 @@ const LoginScreen: React.FC = () => {
               <Text style={styles.forgotPassword}>Hai dimenticato la password?</Text>
             </TouchableOpacity>
 
+            {/* I Termini si accettano accedendo, quindi la frase sta subito sopra
+                «Accedi» (sotto, la tastiera aperta la puo' coprire): e'
+                TESTO_TERMINI_AL_LOGIN, identica al testo corrente del registro, che
+                il login registra come consenso. I dati sulla salute si chiedono
+                dopo, a parte. */}
+            <Text style={styles.termsText}>
+              Continuando accetti i{' '}
+              <Text style={styles.linkText} onPress={handleOpenTermini} accessibilityRole="link">
+                Termini d&apos;uso
+              </Text>{' '}
+              e dichiari di aver letto l&apos;
+              <Text style={styles.linkText} onPress={handleOpenPrivacy} accessibilityRole="link">
+                Informativa privacy
+              </Text>
+              .
+            </Text>
+
             <TouchableOpacity
               onPress={signInWithEmail}
               disabled={!isValid || loading}
@@ -162,17 +193,6 @@ const LoginScreen: React.FC = () => {
             >
               <Text style={styles.buttonText}>{loading ? 'Accesso in corso...' : 'Accedi'}</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* L'informativa non si «accetta»: si mette a disposizione. I Termini e
-              il consenso ai dati sulla salute si chiedono dopo il login. */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Come trattiamo i tuoi dati è spiegato nell’
-              <Text style={styles.linkText} onPress={handleOpenPrivacy}>
-                Informativa privacy
-              </Text>
-            </Text>
           </View>
         </KeyboardAvoidingView>
       </DismissKeyboardView>
@@ -245,15 +265,12 @@ const makeStyles = (theme: AppTheme) =>
     },
     buttonDisabled: { opacity: 0.6 },
     buttonText: { color: colors.white, fontFamily: GraphitFonts.GraphitRegular, fontSize: 16 },
-    footer: {
-      marginTop: 'auto',
-      alignItems: 'center',
-      paddingBottom: 10,
-    },
-    footerText: {
+    termsText: {
+      marginBottom: 12,
       textAlign: 'center',
-      fontSize: 12,
-      color: '#888',
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textMuted,
       fontFamily: GraphitFonts.GraphitRegular,
     },
     linkText: {

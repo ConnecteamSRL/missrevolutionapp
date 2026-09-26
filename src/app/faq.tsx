@@ -91,7 +91,7 @@ async function consensoAssistenteOk(): Promise<boolean> {
     }
   }
   if (stato.assistente_ai.valido) return true;
-  return chiediConsensoAssistente(stato.assistente_ai.testo_corrente);
+  return chiediConsensoAssistente(stato.assistente_ai);
 }
 
 export default function FaqScreen() {
@@ -166,7 +166,7 @@ export default function FaqScreen() {
       .carica()
       .then(async (stato) => {
         if (!attivo || stato.assistente_ai.valido) return;
-        if (await chiediConsensoAssistente(stato.assistente_ai.testo_corrente)) retry();
+        if (await chiediConsensoAssistente(stato.assistente_ai)) retry();
       })
       .catch((err) => {
         if (__DEV__) console.error('[faq-agent] consenso', err);

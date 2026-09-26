@@ -18,6 +18,7 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useUser } from '@/src/contexts/UserContext';
 import { consensiRichiesti, useConsensiStore } from '@/src/store/consensiStore';
+import { Finalita, Via } from '@/src/lib/consensi';
 import { chiudiSessioneLocale, logout } from '@/src/hooks/auth/useLogout';
 import { useEliminaAccount } from '@/src/hooks/auth/useEliminaAccount';
 import { useDocumentiLegali } from '@/src/hooks/content/useDocumentiLegali';
@@ -80,7 +81,11 @@ function TestoConLink({
  * Schermata bloccante dopo il login: finche' i consensi richiesti non sono
  * validi (Termini per tutti, dati sulla salute per i clienti) l'app non va
  * oltre. La mostra il layout principale; quando i consensi risultano validi
- * il layout passa da solo alle tab.
+ * il layout passa da solo alle tab. Un passo alla volta, cosi' ogni consenso ha
+ * il suo gesto nel registro: prima, se servono, i Termini (avviso con
+ * «Continua»: chi era gia' dentro, lo staff, chi ha Termini nuovi, un login che
+ * non e' riuscito a registrarli); poi i dati sulla salute (un benvenuto con una
+ * frase e «Acconsento e continuo»).
  */
 export default function ConsensiScreen() {
   const theme = useTheme();
@@ -89,6 +94,7 @@ export default function ConsensiScreen() {
   const { me, error: userError, refetchMe } = useUser();
   const stato = useConsensiStore((s) => s.stato);
   const errore = useConsensiStore((s) => s.errore);
+  const terminiAlLogin = useConsensiStore((s) => s.terminiAlLogin);
   const [inviando, setInviando] = useState(false);
   const [uscendo, setUscendo] = useState(false);
   // Anche senza consensi la persona deve poter scrivere per i suoi diritti ed
@@ -123,14 +129,17 @@ export default function ConsensiScreen() {
     }
   };
 
-  const acconsenti = async () => {
-    if (!richiesti) return;
+  const acconsenti = async (
+    finalita: Finalita[],
+    via: Via,
+    versioni: Partial<Record<Finalita, string>>,
+  ) => {
     setInviando(true);
     try {
-      const nuovo = await useConsensiStore.getState().registra(richiesti, 'dato');
+      const nuovo = await useConsensiStore.getState().registra(finalita, 'dato', via, versioni);
       // Se nel frattempo un testo e' cambiato il consenso resta sul testo vecchio:
       // la schermata mostra quello nuovo e chiede di nuovo.
-      if (!richiesti.every((f) => nuovo[f].valido)) {
+      if (!finalita.every((f) => nuovo[f].valido)) {
         Alert.alert(
           'Testi aggiornati',
           'Il testo è stato aggiornato: leggilo e conferma di nuovo.',
@@ -162,8 +171,30 @@ export default function ConsensiScreen() {
     </TouchableOpacity>
   );
 
+  // Cosa chiedere: i consensi richiesti non ancora validi, tranne i Termini che
+  // il login sta registrando (la persona li ha accettati toccando «Accedi»).
+  const daChiedere =
+    stato && richiesti
+      ? richiesti.filter((f) => !stato[f].valido && !(f === 'termini' && terminiAlLogin))
+      : null;
+  // Un passo alla volta: i Termini prima, la salute dopo, mai nello stesso tocco.
+  const chiedeTermini = daChiedere?.includes('termini') ?? false;
+  const chiedeSalute = !chiedeTermini && (daChiedere?.includes('dati_salute') ?? false);
+
+  const linkTermini = (
+    <TestoConLink
+      testo={stato?.termini.testo_corrente ?? ''}
+      links={[
+        { frase: LINK_TERMINI, onPress: () => router.push('/termini') },
+        { frase: LINK_INFORMATIVA, onPress: () => router.push('/privacy-policy') },
+      ]}
+      style={styles.termsText}
+      linkStyle={styles.linkText}
+    />
+  );
+
   let contenuto: React.ReactNode;
-  if (stato && richiesti) {
+  if (stato && daChiedere && daChiedere.length > 0) {
     contenuto = (
       <>
         <ScrollView
@@ -173,68 +204,93 @@ export default function ConsensiScreen() {
           <View style={styles.logoContainer}>
             <Image source={logo} style={styles.logo} contentFit="contain" />
           </View>
-          <Text style={styles.title}>Prima di iniziare</Text>
 
-          {richiesti.includes('dati_salute') && (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>I tuoi dati sulla salute</Text>
-              <Text style={styles.cardText}>{stato.dati_salute.testo_corrente}</Text>
-            </View>
-          )}
-
-          <TestoConLink
-            testo={stato.termini.testo_corrente}
-            links={[
-              { frase: LINK_TERMINI, onPress: () => router.push('/termini') },
-              { frase: LINK_INFORMATIVA, onPress: () => router.push('/privacy-policy') },
-            ]}
-            style={styles.termsText}
-            linkStyle={styles.linkText}
-          />
-
-          <Text style={styles.noteText}>
-            Per accedere ai tuoi dati, averne una copia o correggerli scrivi a{' '}
-            {email ? (
+          {chiedeSalute ? (
+            <>
+              {/* Un benvenuto, non un modulo: una frase e un gesto a parte per i
+                  dati sulla salute (art. 9), che non si accettano «accedendo». */}
+              <Text style={styles.title}>
+                {stato.dati_salute.azione === null
+                  ? `${me?.profile?.gender === 'maschio' ? 'Benvenuto' : 'Benvenuta'} in Miss Revolution`
+                  : 'I tuoi dati sulla salute'}
+              </Text>
+              <Text style={styles.bodyText}>{stato.dati_salute.testo_corrente}</Text>
               <Text
-                style={styles.linkText}
-                onPress={() => void Linking.openURL(`mailto:${email}`).catch(() => {})}
+                style={[styles.termsText, styles.linkText]}
+                onPress={() => router.push('/privacy-policy')}
                 accessibilityRole="link"
               >
-                {email}
+                {LINK_INFORMATIVA}
               </Text>
-            ) : (
-              'l’indirizzo indicato nell’Informativa privacy'
-            )}
-            .
-          </Text>
+            </>
+          ) : (
+            <>
+              {/* Solo i Termini: chi era gia' dentro quando sono cambiati, lo staff,
+                  o un login che non e' riuscito a registrarli. */}
+              <Text style={styles.title}>
+                {stato.termini.azione === 'dato' ? 'Termini aggiornati' : 'Prima di iniziare'}
+              </Text>
+              {linkTermini}
+            </>
+          )}
 
-          {me?.role === 'client' && (
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={confermaEliminazione}
-              disabled={occupato}
-              accessibilityRole="button"
-            >
-              {eliminando ? (
-                <ActivityIndicator size="small" color={theme.accent} />
-              ) : (
-                <Text style={styles.noteText}>Elimina account</Text>
+          {/* Chi non vuole dare il consenso non arriva al Profilo: qui trova il
+              contatto per i suoi diritti e l'eliminazione dell'account, in
+              piccolo in fondo. */}
+          {chiedeSalute && (
+            <View style={styles.diritti}>
+              <Text style={styles.noteText}>
+                Per accedere ai tuoi dati, averne una copia o correggerli scrivi a{' '}
+                {email ? (
+                  <Text
+                    style={styles.linkText}
+                    onPress={() => void Linking.openURL(`mailto:${email}`).catch(() => {})}
+                    accessibilityRole="link"
+                  >
+                    {email}
+                  </Text>
+                ) : (
+                  'l’indirizzo indicato nell’Informativa privacy'
+                )}
+                .
+              </Text>
+              {me?.role === 'client' && (
+                <TouchableOpacity
+                  style={styles.secondaryButton}
+                  onPress={confermaEliminazione}
+                  disabled={occupato}
+                  accessibilityRole="button"
+                >
+                  {eliminando ? (
+                    <ActivityIndicator size="small" color={theme.accent} />
+                  ) : (
+                    <Text style={styles.noteText}>Elimina account</Text>
+                  )}
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            </View>
           )}
         </ScrollView>
 
         <View style={styles.footer}>
           <TouchableOpacity
             style={[styles.primaryButton, occupato && styles.buttonDisabled]}
-            onPress={acconsenti}
+            onPress={() =>
+              chiedeTermini
+                ? acconsenti(['termini'], 'avviso', { termini: stato.termini.versione_corrente })
+                : acconsenti(['dati_salute'], 'benvenuto', {
+                    dati_salute: stato.dati_salute.versione_corrente,
+                  })
+            }
             disabled={occupato}
             accessibilityRole="button"
           >
             {inviando ? (
               <ActivityIndicator size="small" color={colors.white} />
             ) : (
-              <Text style={styles.primaryButtonText}>Acconsento e continuo</Text>
+              <Text style={styles.primaryButtonText}>
+                {chiedeSalute ? 'Acconsento e continuo' : 'Continua'}
+              </Text>
             )}
           </TouchableOpacity>
           {bottoneEsci}
@@ -254,9 +310,11 @@ export default function ConsensiScreen() {
       </View>
     );
   } else {
+    // Anche mentre il login registra i Termini l'uscita resta a portata di mano.
     contenuto = (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={theme.accent} />
+        {stato && me ? bottoneEsci : null}
       </View>
     );
   }
@@ -281,22 +339,11 @@ const makeStyles = (theme: AppTheme) =>
       color: colors.text,
       fontFamily: GraphitFonts.GraphitBold,
     },
-    card: {
-      backgroundColor: theme.surface,
-      borderRadius: 22,
-      borderWidth: 1,
-      borderColor: theme.border,
-      padding: 16,
-      gap: 8,
-    },
-    cardTitle: {
+    diritti: { marginTop: 8, gap: 2 },
+    bodyText: {
       fontSize: 16,
-      color: theme.secondary,
-      fontFamily: GraphitFonts.GraphitBold,
-    },
-    cardText: {
-      fontSize: 15,
-      lineHeight: 22,
+      lineHeight: 24,
+      textAlign: 'center',
       color: colors.text,
       fontFamily: GraphitFonts.GraphitRegular,
     },
