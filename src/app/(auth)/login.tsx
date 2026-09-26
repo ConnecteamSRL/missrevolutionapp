@@ -25,6 +25,8 @@ import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
 import { useLogo } from '@/src/hooks/core/useLogo';
 import { useConsensiStore } from '@/src/store/consensiStore';
+import { TESTO_TERMINI_AL_LOGIN } from '@/src/lib/consensi';
+import TestoConLink, { LINK_INFORMATIVA, LINK_TERMINI } from '@components/core/TestoConLink';
 
 const LoginScreen: React.FC = () => {
   const theme = useTheme();
@@ -170,26 +172,25 @@ const LoginScreen: React.FC = () => {
             </TouchableOpacity>
 
             {/* I Termini si accettano accedendo, quindi la frase sta subito sopra
-                «Accedi» (sotto, la tastiera aperta la puo' coprire): e'
-                TESTO_TERMINI_AL_LOGIN, identica al testo corrente del registro, che
-                il login registra come consenso. I dati sulla salute si chiedono
-                dopo, a parte. */}
-            <Text style={styles.termsText}>
-              Continuando accetti i{' '}
-              <Text style={styles.linkText} onPress={handleOpenTermini} accessibilityRole="link">
-                Termini d&apos;uso
-              </Text>{' '}
-              e dichiari di aver letto l&apos;
-              <Text style={styles.linkText} onPress={handleOpenPrivacy} accessibilityRole="link">
-                Informativa privacy
-              </Text>
-              .
-            </Text>
+                «Accedi» (sotto, la tastiera aperta la puo' coprire). A schermo va
+                TESTO_TERMINI_AL_LOGIN stessa, che il login confronta con il testo
+                corrente del registro prima di registrarla come consenso: una sola
+                stringa per schermo e prova. I dati sulla salute si chiedono dopo. */}
+            <TestoConLink
+              testo={TESTO_TERMINI_AL_LOGIN}
+              links={[
+                { frase: LINK_TERMINI, onPress: handleOpenTermini },
+                { frase: LINK_INFORMATIVA, onPress: handleOpenPrivacy },
+              ]}
+              style={styles.termsText}
+              linkStyle={styles.linkText}
+            />
 
             <TouchableOpacity
               onPress={signInWithEmail}
               disabled={!isValid || loading}
               style={[styles.button, (!isValid || loading) && styles.buttonDisabled]}
+              accessibilityRole="button"
             >
               <Text style={styles.buttonText}>{loading ? 'Accesso in corso...' : 'Accedi'}</Text>
             </TouchableOpacity>

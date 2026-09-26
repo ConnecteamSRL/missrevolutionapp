@@ -39,7 +39,7 @@ interface ConsensiActions {
   iniziaTerminiAlLogin: () => number;
   /**
    * Dopo un login riuscito: registra i Termini se non sono gia' validi e se il
-   * testo corrente e' la frase che la persona aveva sotto «Accedi». Se non
+   * testo corrente e' la frase che la persona aveva sopra «Accedi». Se non
    * riesce (rete) non importa: la schermata dei consensi li chiede.
    */
   accettaTerminiAlLogin: (tentativo: number) => Promise<void>;
@@ -78,15 +78,32 @@ export const useConsensiStore = create<ConsensiState & ConsensiActions>((set, ge
   },
   registra: async (finalita, azione, via, versioni) => {
     const stato = get().stato ?? (await get().carica());
-    await registraConsensi(
-      finalita.map((f) => ({
-        finalita: f,
-        azione,
-        versione: versioni?.[f] ?? stato[f].versione_corrente,
-      })),
-      via,
-    );
-    return get().carica();
+    const voci = finalita.map((f) => ({
+      finalita: f,
+      azione,
+      versione: versioni?.[f] ?? stato[f].versione_corrente,
+    }));
+    await registraConsensi(voci, via);
+    try {
+      return await get().carica();
+    } catch {
+      // La riga e' gia' nel registro: se la rilettura non riesce (rete) lo
+      // stato in memoria prende quello appena scritto, invece di far leggere
+      // «non e' stato possibile» su un consenso o una revoca registrati.
+      const attuale = get().stato ?? stato;
+      const aggiornato = { ...attuale };
+      for (const voce of voci) {
+        aggiornato[voce.finalita] = {
+          ...attuale[voce.finalita],
+          azione: voce.azione,
+          versione_data: voce.versione,
+          valido:
+            voce.azione === 'dato' && voce.versione === attuale[voce.finalita].versione_corrente,
+        };
+      }
+      set({ stato: aggiornato });
+      return aggiornato;
+    }
   },
   iniziaTerminiAlLogin: () => {
     loginSeq += 1;

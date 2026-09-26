@@ -24,58 +24,7 @@ import { useEliminaAccount } from '@/src/hooks/auth/useEliminaAccount';
 import { useDocumentiLegali } from '@/src/hooks/content/useDocumentiLegali';
 import { AppTheme } from '@mr-types/theme.types';
 import { useLogo } from '@/src/hooks/core/useLogo';
-
-// Le frasi del testo dei Termini che diventano link, scritte come nel registro
-// (apostrofo dritto). Se un giorno il testo non le contiene piu', i link
-// compaiono sotto il testo invece di sparire.
-const LINK_TERMINI = "Termini d'uso";
-const LINK_INFORMATIVA = 'Informativa privacy';
-
-type Link = { frase: string; onPress: () => void };
-
-const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-/** Il testo con le frasi dei link toccabili; quelle che non trova le mette in fondo. */
-function TestoConLink({
-  testo,
-  links,
-  style,
-  linkStyle,
-}: {
-  testo: string;
-  links: Link[];
-  style: object;
-  linkStyle: object;
-}) {
-  const trovati = links.filter((link) => testo.includes(link.frase));
-  const mancanti = links.filter((link) => !trovati.includes(link));
-  const parti = trovati.length
-    ? testo.split(new RegExp(`(${trovati.map((link) => escapeRegExp(link.frase)).join('|')})`))
-    : [testo];
-
-  return (
-    <Text style={style}>
-      {parti.map((parte, index) => {
-        const link = trovati.find((l) => l.frase === parte);
-        return link ? (
-          <Text key={index} style={linkStyle} onPress={link.onPress} accessibilityRole="link">
-            {parte}
-          </Text>
-        ) : (
-          parte
-        );
-      })}
-      {mancanti.map((link) => (
-        <Text key={link.frase}>
-          {'\n'}
-          <Text style={linkStyle} onPress={link.onPress} accessibilityRole="link">
-            {link.frase}
-          </Text>
-        </Text>
-      ))}
-    </Text>
-  );
-}
+import TestoConLink, { LINK_INFORMATIVA, LINK_TERMINI } from '@components/core/TestoConLink';
 
 /**
  * Schermata bloccante dopo il login: finche' i consensi richiesti non sono
@@ -234,42 +183,40 @@ export default function ConsensiScreen() {
             </>
           )}
 
-          {/* Chi non vuole dare il consenso non arriva al Profilo: qui trova il
-              contatto per i suoi diritti e l'eliminazione dell'account, in
-              piccolo in fondo. */}
-          {chiedeSalute && (
-            <View style={styles.diritti}>
-              <Text style={styles.noteText}>
-                Per accedere ai tuoi dati, averne una copia o correggerli scrivi a{' '}
-                {email ? (
-                  <Text
-                    style={styles.linkText}
-                    onPress={() => void Linking.openURL(`mailto:${email}`).catch(() => {})}
-                    accessibilityRole="link"
-                  >
-                    {email}
-                  </Text>
-                ) : (
-                  'l’indirizzo indicato nell’Informativa privacy'
-                )}
-                .
-              </Text>
-              {me?.role === 'client' && (
-                <TouchableOpacity
-                  style={styles.secondaryButton}
-                  onPress={confermaEliminazione}
-                  disabled={occupato}
-                  accessibilityRole="button"
+          {/* Chi non vuole dare il consenso, o non accetta i Termini nuovi, non
+              arriva al Profilo: qui trova il contatto per i suoi diritti e
+              l'eliminazione dell'account, in piccolo in fondo. */}
+          <View style={styles.diritti}>
+            <Text style={styles.noteText}>
+              Per accedere ai tuoi dati, averne una copia o correggerli scrivi a{' '}
+              {email ? (
+                <Text
+                  style={styles.linkText}
+                  onPress={() => void Linking.openURL(`mailto:${email}`).catch(() => {})}
+                  accessibilityRole="link"
                 >
-                  {eliminando ? (
-                    <ActivityIndicator size="small" color={theme.accent} />
-                  ) : (
-                    <Text style={styles.noteText}>Elimina account</Text>
-                  )}
-                </TouchableOpacity>
+                  {email}
+                </Text>
+              ) : (
+                'l’indirizzo indicato nell’Informativa privacy'
               )}
-            </View>
-          )}
+              .
+            </Text>
+            {me?.role === 'client' && (
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={confermaEliminazione}
+                disabled={occupato}
+                accessibilityRole="button"
+              >
+                {eliminando ? (
+                  <ActivityIndicator size="small" color={theme.accent} />
+                ) : (
+                  <Text style={styles.noteText}>Elimina account</Text>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
         </ScrollView>
 
         <View style={styles.footer}>
