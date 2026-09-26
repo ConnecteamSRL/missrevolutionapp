@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -43,11 +44,18 @@ export default function AbbonamentoScreen() {
 
   const ricontrolla = async () => {
     setControllando(true);
-    await useAccessoStore
-      .getState()
-      .carica()
-      .catch(() => {});
-    setControllando(false);
+    try {
+      await useAccessoStore.getState().carica();
+    } catch {
+      // Lo stato di prima resta a schermo: senza avviso sembrerebbe che
+      // l'abbonamento non risulti, invece il controllo non e' riuscito.
+      Alert.alert(
+        'Errore',
+        'Non è stato possibile verificare il tuo abbonamento. Controlla la connessione e riprova.',
+      );
+    } finally {
+      setControllando(false);
+    }
   };
 
   // L'uscita deve funzionare anche offline: se il logout completo non riesce

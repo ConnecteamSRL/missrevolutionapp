@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import Constants from 'expo-constants';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { ScanNutrients, ScanResponse } from '@mr-types/barcode.types';
 import { supabase } from '@/src/lib/supabase';
+import { useAccessoStore } from '@/src/store/accessoStore';
 
 const ERROR_RESPONSE: ScanResponse = { status: 'error', is_allowed: null };
 
@@ -51,6 +53,14 @@ export const useProductScanner = () => {
 
       if (error || !data) {
         if (__DEV__) console.error('Supabase Function Error:', error);
+        // 403: l'abbonamento non e' piu' valido. Come per l'assistente si rilegge
+        // l'accesso, e il layout passa alla schermata dell'abbonamento.
+        if (error instanceof FunctionsHttpError && (error.context as Response).status === 403) {
+          useAccessoStore
+            .getState()
+            .carica()
+            .catch(() => {});
+        }
         return ERROR_RESPONSE;
       }
 

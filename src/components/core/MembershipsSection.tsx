@@ -12,7 +12,7 @@ export default function MembershipsSection() {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { me } = useUser();
   const userId = me?.user_id;
-  const { data, loading } = useUserMemberships(userId);
+  const { data, loading, error, refetch } = useUserMemberships(userId);
 
   const iconColor = theme.secondary;
 
@@ -72,6 +72,14 @@ export default function MembershipsSection() {
       {loading ? (
         <View style={styles.loadingRow}>
           <ActivityIndicator size="small" color={theme.accent} />
+        </View>
+      ) : error ? (
+        // Una lettura fallita non e' «nessun abbonamento»: lo si dice e si riprova.
+        <View style={styles.infoGroup}>
+          <Text style={styles.infoText}>Non è stato possibile caricare gli abbonamenti.</Text>
+          <Text style={styles.retryText} onPress={refetch} accessibilityRole="button">
+            Riprova
+          </Text>
         </View>
       ) : (
         <View style={styles.infoList}>
@@ -149,6 +157,12 @@ const makeStyles = (theme: AppTheme) =>
       color: '#1E1E1E',
       fontFamily: GraphitFonts.GraphitRegular,
       marginRight: 12,
+    },
+    retryText: {
+      marginTop: 8,
+      fontSize: 15,
+      color: theme.accent,
+      fontFamily: GraphitFonts.GraphitMedium,
     },
     sectionTitle: {
       fontSize: 16,
