@@ -17,42 +17,13 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { useAccessoStore } from '@/src/store/accessoStore';
 import { chiudiSessioneLocale, logout } from '@/src/hooks/auth/useLogout';
 import { useLogo } from '@/src/hooks/core/useLogo';
-import { StatoAccesso } from '@/src/lib/accesso';
 import { AppTheme } from '@mr-types/theme.types';
 
-const data = (giorno: string | null) =>
-  giorno
-    ? new Date(`${giorno}T12:00:00`).toLocaleDateString('it-IT', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : '';
-
-function messaggio(stato: StatoAccesso): { titolo: string; testo: string } {
-  switch (stato.motivo) {
-    case 'futuro':
-      return {
-        titolo: 'Il tuo programma sta per iniziare',
-        testo: `Parte il ${data(stato.inizio)}. L'app si apre il ${data(stato.apre_il)}, una settimana prima, così puoi prepararti al check-up.`,
-      };
-    case 'scaduto':
-      return {
-        titolo: 'Il tuo abbonamento è scaduto',
-        testo: `È terminato il ${data(stato.fine)}. Per continuare a usare l'app rinnova l'abbonamento con la tua palestra.`,
-      };
-    case 'sospeso':
-      return {
-        titolo: 'Il tuo abbonamento è sospeso',
-        testo: 'Per riattivarlo scrivi alla tua palestra.',
-      };
-    default:
-      return {
-        titolo: 'Non hai un abbonamento attivo',
-        testo: "Per usare l'app serve un abbonamento: scrivi alla tua palestra.",
-      };
-  }
-}
+// Titolo e testo li scrive il server (stato_accesso) per ogni motivo, date
+// comprese: un motivo o una regola nuova non richiedono un aggiornamento
+// dell'app. Questo e' solo il ripiego se non arrivassero.
+const TITOLO_DI_RIPIEGO = 'Il tuo abbonamento non è attivo';
+const TESTO_DI_RIPIEGO = "Per usare l'app scrivi alla tua palestra.";
 
 /**
  * Schermata di chi non ha un abbonamento valido: la mostra il layout
@@ -109,7 +80,8 @@ export default function AbbonamentoScreen() {
 
   let contenuto: React.ReactNode;
   if (stato) {
-    const { titolo, testo } = messaggio(stato);
+    const titolo = stato.titolo || TITOLO_DI_RIPIEGO;
+    const testo = stato.messaggio || TESTO_DI_RIPIEGO;
     contenuto = (
       <>
         <ScrollView
@@ -140,7 +112,7 @@ export default function AbbonamentoScreen() {
             {controllando ? (
               <ActivityIndicator size="small" color={theme.accent} />
             ) : (
-              <Text style={styles.secondaryButtonText}>Ho rinnovato: controlla di nuovo</Text>
+              <Text style={styles.secondaryButtonText}>Controlla di nuovo</Text>
             )}
           </TouchableOpacity>
           <TouchableOpacity

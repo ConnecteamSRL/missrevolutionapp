@@ -1,17 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/src/lib/supabase';
-import { Database } from '@mr-types/database.types';
 
+/** Abbonamento come lo mostra il profilo; date in formato YYYY-MM-DD. */
 export type UserMembershipDetail = {
   id: string;
-  status: Database['public']['Enums']['membership_status'];
-  status_label: string;
-  start_date: string;
-  end_date: string | null;
-  membership: {
-    name: string;
-    description: string | null;
-  } | null;
+  nome: string;
+  descrizione: string | null;
+  inizio: string;
+  fine: string | null;
+  /** Testo gia' pronto del server: «Attivo» o «Parte il 5 ottobre 2026». */
+  etichetta: string;
 };
 
 export function useUserMemberships(userId?: string) {
@@ -32,57 +30,16 @@ export function useUserMemberships(userId?: string) {
         else setLoading(true);
         setError(null);
 
-        // La data va presa dal fuso dell'utente: con toISOString(), fra mezzanotte
-        // e le due di notte (ora legale) in Italia si otteneva ancora ieri e un
-        // abbonamento che inizia oggi risultava non ancora iniziato.
-        const today = new Date();
-        const now = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-        const { data: rows, error: err } = await supabase
-          .from('user_memberships')
-          .select(
-            `
-            id,
-            status,
-            start_date,
-            end_date,
-            membership:memberships (
-              name,
-              description
-            )
-          `,
-          )
-          .eq('user_id', userId)
-          .eq('status', 'active')
-          .lte('start_date', now)
-          .or(`end_date.is.null,end_date.gte.${now}`);
+        // Quali abbonamenti mostrare, e con quale etichetta, lo decide il server
+        // (abbonamenti_in_app) con la stessa regola che apre l'app: qui niente
+        // filtri ne' stati calcolati, cosi' una regola nuova non richiede un
+        // aggiornamento sugli store. userId serve solo ad aspettare il login e a
+        // rileggere se cambia utente.
+        const { data: rows, error: err } = await supabase.rpc('abbonamenti_in_app');
 
         if (err) throw err;
 
-        const mappedData = (rows || []).map((row: any) => {
-          let label = 'Sconosciuto';
-          switch (row.status) {
-            case 'active':
-              label = 'Attivo';
-              break;
-            case 'pending':
-              label = 'In attesa';
-              break;
-            case 'expired':
-              label = 'Scaduto';
-              break;
-          }
-
-          const membershipData = Array.isArray(row.membership) ? row.membership[0] : row.membership;
-
-          return {
-            ...row,
-            status_label: label,
-            membership: membershipData,
-          };
-        });
-
-        setData((mappedData as unknown as UserMembershipDetail[]) || []);
+        setData((rows as UserMembershipDetail[] | null) ?? []);
       } catch (e: any) {
         setError(e?.message ?? 'Errore nel caricamento memberships');
       } finally {

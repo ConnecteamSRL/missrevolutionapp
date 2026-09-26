@@ -19,9 +19,9 @@ export default function MembershipsSection() {
   const fmt = (d?: string | null) => (d ? new Date(d).toLocaleDateString('it-IT') : '∞');
 
   const renderMembershipItem = (item: UserMembershipDetail, index: number) => {
-    const status = item.status_label;
-    const planName = item.membership?.name || 'Piano sconosciuto';
-    const period = `${fmt(item.start_date)} – ${fmt(item.end_date)}`;
+    const status = item.etichetta;
+    const planName = item.nome;
+    const period = `${fmt(item.inizio)} – ${fmt(item.fine)}`;
     const isLast = index === data.length - 1;
 
     return (

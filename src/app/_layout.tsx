@@ -92,8 +92,8 @@ const AppEntryPoint: React.FC = () => {
     consensiRichiesti(ruolo).every((finalita) => statoConsensi[finalita].valido);
   const consensiInAttesa = isLoggedIn && (!statoConsensi || !me) && !erroreConsensi && !userError;
 
-  // Senza un abbonamento valido (in corso, o che parte entro 7 giorni) si vede
-  // solo la schermata dell'abbonamento, con la chat della palestra e il
+  // Senza accesso (lo decide il server con stato_accesso) si vede solo la
+  // schermata dell'abbonamento, con la chat della palestra e il
   // profilo. Finche' lo stato non e' noto, o se non si riesce a leggerlo, vale
   // come «senza»: la schermata mostra l'attesa o l'errore con «Riprova».
   const accessoOk = !!statoAccesso?.accesso;
