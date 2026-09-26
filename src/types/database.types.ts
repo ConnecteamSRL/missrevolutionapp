@@ -16,8 +16,10 @@ export type Database = {
           id: number;
           latenza_ms: number | null;
           modello: string | null;
+          riferimento: string | null;
           rinvio_gruppo: boolean;
           risposta: string;
+          segnalata_il: string | null;
         };
         Insert: {
           domanda: string;
@@ -26,8 +28,10 @@ export type Database = {
           id?: never;
           latenza_ms?: number | null;
           modello?: string | null;
+          riferimento?: string | null;
           rinvio_gruppo?: boolean;
           risposta: string;
+          segnalata_il?: string | null;
         };
         Update: {
           domanda?: string;
@@ -36,8 +40,10 @@ export type Database = {
           id?: never;
           latenza_ms?: number | null;
           modello?: string | null;
+          riferimento?: string | null;
           rinvio_gruppo?: boolean;
           risposta?: string;
+          segnalata_il?: string | null;
         };
         Relationships: [];
       };
@@ -1260,10 +1266,13 @@ export type Database = {
           dettagli: Json | null;
           id: number;
           interessato: string | null;
+          palestra_attore: string | null;
+          permessi: string[] | null;
           quando: string;
           record_id: string | null;
           ruolo: string | null;
           tabella: string | null;
+          tutta_la_rete: boolean | null;
         };
         Insert: {
           attore?: string | null;
@@ -1271,10 +1280,13 @@ export type Database = {
           dettagli?: Json | null;
           id?: never;
           interessato?: string | null;
+          palestra_attore?: string | null;
+          permessi?: string[] | null;
           quando?: string;
           record_id?: string | null;
           ruolo?: string | null;
           tabella?: string | null;
+          tutta_la_rete?: boolean | null;
         };
         Update: {
           attore?: string | null;
@@ -1282,10 +1294,13 @@ export type Database = {
           dettagli?: Json | null;
           id?: never;
           interessato?: string | null;
+          palestra_attore?: string | null;
+          permessi?: string[] | null;
           quando?: string;
           record_id?: string | null;
           ruolo?: string | null;
           tabella?: string | null;
+          tutta_la_rete?: boolean | null;
         };
         Relationships: [];
       };
@@ -3205,6 +3220,28 @@ export type Database = {
           },
         ];
       };
+      v_registro_accessi: {
+        Row: {
+          attore: string | null;
+          attore_email: string | null;
+          attore_nome: string | null;
+          azione: string | null;
+          dettagli: Json | null;
+          id: number | null;
+          interessato: string | null;
+          interessato_email: string | null;
+          interessato_nome: string | null;
+          palestra_attore: string | null;
+          palestra_attore_nome: string | null;
+          permessi: string[] | null;
+          quando: string | null;
+          record_id: string | null;
+          ruolo: string | null;
+          tabella: string | null;
+          tutta_la_rete: boolean | null;
+        };
+        Relationships: [];
+      };
       v_user_anamnesis: {
         Row: {
           anamnesis_id: string | null;
@@ -3280,6 +3317,21 @@ export type Database = {
       _storage_can_access_checkup_files: {
         Args: { mode: string; object_name: string };
         Returns: boolean;
+      };
+      _togli_destinatario_dalle_notifiche: {
+        Args: { p_user_id: string };
+        Returns: Record<string, unknown>;
+      };
+      abbonamenti_in_app: {
+        Args: never;
+        Returns: {
+          descrizione: string;
+          etichetta: string;
+          fine: string;
+          id: string;
+          inizio: string;
+          nome: string;
+        }[];
       };
       assign_survey_to_gym_clients: {
         Args: {
@@ -3374,6 +3426,16 @@ export type Database = {
           role: Database['public']['Enums']['app_role'];
         }[];
       };
+      registra_esportazione: {
+        Args: {
+          p_dettagli?: Json;
+          p_formato: string;
+          p_interessato?: string;
+          p_record_id?: string;
+          p_tabella: string;
+        };
+        Returns: undefined;
+      };
       registra_lettura: {
         Args: { p_interessato: string; p_tabella: string };
         Returns: undefined;
@@ -3385,6 +3447,7 @@ export type Database = {
           p_foto?: number;
           p_latenza_ms?: number;
           p_modello?: string;
+          p_riferimento?: string;
           p_rinvio_gruppo?: boolean;
           p_risposta: string;
         };
@@ -3393,6 +3456,10 @@ export type Database = {
       reorder_videos_in_category: {
         Args: { p_category_id: string; p_video_ids: string[] };
         Returns: undefined;
+      };
+      segnala_risposta_assistente: {
+        Args: { p_riferimento: string };
+        Returns: boolean;
       };
       set_avatar_key: {
         Args: { p_key: string; p_user_id: string };
@@ -3413,7 +3480,9 @@ export type Database = {
           apre_il: string;
           fine: string;
           inizio: string;
+          messaggio: string;
           motivo: string;
+          titolo: string;
         }[];
       };
       stato_consensi: {

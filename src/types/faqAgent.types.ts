@@ -17,6 +17,11 @@ export type FaqAgentResponse = {
   reply: string;
   /** Resa testuale del turno utente (testo + descrizione delle foto). */
   user_text: string;
+  /**
+   * Uuid casuale della risposta, salvato anche nel registro del servizio: serve
+   * solo a segnalarla allo staff. Manca con un servizio precedente al 2026-09-26.
+   */
+  riferimento?: string;
 };
 
 /** Foto gia' compressa: `uri` per la miniatura, `base64` per il servizio. */
@@ -49,6 +54,10 @@ export type FaqAgentAssistantMessage = {
   text: string;
   /** Ora di arrivo della risposta (ISO). */
   createdAt: string;
+  /** Riferimento della risposta per «Segnala»; senza, il link non compare (es. il benvenuto). */
+  riferimento?: string;
+  /** True dopo che il server ha confermato la segnalazione. */
+  segnalata?: boolean;
 };
 
 export type FaqAgentMessage = FaqAgentUserMessage | FaqAgentAssistantMessage;

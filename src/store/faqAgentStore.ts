@@ -4,6 +4,7 @@ import {
   faqAgentErrorMessage,
   isAbbonamentoNonAttivo,
   isConsensoMancante,
+  segnalaRisposta,
 } from '../lib/faqAgent';
 import { useAccessoStore } from './accessoStore';
 import {
@@ -39,6 +40,11 @@ interface FaqAgentState {
 interface FaqAgentActions {
   send: (draft: FaqAgentDraft) => void;
   retry: () => void;
+  /**
+   * Segnala allo staff la risposta con questo id; se il server la conferma la
+   * bolla resta «Segnalata». False se non e' stato possibile.
+   */
+  segnala: (id: string) => Promise<boolean>;
   reset: () => void;
 }
 
@@ -101,6 +107,7 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
             role: 'assistant',
             text: result.reply,
             createdAt: new Date().toISOString(),
+            riferimento: result.riferimento,
           },
         ],
         history: appendFaqAgentTurns(state.history, result.user_text, result.reply),
@@ -146,6 +153,22 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
       cancelPending();
       set({ error: null, consensoMancante: false });
       void flush();
+    },
+    segnala: async (id) => {
+      const risposta = get().messages.find((m) => m.id === id);
+      if (risposta?.role !== 'assistant' || !risposta.riferimento) return false;
+      try {
+        if (!(await segnalaRisposta(risposta.riferimento))) return false;
+      } catch (error) {
+        if (__DEV__) console.error('[faq-agent] segnala', error);
+        return false;
+      }
+      set((state) => ({
+        messages: state.messages.map((m) =>
+          m.id === id && m.role === 'assistant' ? { ...m, segnalata: true } : m,
+        ),
+      }));
+      return true;
     },
     reset: () => {
       cancelPending();

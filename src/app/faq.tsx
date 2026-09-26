@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { RotateCw } from 'lucide-react-native';
+import { Flag, RotateCw } from 'lucide-react-native';
 import ContentScreenLayout from '@components/layouts/ContentScreenLayout';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
@@ -104,6 +104,7 @@ export default function FaqScreen() {
   const error = useFaqAgentStore((s) => s.error);
   const send = useFaqAgentStore((s) => s.send);
   const retry = useFaqAgentStore((s) => s.retry);
+  const segnala = useFaqAgentStore((s) => s.segnala);
   const consensoMancante = useFaqAgentStore((s) => s.consensoMancante);
 
   const pending = pendingUserMessages(messages);
@@ -122,6 +123,35 @@ export default function FaqScreen() {
   const handleRetry = useCallback(async () => {
     if (await consensoAssistenteOk()) retry();
   }, [retry]);
+
+  // «Segnala» sotto ogni risposta dell'AI (Google Play lo chiede alle chat AI):
+  // la risposta arriva allo staff in «Domande ricevute», senza il nome della cliente.
+  // Dal tocco all'esito la stessa risposta non si risegnala: un doppio tocco non
+  // apre due conferme ne' manda due richieste.
+  const segnalazioniInCorso = useRef(new Set<string>());
+  const handleSegnala = useCallback(
+    (id: string) => {
+      const inCorso = segnalazioniInCorso.current;
+      if (inCorso.has(id)) return;
+      inCorso.add(id);
+      Alert.alert('Segnalare questa risposta allo staff?', undefined, [
+        { text: 'Annulla', style: 'cancel', onPress: () => inCorso.delete(id) },
+        {
+          text: 'Segnala',
+          onPress: async () => {
+            const ok = await segnala(id);
+            inCorso.delete(id);
+            if (ok) {
+              Alert.alert('Risposta segnalata', 'Grazie, lo staff la controllerà.');
+            } else {
+              Alert.alert('Errore', 'Non è stato possibile segnalarla. Riprova tra poco.');
+            }
+          },
+        },
+      ]);
+    },
+    [segnala],
+  );
 
   // Il servizio non ha trovato un consenso valido (revocato da un altro
   // telefono, o testo cambiato): si rilegge lo stato e, se manca davvero, si
@@ -210,18 +240,44 @@ export default function FaqScreen() {
               {item.images.length > 0 ? <FaqAgentAttachments images={item.images} /> : null}
             </ChatBubble>
           ) : (
-            // Stile delle bolle dell'operatore, con l'etichetta dell'assistente.
-            <ChatBubble
-              message={{ content: item.text, created_at: item.createdAt, sender_type: 'operator' }}
-              isMe={false}
-              label={ASSISTANT_LABEL}
-              formattato
-            />
+            <>
+              {/* Stile delle bolle dell'operatore, con l'etichetta dell'assistente. */}
+              <ChatBubble
+                message={{
+                  content: item.text,
+                  created_at: item.createdAt,
+                  sender_type: 'operator',
+                }}
+                isMe={false}
+                label={ASSISTANT_LABEL}
+                formattato
+              />
+              {/* Solo le risposte del servizio hanno un riferimento: il benvenuto no. */}
+              {item.riferimento ? (
+                item.segnalata ? (
+                  <View style={styles.segnala} accessible accessibilityLabel="Risposta segnalata">
+                    <Flag color={colors.textMuted} fill={colors.textMuted} size={11} />
+                    <Text style={styles.segnalaText}>Segnalata</Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.segnala}
+                    onPress={() => handleSegnala(item.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Segnala questa risposta allo staff"
+                    hitSlop={{ top: 10, bottom: 10, left: 8, right: 16 }}
+                  >
+                    <Flag color={colors.textMuted} size={11} />
+                    <Text style={styles.segnalaText}>Segnala</Text>
+                  </TouchableOpacity>
+                )
+              ) : null}
+            </>
           )}
         </View>
       );
     },
-    [data],
+    [data, styles, handleSegnala],
   );
 
   return (
@@ -323,6 +379,21 @@ const makeStyles = (theme: AppTheme) =>
       color: theme.onPrimary,
       fontFamily: GraphitFonts.GraphitBold,
       fontSize: 13,
+    },
+    // Sotto l'orario della bolla, con lo stesso rientro: discreto come il disclaimer.
+    segnala: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 4,
+      marginLeft: 16,
+      marginBottom: 4,
+    },
+    segnalaText: {
+      fontFamily: GraphitFonts.GraphitMedium,
+      fontSize: 11,
+      lineHeight: 15,
+      color: colors.textMuted,
     },
     // Il padding sotto tiene il link staccato dalla tastiera quando e' aperta.
     disclaimer: {

@@ -102,6 +102,21 @@ export async function askFaqAgent(
   return data;
 }
 
+/**
+ * Segnala allo staff una risposta dell'assistente con il riferimento restituito
+ * dal servizio (segnala_risposta_assistente): finisce in «Domande ricevute» del
+ * backoffice, senza il nome della cliente. true = segnalata (ora o prima);
+ * false = riferimento sconosciuto (registro spento, o riga non ancora scritta).
+ * Un errore di rete o del server viene rilanciato.
+ */
+export async function segnalaRisposta(riferimento: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('segnala_risposta_assistente', {
+    p_riferimento: riferimento,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
 export function faqAgentErrorMessage(error: unknown): string {
   if (isConsensoMancante(error)) {
     return 'Per usare l’assistente serve il tuo consenso.';
