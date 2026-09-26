@@ -60,6 +60,9 @@ let requestSeq = 0;
 // Lo stesso per i Termini al login: conta solo l'ultimo tentativo, cosi' una
 // registrazione ancora in corso non tocca il login successivo.
 let loginSeq = 0;
+// Cambia solo al logout: una registrazione partita prima non scrive piu' nello
+// stato, che da quel momento e' di un'altra sessione.
+let generazione = 0;
 
 export const useConsensiStore = create<ConsensiState & ConsensiActions>((set, get) => ({
   stato: null,
@@ -77,6 +80,7 @@ export const useConsensiStore = create<ConsensiState & ConsensiActions>((set, ge
     }
   },
   registra: async (finalita, azione, via, versioni) => {
+    const gen = generazione;
     const stato = get().stato ?? (await get().carica());
     const voci = finalita.map((f) => ({
       finalita: f,
@@ -101,7 +105,7 @@ export const useConsensiStore = create<ConsensiState & ConsensiActions>((set, ge
             voce.azione === 'dato' && voce.versione === attuale[voce.finalita].versione_corrente,
         };
       }
-      set({ stato: aggiornato });
+      if (gen === generazione) set({ stato: aggiornato });
       return aggiornato;
     }
   },
@@ -135,6 +139,7 @@ export const useConsensiStore = create<ConsensiState & ConsensiActions>((set, ge
   reset: () => {
     requestSeq += 1;
     loginSeq += 1;
+    generazione += 1;
     set({ stato: null, errore: false, terminiAlLogin: false });
   },
 }));
