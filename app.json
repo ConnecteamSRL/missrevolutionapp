@@ -2,7 +2,7 @@
   "expo": {
     "name": "Miss Revolution",
     "slug": "miss-revolution",
-    "version": "1.2.7",
+    "version": "1.3.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "missrevolution",
@@ -22,7 +22,7 @@
         "UIBackgroundModes": ["remote-notification"],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "33"
+      "buildNumber": "34"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +34,7 @@
       "package": "com.automatiko.missrevolution",
       "allowBackup": false,
       "permissions": ["android.permission.CAMERA"],
-      "versionCode": 16
+      "versionCode": 17
     },
     "plugins": [
       "expo-router",
