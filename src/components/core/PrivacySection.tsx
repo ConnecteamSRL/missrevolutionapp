@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   StyleSheet,
   Switch,
   Text,
@@ -25,9 +24,9 @@ const DANGER = '#D32F2F';
 const ERRORE_CONNESSIONE = 'Controlla la connessione e riprova.';
 
 /**
- * Profilo → Privacy: documenti, consensi revocabili con un tocco, eliminazione
- * dell'account e il contatto per gli altri diritti (accesso, copia,
- * rettifica…), che passano dall'email di supporto.
+ * Profilo → Privacy: documenti, consensi revocabili con un tocco ed
+ * eliminazione dell'account. Il contatto per gli altri diritti sta
+ * nell'informativa.
  */
 export default function PrivacySection() {
   const theme = useTheme();
@@ -42,10 +41,6 @@ export default function PrivacySection() {
   const email = documenti?.support_email?.trim() || null;
   const assistenteAttivo = stato?.assistente_ai.valido ?? false;
   const { eliminando, confermaEliminazione } = useEliminaAccount(email);
-
-  const apriEmail = () => {
-    if (email) void Linking.openURL(`mailto:${email}`).catch(() => {});
-  };
 
   // Dare il consenso mostra il testo e chiede conferma; revocarlo e' un tocco
   // solo, perche' revocare dev'essere facile quanto dare.
@@ -92,14 +87,6 @@ export default function PrivacySection() {
       ],
     );
   };
-
-  const emailText = email ? (
-    <Text style={styles.linkText} onPress={apriEmail} accessibilityRole="link">
-      {email}
-    </Text>
-  ) : (
-    'l’indirizzo indicato nell’Informativa privacy'
-  );
 
   return (
     <View style={styles.container}>
@@ -177,13 +164,6 @@ export default function PrivacySection() {
           </TouchableOpacity>
         )}
       </View>
-
-      <Text style={styles.note}>
-        Per accedere ai tuoi dati, averne una copia o correggerli scrivi a {emailText}.
-      </Text>
-      {me && !isClient && (
-        <Text style={styles.note}>Per eliminare il tuo account scrivi a {emailText}.</Text>
-      )}
     </View>
   );
 }
@@ -241,18 +221,5 @@ const makeStyles = (theme: AppTheme) =>
     dangerText: {
       color: DANGER,
       fontFamily: GraphitFonts.GraphitMedium,
-    },
-    note: {
-      fontSize: 13,
-      lineHeight: 19,
-      color: colors.textMuted,
-      fontFamily: GraphitFonts.GraphitRegular,
-      marginHorizontal: 6,
-      marginBottom: 4,
-    },
-    linkText: {
-      color: theme.secondary,
-      fontFamily: GraphitFonts.GraphitMedium,
-      textDecorationLine: 'underline',
     },
   });

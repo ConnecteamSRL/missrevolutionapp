@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,8 +19,6 @@ import { useUser } from '@/src/contexts/UserContext';
 import { consensiRichiesti, useConsensiStore } from '@/src/store/consensiStore';
 import { Finalita, Via } from '@/src/lib/consensi';
 import { chiudiSessioneLocale, logout } from '@/src/hooks/auth/useLogout';
-import { useEliminaAccount } from '@/src/hooks/auth/useEliminaAccount';
-import { useDocumentiLegali } from '@/src/hooks/content/useDocumentiLegali';
 import { AppTheme } from '@mr-types/theme.types';
 import { useLogo } from '@/src/hooks/core/useLogo';
 import TestoConLink, { LINK_INFORMATIVA, LINK_TERMINI } from '@components/core/TestoConLink';
@@ -46,13 +43,7 @@ export default function ConsensiScreen() {
   const terminiAlLogin = useConsensiStore((s) => s.terminiAlLogin);
   const [inviando, setInviando] = useState(false);
   const [uscendo, setUscendo] = useState(false);
-  // Anche senza consensi la persona deve poter scrivere per i suoi diritti ed
-  // eliminare l'account (la cliente che ha revocato i dati sulla salute non
-  // arriva al Profilo): contatto e flusso sono gli stessi di Profilo → Privacy.
-  const { data: documenti } = useDocumentiLegali();
-  const email = documenti?.support_email?.trim() || null;
-  const { eliminando, confermaEliminazione } = useEliminaAccount(email);
-  const occupato = inviando || uscendo || eliminando;
+  const occupato = inviando || uscendo;
 
   const logo = useLogo();
   const richiesti = me ? consensiRichiesti(me.role) : null;
@@ -182,41 +173,6 @@ export default function ConsensiScreen() {
               {linkTermini}
             </>
           )}
-
-          {/* Chi non vuole dare il consenso, o non accetta i Termini nuovi, non
-              arriva al Profilo: qui trova il contatto per i suoi diritti e
-              l'eliminazione dell'account, in piccolo in fondo. */}
-          <View style={styles.diritti}>
-            <Text style={styles.noteText}>
-              Per accedere ai tuoi dati, averne una copia o correggerli scrivi a{' '}
-              {email ? (
-                <Text
-                  style={styles.linkText}
-                  onPress={() => void Linking.openURL(`mailto:${email}`).catch(() => {})}
-                  accessibilityRole="link"
-                >
-                  {email}
-                </Text>
-              ) : (
-                'l’indirizzo indicato nell’Informativa privacy'
-              )}
-              .
-            </Text>
-            {me?.role === 'client' && (
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={confermaEliminazione}
-                disabled={occupato}
-                accessibilityRole="button"
-              >
-                {eliminando ? (
-                  <ActivityIndicator size="small" color={theme.accent} />
-                ) : (
-                  <Text style={styles.noteText}>Elimina account</Text>
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
         </ScrollView>
 
         <View style={styles.footer}>
@@ -286,7 +242,6 @@ const makeStyles = (theme: AppTheme) =>
       color: colors.text,
       fontFamily: GraphitFonts.GraphitBold,
     },
-    diritti: { marginTop: 8, gap: 2 },
     bodyText: {
       fontSize: 16,
       lineHeight: 24,
@@ -305,13 +260,6 @@ const makeStyles = (theme: AppTheme) =>
       color: theme.secondary,
       textDecorationLine: 'underline',
       fontFamily: GraphitFonts.GraphitBold,
-    },
-    noteText: {
-      fontSize: 13,
-      lineHeight: 19,
-      textAlign: 'center',
-      color: colors.textMuted,
-      fontFamily: GraphitFonts.GraphitRegular,
     },
     footer: { paddingHorizontal: 20, paddingBottom: 12, gap: 4 },
     centered: {
