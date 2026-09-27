@@ -31,7 +31,7 @@ No test suite is configured. Pre-commit hooks (Husky + lint-staged) run Prettier
 
 All routes live in `src/app/`. Route groups:
 
-- `(auth)/` — unauthenticated: login, register, password flows
+- `(auth)/` — unauthenticated: login, password flows (no sign-up: accounts are created only from the backoffice)
 - `(tabs)/` — main bottom tab bar with 4 tabs: home, nutrition, workout, progress
 - `(chat)/`, `(recipe)/`, `(workout)/` — detail screens pushed onto the stack
 - `video/`, `survey/`, `notifications`, `profile` — standalone screens
