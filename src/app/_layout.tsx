@@ -135,7 +135,6 @@ const AppEntryPoint: React.FC = () => {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!isLoggedIn}>
         <Stack.Screen name="(auth)/login" />
-        <Stack.Screen name="(auth)/register" />
         <Stack.Screen name="(auth)/reset-password" />
         <Stack.Screen name="(auth)/forgot-password" />
         <Stack.Screen name="(auth)/confirm-signup" />
