@@ -26,6 +26,12 @@ import { AppTheme } from '@mr-types/theme.types';
 import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
 import { useAuthStore } from '@/src/store/authStore';
 import { useLogo } from '@/src/hooks/core/useLogo';
+import {
+  PASSWORD_RIFIUTATA,
+  passwordRifiutata,
+  passwordValida,
+  REGOLE_PASSWORD,
+} from '@/src/utils/password';
 
 const SetPasswordScreen: React.FC = () => {
   const theme = useTheme();
@@ -131,9 +137,7 @@ const SetPasswordScreen: React.FC = () => {
   }, [tokens]);
 
   useEffect(() => {
-    const isLengthValid = password.length >= 6;
-    const doMatch = password === confirmPassword;
-    setIsValid(isLengthValid && doMatch && password.length > 0);
+    setIsValid(passwordValida(password) && password === confirmPassword);
   }, [password, confirmPassword]);
 
   const handlePasswordChange = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
@@ -188,7 +192,12 @@ const SetPasswordScreen: React.FC = () => {
         },
       ]);
     } catch (err: any) {
-      Alert.alert('Errore', err?.message || 'Si è verificato un errore imprevisto. Riprova.');
+      Alert.alert(
+        'Errore',
+        passwordRifiutata(err)
+          ? PASSWORD_RIFIUTATA
+          : err?.message || 'Si è verificato un errore imprevisto. Riprova.',
+      );
     } finally {
       setLoading(false);
     }
@@ -218,7 +227,8 @@ const SetPasswordScreen: React.FC = () => {
 
           <Text style={styles.title}>Benvenuto!</Text>
           <Text style={styles.subtitle}>
-            Completa la configurazione del tuo account impostando una password sicura.
+            Completa la configurazione del tuo account impostando una password sicura:{' '}
+            {REGOLE_PASSWORD}.
           </Text>
 
           <View style={styles.form}>
@@ -226,7 +236,7 @@ const SetPasswordScreen: React.FC = () => {
               onChange={handlePasswordChange}
               value={password}
               secureTextEntry
-              placeholder="Nuova Password (min. 6 caratteri)"
+              placeholder="Nuova Password"
               placeholderTextColor="#999"
               autoCapitalize="none"
               style={[styles.input, styles.secureInput]}

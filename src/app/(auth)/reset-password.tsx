@@ -19,6 +19,12 @@ import { useAuthStore } from '@/src/store/authStore';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
+import {
+  PASSWORD_RIFIUTATA,
+  passwordRifiutata,
+  passwordValida,
+  REGOLE_PASSWORD,
+} from '@/src/utils/password';
 
 const UI_GENERIC_ERROR = 'Operazione non riuscita. Riprova.';
 
@@ -33,11 +39,13 @@ export default function ResetPasswordScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  // Il codice vale una volta sola: se il server rifiuta la password, si riprova senza.
+  const [verificato, setVerificato] = useState(false);
 
   const otpTrim = otp.trim();
   const otpValid = useMemo(() => /^[0-9]{6}$/.test(otpTrim), [otpTrim]);
   const canSubmit =
-    otpValid && password.length >= 6 && password === confirmPassword && !!email && !loading;
+    otpValid && passwordValida(password) && password === confirmPassword && !!email && !loading;
 
   const restartFlow = () => {
     try {
@@ -52,29 +60,36 @@ export default function ResetPasswordScreen() {
   };
 
   const onReset = async () => {
-    if (!email || !otpValid || password.length < 6 || password !== confirmPassword) {
+    if (!email || !otpValid || !passwordValida(password) || password !== confirmPassword) {
       Alert.alert('Reset', UI_GENERIC_ERROR);
       return;
     }
 
     setLoading(true);
     try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token: otpTrim,
-        type: 'recovery',
-      });
+      if (!verificato) {
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          email,
+          token: otpTrim,
+          type: 'recovery',
+        });
 
-      if (verifyError) {
-        console.warn('verifyOtp error:', verifyError);
-        failAndRestart();
-        return;
+        if (verifyError) {
+          console.warn('verifyOtp error:', verifyError);
+          failAndRestart();
+          return;
+        }
+        setVerificato(true);
       }
 
       const { error: updateError } = await supabase.auth.updateUser({ password });
 
       if (updateError) {
         console.warn('updateUser error:', updateError);
+        if (passwordRifiutata(updateError)) {
+          Alert.alert('Reset', PASSWORD_RIFIUTATA);
+          return;
+        }
         failAndRestart();
         return;
       }
@@ -94,6 +109,11 @@ export default function ResetPasswordScreen() {
   };
 
   const onCancel = () => {
+    // Dopo il codice la sessione di recupero e' aperta: chi rinuncia non resta dentro.
+    if (verificato) {
+      restartFlow();
+      return;
+    }
     if (router.canGoBack()) router.back();
     else router.replace('/login');
   };
@@ -107,7 +127,7 @@ export default function ResetPasswordScreen() {
       >
         <Text style={styles.title}>Nuova Password</Text>
         <Text style={styles.subtitle}>
-          Inserisci il codice ricevuto via email e imposta la tua nuova password.
+          Inserisci il codice ricevuto via email e imposta la tua nuova password: {REGOLE_PASSWORD}.
         </Text>
 
         <View style={styles.form}>

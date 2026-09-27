@@ -22,7 +22,7 @@
         "UIBackgroundModes": ["remote-notification"],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "34"
+      "buildNumber": "35"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,7 +34,7 @@
       "package": "com.automatiko.missrevolution",
       "allowBackup": false,
       "permissions": ["android.permission.CAMERA"],
-      "versionCode": 17
+      "versionCode": 18
     },
     "plugins": [
       "expo-router",
