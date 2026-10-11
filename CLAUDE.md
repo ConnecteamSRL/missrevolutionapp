@@ -42,7 +42,7 @@ Root `_layout.tsx` conditionally renders auth vs main stack based on `isLoggedIn
 
 ### Subscription access (limited mode)
 
-The server decides who can use what: `src/lib/accesso.ts` calls the `accesso_app()` RPC (it falls back to `stato_accesso()` on databases without it). `accesso: true` opens everything. Without a valid subscription the user still enters if `aree` lists open areas (today `progressi`): every other section shows a lock (`SezioneBloccata`) with a button to the gym chat. With no open areas the full-screen `abbonamento.tsx` is shown, as in 1.3.0. Chat and profile are always open (renewal, privacy, account deletion).
+The server decides who can use what: `src/lib/accesso.ts` calls the `accesso_app()` RPC (it falls back to `stato_accesso()` on databases without it). `accesso: true` opens everything. Without a valid subscription the user still enters if `aree` lists open areas (today `progressi` and `notifiche`): every other section shows a lock (`SezioneBloccata`) with a button to the gym chat. With no open areas the full-screen `abbonamento.tsx` is shown, as in 1.3.0. Chat and profile are always open (renewal, privacy, account deletion).
 
 - The lock is applied by `screenLayout` on the root Stack and on the Tabs (`src/components/core/GateArea.tsx`), before the screen mounts, so locked screens never fetch data. **A new screen with programme content must be added to `AREE_SCHERMATE` (or `AREE_SCHEDE`)**, otherwise it stays open.
 - Opening `progressi`, `questionari`, `notifiche` or `allenamento` to users without a subscription is a database change only. Opening `faq`, `nutrizione` or `video` also needs the FAQ service, the photo scanner and the `videos_select` policy, which still check the subscription through `stato_accesso()`.
