@@ -756,40 +756,9 @@ export type Database = {
         };
         Relationships: [];
       };
-      faq_categories: {
-        Row: {
-          created_at: string;
-          description: string | null;
-          id: string;
-          name: string;
-          position: number;
-          slug: string;
-          updated_at: string;
-        };
-        Insert: {
-          created_at?: string;
-          description?: string | null;
-          id?: string;
-          name: string;
-          position?: number;
-          slug: string;
-          updated_at?: string;
-        };
-        Update: {
-          created_at?: string;
-          description?: string | null;
-          id?: string;
-          name?: string;
-          position?: number;
-          slug?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
       faqs: {
         Row: {
           answer: string;
-          category_id: string;
           created_at: string;
           id: string;
           is_active: boolean;
@@ -800,7 +769,6 @@ export type Database = {
         };
         Insert: {
           answer: string;
-          category_id: string;
           created_at?: string;
           id?: string;
           is_active?: boolean;
@@ -811,7 +779,6 @@ export type Database = {
         };
         Update: {
           answer?: string;
-          category_id?: string;
           created_at?: string;
           id?: string;
           is_active?: boolean;
@@ -820,15 +787,7 @@ export type Database = {
           updated_at?: string;
           video_link?: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: 'faqs_category_id_fkey';
-            columns: ['category_id'];
-            isOneToOne: false;
-            referencedRelation: 'faq_categories';
-            referencedColumns: ['id'];
-          },
-        ];
+        Relationships: [];
       };
       fitness_rules: {
         Row: {
@@ -3290,8 +3249,6 @@ export type Database = {
         }[];
       };
       _compat_uri: { Args: { input: string }; Returns: string };
-      _faq_categories_last_position: { Args: never; Returns: number };
-      _faqs_last_position: { Args: { p_category: string }; Returns: number };
       _get_default_gym_id: { Args: never; Returns: string };
       _is_valid_cta_gradients: { Args: { g: Json }; Returns: boolean };
       _job_cleanup_orphan_storage: { Args: never; Returns: undefined };
@@ -3333,6 +3290,19 @@ export type Database = {
           nome: string;
         }[];
       };
+      accesso_app: {
+        Args: never;
+        Returns: {
+          accesso: boolean;
+          apre_il: string;
+          aree: string[];
+          fine: string;
+          inizio: string;
+          messaggio: string;
+          motivo: string;
+          titolo: string;
+        }[];
+      };
       assign_survey_to_gym_clients: {
         Args: {
           p_abbonati?: boolean;
@@ -3354,8 +3324,6 @@ export type Database = {
         Returns: number;
       };
       expire_overdue_surveys: { Args: never; Returns: undefined };
-      faq_categories_resequence: { Args: never; Returns: Json };
-      faqs_resequence: { Args: { p_category_id?: string }; Returns: Json };
       get_customer_location_options: {
         Args: { p_gym_id: string };
         Returns: {

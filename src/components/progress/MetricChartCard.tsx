@@ -187,9 +187,12 @@ export const MetricChartCard: React.FC<{
                 styles.tooltip,
                 (() => {
                   // Il riquadro cresce con il testo: a misura fissa valore e data
-                  // ingranditi uscivano dal tooltip.
-                  const W = 120 * Math.max(1, fontScale);
-                  const H = 44 * Math.max(1, fontScale);
+                  // ingranditi uscivano dal tooltip. Tetto 2 come il testo (patch
+                  // di React Native): iOS dichiara fino a 3,57 e il riquadro
+                  // sarebbe uscito dal grafico.
+                  const scala = Math.min(Math.max(1, fontScale), 2);
+                  const W = 120 * scala;
+                  const H = 44 * scala;
                   const left = clamp(selected.x - W / 2, 0, chartWidth - W);
                   const top = clamp(selected.y - (H + 10), 0, CHART_HEIGHT - H);
                   return { left, top, width: W, height: H };

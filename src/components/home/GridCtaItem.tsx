@@ -6,6 +6,7 @@ import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLayoutStretto } from '@/src/hooks/core/useLayoutStretto';
 import { AppTheme } from '@mr-types/theme.types';
+import LucchettoBadge from '@components/core/LucchettoBadge';
 
 export interface GridCtaItemProps {
   title: string;
@@ -16,6 +17,11 @@ export interface GridCtaItemProps {
   onPress?: () => void;
   /** Badge col conteggio in alto a destra quando > 0 (es. messaggi non letti). */
   badgeCount?: number;
+  /**
+   * Sezione chiusa senza abbonamento: lucchetto nell'angolo. Il riquadro resta
+   * toccabile e porta alla sezione, che spiega come sbloccarla.
+   */
+  bloccato?: boolean;
 }
 
 const GridCtaItem: React.FC<GridCtaItemProps> = ({
@@ -24,6 +30,7 @@ const GridCtaItem: React.FC<GridCtaItemProps> = ({
   icon,
   onPress,
   badgeCount = 0,
+  bloccato = false,
 }) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -35,15 +42,25 @@ const GridCtaItem: React.FC<GridCtaItemProps> = ({
       onPress={onPress}
       activeOpacity={0.8}
       accessibilityRole="button"
+      // Sempre una stringa: tornando a undefined dopo un rinnovo Android
+      // conservava l'etichetta «richiede un abbonamento attivo».
+      accessibilityLabel={bloccato ? `${title}, richiede un abbonamento attivo` : title}
     >
       <LinearGradient colors={[...gradientColors]} style={styles.gradient}>
         {icon}
         <Text style={styles.title}>{title}</Text>
       </LinearGradient>
-      {badgeCount > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
-        </View>
+      {bloccato ? (
+        <LucchettoBadge lato={26} style={styles.lucchetto} />
+      ) : (
+        badgeCount > 0 && (
+          <View style={styles.badge}>
+            {/* Il cerchio non cresce col testo: tetto come le etichette della tab bar. */}
+            <Text style={styles.badgeText} maxFontSizeMultiplier={1.3}>
+              {badgeCount > 9 ? '9+' : badgeCount}
+            </Text>
+          </View>
+        )
       )}
     </TouchableOpacity>
   );
@@ -78,6 +95,10 @@ const makeStyles = (theme: AppTheme) =>
       fontSize: 16,
       color: colors.text,
       textAlign: 'center',
+    },
+    lucchetto: {
+      top: 8,
+      right: 8,
     },
     badge: {
       position: 'absolute',

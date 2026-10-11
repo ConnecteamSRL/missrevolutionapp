@@ -14,6 +14,8 @@ import { useSupabaseAuth } from '@/src/hooks/core/useSupabaseAuth';
 import { useAuthStore } from '@/src/store/authStore';
 import { consensiRichiesti, useConsensiStore } from '@/src/store/consensiStore';
 import { useAccessoStore } from '@/src/store/accessoStore';
+import { accessoLimitato } from '@/src/lib/accesso';
+import { layoutSchermataConArea } from '@components/core/GateArea';
 import { useContentTextSizeStore } from '@/src/store/contentTextSizeStore';
 import { useGenderStore } from '@/src/store/genderStore';
 import { useNotificationRouting } from '@/src/hooks/core/useNotificationRouting';
@@ -92,11 +94,14 @@ const AppEntryPoint: React.FC = () => {
     consensiRichiesti(ruolo).every((finalita) => statoConsensi[finalita].valido);
   const consensiInAttesa = isLoggedIn && (!statoConsensi || !me) && !erroreConsensi && !userError;
 
-  // Senza accesso (lo decide il server con stato_accesso) si vede solo la
-  // schermata dell'abbonamento, con la chat della palestra e il
-  // profilo. Finche' lo stato non e' noto, o se non si riesce a leggerlo, vale
-  // come «senza»: la schermata mostra l'attesa o l'errore con «Riprova».
+  // Senza abbonamento (lo decide il server con accesso_app) si entra lo stesso
+  // se il server apre qualche area: le altre mostrano il lucchetto (vedi
+  // GateArea). Senza aree aperte si vede solo la schermata dell'abbonamento,
+  // con la chat della palestra e il profilo. Finche' lo stato non e' noto, o se
+  // non si riesce a leggerlo, vale come «senza»: la schermata mostra l'attesa o
+  // l'errore con «Riprova».
   const accessoOk = !!statoAccesso?.accesso;
+  const puoEntrare = accessoOk || accessoLimitato(statoAccesso);
   const accessoInAttesa = isLoggedIn && !statoAccesso && !erroreAccesso;
 
   // Al primo ingresso con una sessione salvata si aspettano anche i consensi,
@@ -132,7 +137,7 @@ const AppEntryPoint: React.FC = () => {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false }} screenLayout={layoutSchermataConArea}>
       <Stack.Protected guard={!isLoggedIn}>
         <Stack.Screen name="(auth)/login" />
         <Stack.Screen name="(auth)/reset-password" />
@@ -145,11 +150,13 @@ const AppEntryPoint: React.FC = () => {
         <Stack.Screen name="consensi" />
       </Stack.Protected>
 
-      <Stack.Protected guard={isLoggedIn && consensiOk && !accessoOk}>
+      <Stack.Protected guard={isLoggedIn && consensiOk && !puoEntrare}>
         <Stack.Screen name="abbonamento" />
       </Stack.Protected>
 
-      <Stack.Protected guard={isLoggedIn && consensiOk && accessoOk}>
+      {/* Con l'accesso limitato le schermate restano registrate (i link delle
+          notifiche arrivano) e GateArea mostra il lucchetto al loro posto. */}
+      <Stack.Protected guard={isLoggedIn && consensiOk && puoEntrare}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="video/index" />
         <Stack.Screen name="video/[categoryId]" />

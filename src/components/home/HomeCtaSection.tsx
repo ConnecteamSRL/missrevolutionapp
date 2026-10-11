@@ -7,6 +7,7 @@ import VideoCtaIcon from '@components/ui/icons/VideoCtaIcon';
 import { useRouter } from 'expo-router';
 import { useChatUnread } from '@/src/contexts/ChatUnreadContext';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useAreaAperta } from '@/src/hooks/core/useAreaAperta';
 
 export default function HomeCtaSection() {
   const router = useRouter();
@@ -14,6 +15,10 @@ export default function HomeCtaSection() {
   const theme = useTheme();
   // Le quattro sfumature arrivano dal tema nello stesso ordine delle card.
   const [videoGradient, surveyGradient, faqGradient, chatGradient] = theme.ctaGradients;
+  // Accesso limitato: la chat resta aperta, le altre sezioni mostrano il lucchetto.
+  const videoAperto = useAreaAperta('video');
+  const surveyAperto = useAreaAperta('questionari');
+  const faqAperte = useAreaAperta('faq');
 
   return (
     <View style={styles.gridContainer}>
@@ -24,6 +29,7 @@ export default function HomeCtaSection() {
             gradientColors={videoGradient}
             icon={<VideoCtaIcon size={20} />}
             onPress={() => router.push('/video')}
+            bloccato={!videoAperto}
           />
         </View>
         <View style={styles.itemWrapper}>
@@ -32,6 +38,7 @@ export default function HomeCtaSection() {
             gradientColors={surveyGradient}
             icon={<SurveyCtaIcon size={20} />}
             onPress={() => router.push('/survey')}
+            bloccato={!surveyAperto}
           />
         </View>
       </View>
@@ -43,6 +50,7 @@ export default function HomeCtaSection() {
             gradientColors={faqGradient}
             icon={<FaqCtaIcon size={20} />}
             onPress={() => router.push('/faq')}
+            bloccato={!faqAperte}
           />
         </View>
         <View style={styles.itemWrapper}>

@@ -54,7 +54,7 @@ export const useProductScanner = () => {
       if (error || !data) {
         if (__DEV__) console.error('Supabase Function Error:', error);
         // 403: l'abbonamento non e' piu' valido. Come per l'assistente si rilegge
-        // l'accesso, e il layout passa alla schermata dell'abbonamento.
+        // l'accesso, e la scheda Nutrizione mostra il lucchetto.
         if (error instanceof FunctionsHttpError && (error.context as Response).status === 403) {
           useAccessoStore
             .getState()

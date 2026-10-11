@@ -21,7 +21,12 @@ export default function BackArrowButtonComponent() {
   };
 
   return (
-    <TouchableOpacity style={styles.button} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.button}
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel="Indietro"
+    >
       <ArrowLeft color={'#292D32'} size={25} />
     </TouchableOpacity>
   );

@@ -6,6 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import HeaderTabComponent from '@components/tab/HeaderTabComponent';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useAreaAperta } from '@/src/hooks/core/useAreaAperta';
+import { useRileggiAccesso } from '@/src/hooks/core/useRileggiAccesso';
+import { layoutSchedaConArea } from '@components/core/GateArea';
+import LucchettoBadge from '@components/core/LucchettoBadge';
 
 import HomeIcon from '@components/ui/icons/HomeIcon';
 import NutritionIcon from '@components/ui/icons/NutritionIcon';
@@ -46,11 +50,20 @@ const FONT_INACTIVE: string | undefined = Platform.select({
 function IconWithIndicator({
   IconComponent,
   color,
+  bloccata,
 }: {
   IconComponent: SvgIconComponent;
   color: string;
+  bloccata: boolean;
 }) {
-  return <IconComponent color={color} size={ICON_SIZE} />;
+  // Il lucchetto e' ancorato all'icona, non all'angolo della tab: non cambia
+  // l'altezza della barra e non tocca l'etichetta, anche con il testo grande.
+  return (
+    <View>
+      <IconComponent color={color} size={ICON_SIZE} />
+      {bloccata && <LucchettoBadge lato={16} style={styles.lucchetto} />}
+    </View>
+  );
 }
 
 export default function TabsLayout() {
@@ -60,6 +73,18 @@ export default function TabsLayout() {
   const bottomInset = Platform.OS === 'android' ? Math.max(insets.bottom, 10) : insets.bottom;
 
   const barHeight = BASE_HEIGHT + bottomInset;
+
+  // Accesso limitato: le tab chiuse restano toccabili e mostrano il lucchetto.
+  const aperte: Record<string, boolean> = {
+    '(home)': true,
+    nutrition: useAreaAperta('nutrizione'),
+    workout: useAreaAperta('allenamento'),
+    progress: useAreaAperta('progressi'),
+  };
+  // Tornando alla Home dalla chat, dove si e' magari rinnovato con la palestra,
+  // lucchetti dei riquadri, delle tab e della campanella si aggiornano subito.
+  const notificheAperte = useAreaAperta('notifiche');
+  useRileggiAccesso(!notificheAperte || Object.values(aperte).includes(false));
 
   return (
     <View style={styles.root}>
@@ -71,8 +96,18 @@ export default function TabsLayout() {
 
       <Tabs
         backBehavior="order"
+        screenLayout={layoutSchedaConArea}
         screenOptions={({ route }) => ({
           headerShown: false,
+          // Con tabBarLabel funzione serve un titolo testuale: senza, VoiceOver e il
+          // visore a contenuto grande di iOS leggevano il nome tecnico («nutrition»).
+          title: LABELS[route.name],
+          // Sempre una stringa: tornando a undefined dopo un rinnovo Android
+          // conservava l'etichetta «richiede un abbonamento attivo».
+          tabBarAccessibilityLabel:
+            aperte[route.name] === false
+              ? `${LABELS[route.name]}, richiede un abbonamento attivo`
+              : LABELS[route.name],
           sceneStyle: {
             backgroundColor: 'transparent',
           },
@@ -101,7 +136,13 @@ export default function TabsLayout() {
           } as TextStyle,
           tabBarIcon: ({ color }) => {
             const IconComponent = ICONS[route.name];
-            return <IconWithIndicator IconComponent={IconComponent} color={color} />;
+            return (
+              <IconWithIndicator
+                IconComponent={IconComponent}
+                color={color}
+                bloccata={aperte[route.name] === false}
+              />
+            );
           },
           // Quattro etichette in una barra di altezza fissa: con il testo ingrandito
           // andavano a capo a meta' parola («Nutrizio-ne») e venivano tagliate. Restano
@@ -137,5 +178,9 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  lucchetto: {
+    top: -6,
+    right: -9,
   },
 });

@@ -202,6 +202,8 @@ export default function UserAvatarComponent({ size = 42, onPress, editable = fal
         style={[styles.container, { width: side, height: side, borderRadius: radius }]}
         onPress={handlePress}
         disabled={isLoading}
+        accessibilityRole="button"
+        accessibilityLabel={editable ? 'Foto del profilo' : 'Profilo'}
       >
         {isLoading ? (
           <View style={styles.loaderContainer}>

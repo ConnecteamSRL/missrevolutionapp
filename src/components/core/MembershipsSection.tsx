@@ -18,6 +18,8 @@ export default function MembershipsSection() {
 
   const fmt = (d?: string | null) => (d ? new Date(d).toLocaleDateString('it-IT') : '∞');
 
+  // Stato, piano e periodo vanno a capo invece di troncarsi: con il testo al
+  // 200% il periodo «01/01/2026 – 31/12/2026» non sta su una riga.
   const renderMembershipItem = (item: UserMembershipDetail, index: number) => {
     const status = item.etichetta;
     const planName = item.nome;
@@ -29,9 +31,7 @@ export default function MembershipsSection() {
         <View style={styles.infoGroup}>
           <Text style={styles.infoLabel}>Stato</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.infoText} numberOfLines={1}>
-              {status}
-            </Text>
+            <Text style={styles.infoText}>{status}</Text>
             <View style={styles.iconBox}>
               <MaterialIcons name="verified" size={24} color={iconColor} />
             </View>
@@ -41,9 +41,7 @@ export default function MembershipsSection() {
         <View style={styles.infoGroup}>
           <Text style={styles.infoLabel}>Nome piano</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.infoText} numberOfLines={1}>
-              {planName}
-            </Text>
+            <Text style={styles.infoText}>{planName}</Text>
             <View style={styles.iconBox}>
               <MaterialIcons name="assignment" size={24} color={iconColor} />
             </View>
@@ -53,9 +51,7 @@ export default function MembershipsSection() {
         <View style={styles.infoGroup}>
           <Text style={styles.infoLabel}>Periodo</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.infoText} numberOfLines={1}>
-              {period}
-            </Text>
+            <Text style={styles.infoText}>{period}</Text>
             <View style={styles.iconBox}>
               <MaterialIcons name="event" size={24} color={iconColor} />
             </View>
@@ -85,9 +81,9 @@ export default function MembershipsSection() {
         <View style={styles.infoList}>
           {!data || data.length === 0 ? (
             <View style={styles.infoGroup}>
-              <Text style={styles.infoLabel}>Membership</Text>
+              <Text style={styles.infoLabel}>Abbonamento</Text>
               <View style={styles.infoRow}>
-                <Text style={styles.infoText}>Nessuna membership attiva</Text>
+                <Text style={styles.infoText}>Non hai un abbonamento attivo</Text>
                 <View style={styles.iconBox}>
                   <MaterialIcons name="card-membership" size={24} color={iconColor} />
                 </View>

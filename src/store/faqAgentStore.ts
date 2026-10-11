@@ -117,7 +117,8 @@ export const useFaqAgentStore = create<FaqAgentState & FaqAgentActions>((set, ge
       if (seq !== requestSeq) return;
       if (__DEV__) console.error('[faq-agent]', error);
       set({ error: faqAgentErrorMessage(error), consensoMancante: isConsensoMancante(error) });
-      // Abbonamento non piu' valido: rilette le date, il layout passa alla sua schermata.
+      // Abbonamento non piu' valido: rilette le date, l'assistente mostra il lucchetto
+      // (o, senza aree aperte, il layout passa alla schermata dell'abbonamento).
       if (isAbbonamentoNonAttivo(error)) {
         useAccessoStore
           .getState()

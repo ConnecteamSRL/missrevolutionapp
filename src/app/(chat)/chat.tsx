@@ -20,6 +20,7 @@ import { useGymEditorial } from '@/src/hooks/content/useGymEditorial';
 import { useChatUnread } from '@/src/contexts/ChatUnreadContext';
 import { useLocalSearchParams } from 'expo-router';
 import { AppTheme } from '@mr-types/theme.types';
+import { useAreaAperta } from '@/src/hooks/core/useAreaAperta';
 
 // True se l'HTML ha testo (o immagini) realmente visibile, non solo tag o
 // spazi vuoti (es. "<p></p>", "<p><br></p>", "&nbsp;"): evita di renderizzare
@@ -38,6 +39,9 @@ export default function ChatScreen() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const { me, isUserLoading } = useUser();
+  // Con le notifiche chiuse la campanella porterebbe a un lucchetto il cui
+  // pulsante riapre la chat: due chat impilate. Qui si nasconde.
+  const notificheAperte = useAreaAperta('notifiche');
 
   const params = useLocalSearchParams<{ initialMessage?: string }>();
   const initialMessage = params.initialMessage;
@@ -121,7 +125,7 @@ export default function ChatScreen() {
   }
 
   return (
-    <ContentScreenLayout title="Chat con Staff" showNotificationButton={true}>
+    <ContentScreenLayout title="Chat con Staff" showNotificationButton={notificheAperte}>
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

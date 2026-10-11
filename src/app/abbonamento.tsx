@@ -27,9 +27,11 @@ const TITOLO_DI_RIPIEGO = 'Il tuo abbonamento non è attivo';
 const TESTO_DI_RIPIEGO = "Per usare l'app scrivi alla tua palestra.";
 
 /**
- * Schermata di chi non ha un abbonamento valido: la mostra il layout
- * principale al posto delle tab. Restano la chat con la palestra, il profilo
- * (privacy, eliminazione dell'account) e l'uscita. Quando l'abbonamento torna
+ * Schermata di chi non ha un abbonamento valido e nessuna area aperta dal
+ * server (con aree aperte si entra con i lucchetti, vedi GateArea): la mostra
+ * il layout principale al posto delle tab. Restano la chat con la palestra, il
+ * profilo (privacy, eliminazione dell'account) e l'uscita. Serve anche finche'
+ * lo stato non e' letto o se la lettura non riesce. Quando l'abbonamento torna
  * valido il layout passa da solo alle tab.
  */
 export default function AbbonamentoScreen() {
