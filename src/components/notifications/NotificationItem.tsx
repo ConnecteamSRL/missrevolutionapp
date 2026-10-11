@@ -20,6 +20,7 @@ import { Bell, Eye, Trash2 } from 'lucide-react-native';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
+import { useLayoutStretto } from '@/src/hooks/core/useLayoutStretto';
 import { AppTheme } from '@mr-types/theme.types';
 import { NotificationItem as NotificationItemType } from '@/src/types/notification.types';
 
@@ -37,6 +38,7 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const anima = useLayoutAnimation();
+  const stretto = useLayoutStretto();
   const router = useRouter();
   const translateX = useSharedValue(0);
   const itemHeight = useSharedValue(1);
@@ -182,9 +184,13 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
           >
             {!item.is_read && <View style={styles.unreadAccent} />}
 
-            <View style={styles.iconCircle}>
-              <Bell size={18} color={theme.secondary} />
-            </View>
+            {/* La campanella e' decorativa: con il testo ingrandito lascia lo spazio al
+                titolo, che altrimenti si spezzava a meta' parola («Promemori-a»). */}
+            {!stretto && (
+              <View style={styles.iconCircle}>
+                <Bell size={18} color={theme.secondary} />
+              </View>
+            )}
 
             <View style={styles.textContainer}>
               <View style={styles.headerRow}>
