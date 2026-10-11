@@ -22,7 +22,8 @@ export default function ContentScreenLayout({
       <BackgroundGradientComponent />
       <View style={[styles.header]}>
         <BackArrowButtonComponent />
-        <Text style={styles.title} numberOfLines={1}>
+        {/* Due righe: con il testo ingrandito una sola riduceva il titolo a «Chat con St…». */}
+        <Text style={styles.title} numberOfLines={2}>
           {title ?? 'Contenuto'}
         </Text>
         {showNotificationButton && <NotificationButton />}

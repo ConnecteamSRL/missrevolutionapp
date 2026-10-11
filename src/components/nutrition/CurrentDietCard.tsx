@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 12,
+    fontFamily: GraphitFonts.GraphitRegular,
   },
   emptyTitle: {
     marginTop: 24,

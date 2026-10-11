@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
-  Platform,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -17,6 +16,7 @@ import { SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, X } from 'lucide-react-native';
 import { colors } from '@/src/theme';
+import { actionSheetAndroidOptions } from '@/src/theme/actionSheet';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
 import { FaqAgentDraft, FaqAgentImage } from '@mr-types/faqAgent.types';
@@ -123,8 +123,7 @@ export default function FaqAgentComposer({ onSend, maxImages }: Props) {
         options: ['Scatta una foto', 'Scegli dalla galleria', 'Annulla'],
         cancelButtonIndex: 2,
         title: 'Allega una foto',
-        containerStyle:
-          Platform.OS === 'android' ? { paddingBottom: Math.max(insets.bottom, 12) } : undefined,
+        ...actionSheetAndroidOptions(insets.bottom),
       },
       (selectedIndex?: number) => {
         if (selectedIndex === 0) void addPhotos('camera');

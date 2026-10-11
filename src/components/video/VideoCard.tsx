@@ -149,6 +149,7 @@ const makeStyles = (theme: AppTheme) =>
     },
     thumbnailPlaceholderText: {
       fontSize: 12,
+      fontFamily: GraphitFonts.GraphitRegular,
       color: '#555',
     },
     playOverlay: {

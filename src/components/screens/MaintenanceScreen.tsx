@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { GraphitFonts } from '@/src/theme';
@@ -12,29 +12,32 @@ export const MaintenanceScreen: React.FC<MaintenanceScreenProps> = ({ message })
   const theme = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
       <BackgroundGradientComponent />
+      {/* Scorre: il messaggio arriva dal backoffice e con il testo ingrandito
+          non deve essere tagliato. */}
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Manutenzione in corso</Text>
 
-      <Text style={styles.title}>Manutenzione in corso</Text>
+        <Text style={styles.subtitle}>
+          Stiamo effettuando un aggiornamento. Chiudi l’app e riprova più tardi.
+        </Text>
 
-      <Text style={styles.subtitle}>
-        Stiamo effettuando un aggiornamento. Chiudi l’app e riprova più tardi.
-      </Text>
+        {!!message?.trim() && <Text style={styles.message}>{message}</Text>}
 
-      {!!message?.trim() && <Text style={styles.message}>{message}</Text>}
-
-      <ActivityIndicator size="large" color={theme.accent} style={{ marginTop: 28 }} />
+        <ActivityIndicator size="large" color={theme.accent} style={{ marginTop: 28 }} />
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#fff' },
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
-    backgroundColor: '#fff',
   },
   title: {
     fontFamily: GraphitFonts.GraphitBold,

@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInUp, Layout } from 'react-native-reanimated';
 import { GraphitFonts, withAlpha } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
 import { AppTheme } from '@mr-types/theme.types';
 import { ChatMessage } from '@/src/types/chat.types';
 import UserAvatarComponent from '@components/tab/UserAvatarComponent';
@@ -33,6 +34,7 @@ export const ChatBubble = ({
 }: Props) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const anima = useLayoutAnimation();
   const isBot = !isMe && message.sender_type === 'bot';
 
   let senderLabel: string | null = null;
@@ -44,8 +46,8 @@ export const ChatBubble = ({
   return (
     <Animated.View
       style={[styles.container, isMe ? styles.rightContainer : styles.leftContainer]}
-      entering={FadeInUp.springify().damping(18).stiffness(150)}
-      layout={Layout.springify().damping(18).stiffness(150)}
+      entering={anima(FadeInUp.springify().damping(18).stiffness(150))}
+      layout={anima(Layout.springify().damping(18).stiffness(150))}
     >
       <View style={[styles.row, isMe ? styles.rowRight : styles.rowLeft]}>
         <View

@@ -1,0 +1,47 @@
+diff --git a/Libraries/Components/TextInput/TextInput.js b/Libraries/Components/TextInput/TextInput.js
+index 5cebe10a3ec5f5cfa4ab4e45521eb963ec491063..6687e1bfcaa2a2c14747e2b3deebb5df725c1018 100644
+--- a/Libraries/Components/TextInput/TextInput.js
++++ b/Libraries/Components/TextInput/TextInput.js
+@@ -900,6 +900,8 @@ const TextInput: component(
+ ) = function TextInput({
+   ref: forwardedRef,
+   allowFontScaling = true,
++  // Miss Revolution: stesso tetto predefinito di Text (vedi Libraries/Text/Text.js).
++  maxFontSizeMultiplier = 2,
+   rejectResponderTermination = true,
+   underlineColorAndroid = 'transparent',
+   autoComplete,
+@@ -919,6 +921,7 @@ const TextInput: component(
+   return (
+     <InternalTextInput
+       allowFontScaling={allowFontScaling}
++      maxFontSizeMultiplier={maxFontSizeMultiplier}
+       rejectResponderTermination={rejectResponderTermination}
+       underlineColorAndroid={underlineColorAndroid}
+       editable={readOnly !== undefined ? !readOnly : editable}
+diff --git a/Libraries/Text/Text.js b/Libraries/Text/Text.js
+index f30261d84267910ad593e38e4f90cec760739fd4..60b55ea826ecebb89496de78a057f93e4debe4d8 100644
+--- a/Libraries/Text/Text.js
++++ b/Libraries/Text/Text.js
+@@ -620,10 +620,20 @@ if (ReactNativeFeatureFlags.reduceDefaultPropsInText()) {
+   _TextImpl = TextImplLegacy;
+ }
+ 
++// Miss Revolution: tetto predefinito alla crescita del testo di sistema. Su iOS
++// la New Architecture porta il testo fino a 3,57 volte (AX5), scala alla quale le
++// schermate dell'app non restano leggibili; il 200% e' il massimo di Android e
++// quello richiesto dalle WCAG (1.4.4). Un testo puo' chiedere un limite diverso
++// con maxFontSizeMultiplier, null o 0 lo tolgono.
++const _TextImplSenzaTetto = _TextImpl;
+ const TextImpl: component(
+   ref?: React.RefSetter<TextForwardRef>,
+   ...props: TextProps
+-) = _TextImpl;
++) = function Text({maxFontSizeMultiplier = 2, ...props}) {
++  return (
++    <_TextImplSenzaTetto {...props} maxFontSizeMultiplier={maxFontSizeMultiplier} />
++  );
++};
+ 
+ TextImpl.displayName = 'Text';
+ 

@@ -14,6 +14,7 @@ import { router, Stack } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
 import { AppTheme } from '@mr-types/theme.types';
 import { useMyWorkouts, type Workout } from '@/src/hooks/content/useWorkouts';
 import { useRefreshOnFocus } from '@/src/hooks/core/useRefreshOnFocus';
@@ -37,6 +38,7 @@ const formatError = (e: unknown) => {
 export default function WorkoutIndex() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const anima = useLayoutAnimation();
 
   const { me } = useUser();
 
@@ -87,12 +89,14 @@ export default function WorkoutIndex() {
         style={{ borderRadius: 20 }}
       >
         <Animated.View
-          entering={FadeInDown.delay(index * 80)
-            .duration(480)
-            .springify()}
+          entering={anima(
+            FadeInDown.delay(index * 80)
+              .duration(480)
+              .springify(),
+          )}
           style={styles.card}
         >
-          <Text style={styles.cardTitle} numberOfLines={2}>
+          <Text style={styles.cardTitle} numberOfLines={3}>
             {item.title}
           </Text>
 
@@ -100,7 +104,7 @@ export default function WorkoutIndex() {
         </Animated.View>
       </Pressable>
     ),
-    [styles, theme],
+    [styles, theme, anima],
   );
 
   return (
@@ -136,7 +140,7 @@ export default function WorkoutIndex() {
           ListHeaderComponent={
             <View>
               <Animated.View
-                entering={FadeInDown.duration(520).springify()}
+                entering={anima(FadeInDown.duration(520).springify())}
                 style={styles.liveWrap}
               >
                 <YoutubeLiveCard
@@ -146,7 +150,7 @@ export default function WorkoutIndex() {
               </Animated.View>
 
               <Animated.View
-                entering={FadeInDown.duration(520).springify()}
+                entering={anima(FadeInDown.duration(520).springify())}
                 style={styles.headerRow}
               >
                 <FitnessIcon color={''} size={22} />
@@ -216,7 +220,10 @@ const makeStyles = (theme: AppTheme) =>
       justifyContent: 'space-between',
       gap: 12,
     },
+    // flex: 1 lascia il posto alla freccia: senza, il titolo ingrandito la spingeva
+    // fuori dalla scheda.
     cardTitle: {
+      flex: 1,
       fontSize: 14,
       color: '#1F1F1F',
       fontFamily: GraphitFonts.GraphitRegular,

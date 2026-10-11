@@ -103,8 +103,16 @@ export default function TabsLayout() {
             const IconComponent = ICONS[route.name];
             return <IconWithIndicator IconComponent={IconComponent} color={color} />;
           },
+          // Quattro etichette in una barra di altezza fissa: con il testo ingrandito
+          // andavano a capo a meta' parola («Nutrizio-ne») e venivano tagliate. Restano
+          // su una riga, crescono al massimo del 30% e si riducono per entrare, come
+          // le barre native di iOS; l'icona resta il riferimento principale.
           tabBarLabel: ({ focused, color }) => (
             <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              maxFontSizeMultiplier={1.3}
               style={{
                 color,
                 fontSize: BASE_FONT_SIZE,

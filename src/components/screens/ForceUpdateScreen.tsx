@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Linking,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -39,46 +40,49 @@ export const ForceUpdateScreen: React.FC<ForceUpdateScreenProps> = ({ config }) 
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
       <BackgroundGradientComponent />
+      {/* Scorre: con il testo ingrandito «Apri lo Store» non deve finire fuori schermo,
+          e da questa schermata non si esce in altro modo. */}
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Aggiornamento richiesto</Text>
 
-      <Text style={styles.title}>Aggiornamento richiesto</Text>
+        <Text style={styles.subtitle}>
+          Per continuare a utilizzare l’app, scarica l’ultima versione dallo store.
+        </Text>
 
-      <Text style={styles.subtitle}>
-        Per continuare a utilizzare l’app, scarica l’ultima versione dallo store.
-      </Text>
+        <Text style={styles.meta}>
+          Versione minima supportata:{' '}
+          <Text style={styles.metaStrong}>{config.min_supported_version}</Text>
+          {'\n'}
+          Ultima versione: <Text style={styles.metaStrong}>{config.latest_version}</Text>
+        </Text>
 
-      <Text style={styles.meta}>
-        Versione minima supportata:{' '}
-        <Text style={styles.metaStrong}>{config.min_supported_version}</Text>
-        {'\n'}
-        Ultima versione: <Text style={styles.metaStrong}>{config.latest_version}</Text>
-      </Text>
-
-      <TouchableOpacity
-        style={[styles.button, (!storeUrl || isOpening) && styles.buttonDisabled]}
-        onPress={handleUpdatePress}
-        activeOpacity={0.9}
-        disabled={!storeUrl || isOpening}
-      >
-        {isOpening ? (
-          <ActivityIndicator size="large" color={theme.accent} />
-        ) : (
-          <Text style={styles.buttonText}>Apri lo Store</Text>
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, (!storeUrl || isOpening) && styles.buttonDisabled]}
+          onPress={handleUpdatePress}
+          activeOpacity={0.9}
+          disabled={!storeUrl || isOpening}
+        >
+          {isOpening ? (
+            <ActivityIndicator size="large" color={theme.accent} />
+          ) : (
+            <Text style={styles.buttonText}>Apri lo Store</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   );
 };
 
 const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
+    root: { flex: 1, backgroundColor: '#fff' },
     container: {
-      flex: 1,
+      flexGrow: 1,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 24,
-      backgroundColor: '#fff',
     },
     title: {
       fontFamily: GraphitFonts.GraphitBold,

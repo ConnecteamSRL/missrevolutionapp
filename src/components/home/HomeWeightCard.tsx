@@ -5,6 +5,7 @@ import { Enums } from '@mr-types/database.types';
 import { AppTheme } from '@mr-types/theme.types';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutStretto } from '@/src/hooks/core/useLayoutStretto';
 import { formatObjective } from '@/src/utils/objective.utils';
 import BalanceIcon from '@components/ui/icons/BalanceIcon';
 import DartIcon from '@components/ui/icons/DartIcon';
@@ -25,6 +26,7 @@ const HomeWeightCard: React.FC<Props> = ({
 }) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const stretto = useLayoutStretto();
   const router = useRouter();
 
   const handleCtaPress = () => {
@@ -38,7 +40,7 @@ const HomeWeightCard: React.FC<Props> = ({
         <Text style={styles.title}>Riepilogo Peso</Text>
       </View>
 
-      <View style={styles.cardsWrapper}>
+      <View style={[styles.cardsWrapper, stretto && styles.cardsWrapperColonna]}>
         <View style={styles.miniCard}>
           <Text style={styles.miniCardTitle}>Peso Attuale</Text>
           <Text style={styles.miniCardValue}>
@@ -56,7 +58,9 @@ const HomeWeightCard: React.FC<Props> = ({
       </View>
 
       <TouchableOpacity onPress={handleCtaPress} activeOpacity={0.92} style={styles.ctaButton}>
-        <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+        {/* Due righe: con il testo ingrandito una sola riga lo rimpiccioliva fino a
+            renderlo illeggibile. */}
+        <Text style={styles.ctaText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
           {ctaLabel}
         </Text>
         <View style={styles.ctaIconCircle} pointerEvents="none">
@@ -93,6 +97,8 @@ const makeStyles = (theme: AppTheme) =>
       flexDirection: 'row',
       gap: 14,
     },
+    // Testo ingrandito o zoom dello schermo: un riquadro sotto l'altro, vedi useLayoutStretto.
+    cardsWrapperColonna: { flexDirection: 'column' },
     miniCard: {
       flex: 1,
       flexDirection: 'column',

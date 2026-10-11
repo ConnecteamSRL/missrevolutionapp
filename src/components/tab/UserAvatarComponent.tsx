@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
-  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +17,7 @@ import { useActionSheet } from '@expo/react-native-action-sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/src/theme';
+import { actionSheetAndroidOptions } from '@/src/theme/actionSheet';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import AvatarPlaceholderIcon from '@components/ui/icons/AvatarPlaceholderIcon';
 import { useUser } from '@/src/contexts/UserContext';
@@ -177,8 +177,7 @@ export default function UserAvatarComponent({ size = 42, onPress, editable = fal
         cancelButtonIndex,
         destructiveButtonIndex,
         title: "Scegli un'azione",
-        containerStyle:
-          Platform.OS === 'android' ? { paddingBottom: Math.max(insets.bottom, 12) } : undefined,
+        ...actionSheetAndroidOptions(insets.bottom),
       },
       (selectedIndex?: number) => {
         if (!hasAvatar) {

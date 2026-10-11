@@ -19,6 +19,7 @@ import { it } from 'date-fns/locale';
 import { Bell, Eye, Trash2 } from 'lucide-react-native';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
 import { AppTheme } from '@mr-types/theme.types';
 import { NotificationItem as NotificationItemType } from '@/src/types/notification.types';
 
@@ -35,6 +36,7 @@ type Props = {
 export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const anima = useLayoutAnimation();
   const router = useRouter();
   const translateX = useSharedValue(0);
   const itemHeight = useSharedValue(1);
@@ -157,7 +159,7 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
   });
 
   return (
-    <Animated.View entering={FadeIn.delay(index * 50)}>
+    <Animated.View entering={anima(FadeIn.delay(index * 50))}>
       <Animated.View style={animatedContainerStyle}>
         <View style={styles.actionsContainer}>
           <Animated.View style={[styles.actionLeft, leftActionStyle]}>
@@ -186,7 +188,9 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
 
             <View style={styles.textContainer}>
               <View style={styles.headerRow}>
-                <Text style={styles.title} numberOfLines={1}>
+                {/* Il messaggio completo non compare altrove (il tocco apre la sezione
+                    collegata): con il testo ingrandito una riga sola diventava «Nuovo che…». */}
+                <Text style={styles.title} numberOfLines={2}>
                   {item.title}
                 </Text>
                 {!item.is_read && (
@@ -196,7 +200,7 @@ export const NotificationItem = ({ item, index, onDelete, onMarkAsRead }: Props)
                 )}
               </View>
 
-              <Text style={styles.body} numberOfLines={1}>
+              <Text style={styles.body} numberOfLines={3}>
                 {item.description}
               </Text>
 

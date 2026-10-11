@@ -12,6 +12,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
 
 const DOT_STAGGER_MS = 160;
 const RISE_MS = 320;
@@ -51,10 +52,11 @@ type Props = {
 
 /** Tre puntini a onda: si mette dentro la bolla dell'assistente mentre risponde. */
 export default function FaqAgentTypingIndicator({ color }: Props) {
+  const anima = useLayoutAnimation();
   return (
     <Animated.View
-      entering={FadeIn.duration(180)}
-      exiting={FadeOut.duration(120)}
+      entering={anima(FadeIn.duration(180))}
+      exiting={anima(FadeOut.duration(120))}
       style={styles.row}
       accessible
       accessibilityRole="progressbar"

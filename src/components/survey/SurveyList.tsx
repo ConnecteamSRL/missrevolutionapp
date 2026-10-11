@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { format } from 'date-fns';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
 import { GraphitFonts } from '@/src/theme';
 import { AppTheme } from '@mr-types/theme.types';
 
@@ -32,6 +33,7 @@ const STATUS_LABELS: Record<string, string> = {
 export default function SurveyList({ surveys, refreshing, onRefresh, onPressSurvey }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const anima = useLayoutAnimation();
 
   return (
     <FlatList
@@ -49,7 +51,10 @@ export default function SurveyList({ surveys, refreshing, onRefresh, onPressSurv
         const isExpired = item.assignment_status === 'EXPIRED';
 
         return (
-          <Animated.View layout={LinearTransition} entering={FadeIn.delay(index * 50)}>
+          <Animated.View
+            layout={anima(LinearTransition)}
+            entering={anima(FadeIn.delay(index * 50))}
+          >
             <TouchableOpacity
               style={[styles.card, isExpired && styles.cardDisabled]}
               onPress={() => onPressSurvey(item.survey_id, item.survey_title ?? 'Sondaggio')}
@@ -96,7 +101,12 @@ const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
     listContent: {},
-    emptyText: { color: '#666', fontSize: 16, textAlign: 'center' },
+    emptyText: {
+      color: '#666',
+      fontSize: 16,
+      textAlign: 'center',
+      fontFamily: GraphitFonts.GraphitRegular,
+    },
     card: {
       backgroundColor: theme.surface,
       borderRadius: 20,
@@ -113,10 +123,14 @@ const makeStyles = (theme: AppTheme) =>
     cardDisabled: {
       opacity: 0.6,
     },
+    // Con il testo ingrandito stato e scadenza non stanno su una riga: vanno a capo
+    // invece di uscire dal bordo della scheda.
     cardHeader: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       justifyContent: 'space-between',
       alignItems: 'center',
+      rowGap: 8,
       marginBottom: 16,
     },
     badge: {
@@ -135,6 +149,7 @@ const makeStyles = (theme: AppTheme) =>
     },
     subRow: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       alignItems: 'center',
       marginTop: 4,
       gap: 8,
@@ -146,8 +161,12 @@ const makeStyles = (theme: AppTheme) =>
       backgroundColor: theme.secondary,
       marginHorizontal: 6,
     },
+    // Font esplicito anche qui: con «Testo in grassetto» Android ingrossa solo il font
+    // di sistema e la data, misurata normale, veniva tagliata («Scade il:»).
     dateText: {
+      flexShrink: 1,
       fontSize: 12,
+      fontFamily: GraphitFonts.GraphitRegular,
       color: '#888',
     },
     title: {

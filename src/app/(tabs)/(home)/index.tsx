@@ -7,6 +7,7 @@ import HomeWeightCard from '@components/home/HomeWeightCard';
 import { useUser } from '@/src/contexts/UserContext';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useLatestCheckup } from '@/src/hooks/progress/useLatestCheckup';
+import { GraphitFonts } from '@/src/theme';
 
 const HomeScreen: React.FC = () => {
   const theme = useTheme();
@@ -79,5 +80,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 16,
+    fontFamily: GraphitFonts.GraphitRegular,
   },
 });

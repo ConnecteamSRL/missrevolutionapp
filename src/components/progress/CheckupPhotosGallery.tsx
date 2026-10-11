@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -23,7 +22,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { CheckupHistoryItem } from '@/src/hooks/progress/useCheckupHistory';
 import type { CheckupPhotoCategory, CheckupPhotoItem } from '@/src/hooks/progress/useCheckupPhotos';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
+import { useLayoutStretto } from '@/src/hooks/core/useLayoutStretto';
 import { GraphitFonts } from '@/src/theme';
+import { actionSheetAndroidOptions } from '@/src/theme/actionSheet';
 import { cartellaDocumenti } from '@/src/utils/cacheUtente';
 import { AppTheme } from '@mr-types/theme.types';
 
@@ -184,6 +186,8 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
+  const anima = useLayoutAnimation();
+  const stretto = useLayoutStretto();
   const { showActionSheetWithOptions } = useActionSheet();
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [viewerVisible, setViewerVisible] = useState(false);
@@ -298,8 +302,7 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
         options,
         cancelButtonIndex: 3,
         title: 'Scegli la sorgente',
-        containerStyle:
-          Platform.OS === 'android' ? { paddingBottom: Math.max(insets.bottom, 12) } : undefined,
+        ...actionSheetAndroidOptions(insets.bottom),
       },
       (selectedIndex?: number) => {
         if (selectedIndex === 0) {
@@ -363,10 +366,11 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
           // La scheda anima la propria altezza: senza questo il corpo comparirebbe
           // a piena altezza e la sola opacita' non basterebbe a leggere il gesto.
           // Vale anche per le schede sotto, che scorrono invece di saltare.
+          // Con movimento ridotto niente animazione: vedi useLayoutAnimation.
           <Animated.View
             key={checkup.id}
             style={styles.checkupCard}
-            layout={LinearTransition.duration(240)}
+            layout={anima(LinearTransition.duration(240))}
           >
             <TouchableOpacity
               activeOpacity={0.8}
@@ -391,8 +395,8 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
 
             {isExpanded ? (
               <Animated.View
-                entering={FadeIn.duration(160)}
-                exiting={FadeOut.duration(100)}
+                entering={anima(FadeIn.duration(160))}
+                exiting={anima(FadeOut.duration(100))}
                 style={styles.checkupBody}
               >
                 {CATEGORIES.map((category) => {
@@ -437,7 +441,10 @@ export const CheckupPhotosGallery: React.FC<CheckupPhotosGalleryProps> = ({
                       ) : (
                         <View style={styles.photoGrid}>
                           {categoryPhotos.map((photo) => (
-                            <View key={photo.id} style={styles.photoCard}>
+                            <View
+                              key={photo.id}
+                              style={[styles.photoCard, stretto && styles.photoCardIntera]}
+                            >
                               <Pressable
                                 disabled={!photo.signedUrl || busyKey !== null}
                                 onPress={() => void openFile(photo)}
@@ -610,10 +617,13 @@ const makeStyles = (theme: AppTheme) =>
       borderRadius: 14,
       backgroundColor: UI.white,
     },
+    // Con il testo ingrandito «+ Aggiungi» va sotto il titolo invece di schiacciarlo.
     categoryHeader: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: 8,
       marginBottom: 10,
     },
     categoryTitle: {
@@ -655,6 +665,8 @@ const makeStyles = (theme: AppTheme) =>
       borderColor: theme.border,
       backgroundColor: theme.surface,
     },
+    // Testo ingrandito o zoom: una foto per riga, a meta' larghezza «Sostituisci» si spezzava.
+    photoCardIntera: { width: '100%' },
     thumbnail: { width: '100%', height: 130, backgroundColor: theme.surface },
     pdfTile: { alignItems: 'center', justifyContent: 'center', gap: 6 },
     iconBox: {
@@ -674,6 +686,8 @@ const makeStyles = (theme: AppTheme) =>
     },
     photoActions: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
       justifyContent: 'space-between',
       paddingHorizontal: 8,
       paddingVertical: 9,

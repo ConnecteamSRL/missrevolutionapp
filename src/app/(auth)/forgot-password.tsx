@@ -1,15 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FormScrollLayout } from '@/src/components/layouts/FormScrollLayout';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
@@ -56,10 +48,7 @@ export default function ForgotPasswordScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackgroundGradientComponent />
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <FormScrollLayout contentContainerStyle={styles.container}>
         <View style={styles.logoContainer}>
           <Image source={logo} style={styles.logo} contentFit="contain" />
         </View>
@@ -96,7 +85,7 @@ export default function ForgotPasswordScreen() {
             <Text style={styles.backButtonText}>Torna al Login</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </FormScrollLayout>
     </SafeAreaView>
   );
 }
@@ -104,7 +93,7 @@ export default function ForgotPasswordScreen() {
 const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-    container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
+    container: { padding: 20, justifyContent: 'flex-start' },
     logoContainer: { alignItems: 'center', marginBottom: 30 },
     logo: { width: 120, height: 45 },
     title: {
@@ -124,7 +113,8 @@ const makeStyles = (theme: AppTheme) =>
     },
     form: { gap: 15 },
     input: {
-      height: 50,
+      minHeight: 50,
+      paddingVertical: 10,
       borderWidth: 1,
       borderColor: '#E6E6E6',
       borderRadius: 8,

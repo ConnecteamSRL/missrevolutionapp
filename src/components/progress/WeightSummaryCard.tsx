@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutStretto } from '@/src/hooks/core/useLayoutStretto';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
 import { GraphitFonts } from '@/src/theme';
 import BalanceIcon from '@components/ui/icons/BalanceIcon';
 import DartIcon from '@components/ui/icons/DartIcon';
@@ -21,15 +23,17 @@ const WeightSummaryCard: React.FC<{
 }> = ({ lastWeight, objective }) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const stretto = useLayoutStretto();
+  const anima = useLayoutAnimation();
 
   return (
-    <Animated.View entering={FadeInDown.duration(600).springify()} style={styles.weightCard}>
+    <Animated.View entering={anima(FadeInDown.duration(600).springify())} style={styles.weightCard}>
       <View style={styles.headerContainer}>
         <BalanceIcon color={UI.white} size={22} />
         <Text style={styles.title}>Riepilogo Peso</Text>
       </View>
 
-      <View style={styles.cardsWrapper}>
+      <View style={[styles.cardsWrapper, stretto && styles.cardsWrapperColonna]}>
         <View style={styles.miniCard}>
           <Text style={styles.miniCardTitle}>Attuale</Text>
           <Text style={styles.miniCardValue}>
@@ -68,6 +72,8 @@ const makeStyles = (theme: AppTheme) =>
     title: { fontSize: 18, color: theme.secondary, fontFamily: GraphitFonts.GraphitBold },
 
     cardsWrapper: { flexDirection: 'row', gap: 12 },
+    // Testo ingrandito o zoom dello schermo: un riquadro sotto l'altro, vedi useLayoutStretto.
+    cardsWrapperColonna: { flexDirection: 'column' },
     miniCard: {
       flex: 1,
       justifyContent: 'center',

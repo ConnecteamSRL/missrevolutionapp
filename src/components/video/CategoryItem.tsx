@@ -4,6 +4,7 @@ import { VideoCategoryChild } from '@mr-types/video.types';
 import { ChevronRight, LayoutGrid } from 'lucide-react-native';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutStretto } from '@/src/hooks/core/useLayoutStretto';
 import { AppTheme } from '@mr-types/theme.types';
 
 type Props = {
@@ -14,17 +15,27 @@ type Props = {
 export default function CategoryItem({ item, onPress }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const stretto = useLayoutStretto();
   const count = item.videos_count + item.children_count;
   const countLabel = count === 1 ? 'elemento' : 'elementi';
 
   return (
-    <TouchableOpacity style={styles.container} activeOpacity={0.7} onPress={() => onPress(item.id)}>
-      <View style={styles.iconContainer}>
-        <LayoutGrid size={24} color={theme.secondary} />
-      </View>
+    <TouchableOpacity
+      style={styles.container}
+      activeOpacity={0.7}
+      onPress={() => onPress(item.id)}
+      accessibilityRole="button"
+    >
+      {/* L'icona e' decorativa: con il testo ingrandito lascia lo spazio al nome,
+          che altrimenti si spezzava a meta' parola («REVOL-UTION»). */}
+      {!stretto && (
+        <View style={styles.iconContainer}>
+          <LayoutGrid size={24} color={theme.secondary} />
+        </View>
+      )}
 
       <View style={styles.infoContainer}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={styles.title} numberOfLines={2}>
           {item.name}
         </Text>
         <Text style={styles.subtitle}>

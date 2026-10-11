@@ -812,7 +812,10 @@ const makeStyles = (theme: AppTheme) =>
       justifyContent: 'center',
       marginBottom: 16,
     },
+    // flexShrink: con il testo ingrandito il titolo va a capo accanto all'icona,
+    // invece di spingerla fuori dalla scheda.
     title: {
+      flexShrink: 1,
       fontSize: 22,
       fontFamily: GraphitFonts.GraphitRegular,
       color: theme.onPrimary,
@@ -833,6 +836,7 @@ const makeStyles = (theme: AppTheme) =>
       columnGap: 8,
     },
     scanButtonText: {
+      flexShrink: 1,
       fontFamily: GraphitFonts.GraphitRegular,
       fontSize: 16,
       color: '#000',

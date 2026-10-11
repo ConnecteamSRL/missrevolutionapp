@@ -142,7 +142,10 @@ const makeStyles = (theme: AppTheme) =>
       gap: 10,
       marginBottom: 10,
     },
+    // flexShrink: con il testo ingrandito l'etichetta va a capo e lascia in vista
+    // il pulsante «Aa», che prima finiva fuori dalla scheda.
     pill: {
+      flexShrink: 1,
       paddingVertical: 6,
       paddingHorizontal: 10,
       borderRadius: 999,

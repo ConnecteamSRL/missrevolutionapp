@@ -1,14 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FormScrollLayout } from '@/src/components/layouts/FormScrollLayout';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import BackgroundGradientComponent from '@components/core/BackgroundGradientComponent';
@@ -104,10 +97,7 @@ export default function ConfirmSignupScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <BackgroundGradientComponent />
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <FormScrollLayout contentContainerStyle={styles.container}>
         <Text style={styles.title}>Conferma email</Text>
         <Text style={styles.subtitle}>Inserisci il codice ricevuto su {email || '—'}.</Text>
 
@@ -141,7 +131,7 @@ export default function ConfirmSignupScreen() {
             <Text style={styles.linkText}>Torna al login</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </FormScrollLayout>
     </SafeAreaView>
   );
 }
@@ -149,7 +139,7 @@ export default function ConfirmSignupScreen() {
 const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-    container: { flex: 1, padding: 20, justifyContent: 'flex-start' },
+    container: { padding: 20, justifyContent: 'flex-start' },
     title: {
       fontSize: 24,
       textAlign: 'center',

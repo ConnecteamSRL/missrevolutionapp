@@ -83,5 +83,9 @@
       "eslint --fix"
     ]
   },
-  "private": true
+  "private": true,
+  "patchedDependencies": {
+    "@expo/react-native-action-sheet@4.1.1": "patches/@expo%2Freact-native-action-sheet@4.1.1.patch",
+    "react-native@0.83.2": "patches/react-native@0.83.2.patch"
+  }
 }

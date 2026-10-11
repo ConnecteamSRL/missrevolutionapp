@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Keyboard,
-  KeyboardAvoidingView,
   NativeSyntheticEvent,
   Platform,
   StyleSheet,
@@ -14,6 +13,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FormScrollLayout } from '@/src/components/layouts/FormScrollLayout';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import * as Linking from 'expo-linking';
@@ -23,7 +23,6 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
-import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
 import { useAuthStore } from '@/src/store/authStore';
 import { useLogo } from '@/src/hooks/core/useLogo';
 import {
@@ -215,70 +214,61 @@ const SetPasswordScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <BackgroundGradientComponent />
 
-      <DismissKeyboardView>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
-        >
-          <View style={styles.logoContainer}>
-            <Image source={logo} style={styles.logo} contentFit="contain" />
-          </View>
+      <FormScrollLayout contentContainerStyle={styles.container}>
+        <View style={styles.logoContainer}>
+          <Image source={logo} style={styles.logo} contentFit="contain" />
+        </View>
 
-          <Text style={styles.title}>Benvenuto!</Text>
-          <Text style={styles.subtitle}>
-            Completa la configurazione del tuo account impostando una password sicura:{' '}
-            {REGOLE_PASSWORD}.
-          </Text>
+        <Text style={styles.title}>Benvenuto!</Text>
+        <Text style={styles.subtitle}>
+          Completa la configurazione del tuo account impostando una password sicura:{' '}
+          {REGOLE_PASSWORD}.
+        </Text>
 
-          <View style={styles.form}>
-            <TextInput
-              onChange={handlePasswordChange}
-              value={password}
-              secureTextEntry
-              placeholder="Nuova Password"
-              placeholderTextColor="#999"
-              autoCapitalize="none"
-              style={[styles.input, styles.secureInput]}
-              editable={!loading && tokensValid}
-              returnKeyType="next"
-              blurOnSubmit={false}
-            />
+        <View style={styles.form}>
+          <TextInput
+            onChange={handlePasswordChange}
+            value={password}
+            secureTextEntry
+            placeholder="Nuova Password"
+            placeholderTextColor="#999"
+            autoCapitalize="none"
+            style={[styles.input, styles.secureInput]}
+            editable={!loading && tokensValid}
+            returnKeyType="next"
+            blurOnSubmit={false}
+          />
 
-            <TextInput
-              onChange={handleConfirmPasswordChange}
-              value={confirmPassword}
-              secureTextEntry
-              placeholder="Conferma Password"
-              placeholderTextColor="#999"
-              autoCapitalize="none"
-              style={[styles.input, styles.secureInput]}
-              editable={!loading && tokensValid}
-              returnKeyType="done"
-              onSubmitEditing={Keyboard.dismiss}
-            />
+          <TextInput
+            onChange={handleConfirmPasswordChange}
+            value={confirmPassword}
+            secureTextEntry
+            placeholder="Conferma Password"
+            placeholderTextColor="#999"
+            autoCapitalize="none"
+            style={[styles.input, styles.secureInput]}
+            editable={!loading && tokensValid}
+            returnKeyType="done"
+            onSubmitEditing={Keyboard.dismiss}
+          />
 
-            <TouchableOpacity
-              onPress={handleSetPassword}
-              disabled={!isValid || loading || !tokensValid}
-              style={[
-                styles.button,
-                (!isValid || loading || !tokensValid) && styles.buttonDisabled,
-              ]}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Attivazione...' : 'Conferma e Inizia'}
-              </Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleSetPassword}
+            disabled={!isValid || loading || !tokensValid}
+            style={[styles.button, (!isValid || loading || !tokensValid) && styles.buttonDisabled]}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? 'Attivazione...' : 'Conferma e Inizia'}
+            </Text>
+          </TouchableOpacity>
 
-            {!tokensValid && !isInitializing && (
-              <Text style={styles.errorText}>
-                Sessione mancante. Riprova cliccando il link nella mail.
-              </Text>
-            )}
-          </View>
-        </KeyboardAvoidingView>
-      </DismissKeyboardView>
+          {!tokensValid && !isInitializing && (
+            <Text style={styles.errorText}>
+              Sessione mancante. Riprova cliccando il link nella mail.
+            </Text>
+          )}
+        </View>
+      </FormScrollLayout>
     </SafeAreaView>
   );
 };
@@ -289,7 +279,7 @@ const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    container: { flex: 1, padding: 20 },
+    container: { padding: 20 },
     logoContainer: { alignItems: 'center', marginBottom: 30, marginTop: 40 },
     logo: { width: 150, height: 55 },
     title: {
@@ -310,7 +300,8 @@ const makeStyles = (theme: AppTheme) =>
     },
     form: { gap: 15 },
     input: {
-      height: 50,
+      minHeight: 50,
+      paddingVertical: 10,
       borderWidth: 1,
       borderColor: '#E6E6E6',
       borderRadius: 8,

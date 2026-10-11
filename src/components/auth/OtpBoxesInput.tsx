@@ -122,10 +122,14 @@ export default function OtpBoxesInput({
 
 const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
-    row: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
+    row: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
+    // Larghezza elastica e altezza minima: con lo zoom dello schermo sei caselle
+    // da 44 non entravano nella riga, e il testo ingrandito usciva dalla casella.
     cell: {
-      height: 50,
-      width: 44,
+      flex: 1,
+      maxWidth: 48,
+      minHeight: 50,
+      paddingHorizontal: 0,
       borderWidth: 1,
       borderColor: '#E6E6E6',
       borderRadius: 10,

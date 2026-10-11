@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { GraphitFonts } from '@/src/theme';
 import { AppTheme } from '@mr-types/theme.types';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
 import { useUser } from '@/src/contexts/UserContext';
 import { useMyRecipes, type Recipe } from '@/src/hooks/content/useRecipes';
 import ArrowCircleRight from '@components/ui/icons/ArrowCircleRightIcon';
@@ -24,6 +25,7 @@ const UI_GENERIC_ERROR = 'Si è verificato un errore. Riprova.';
 export default function RecipesListSection() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const anima = useLayoutAnimation();
   const { me } = useUser();
   const recipes = useMyRecipes();
 
@@ -59,12 +61,14 @@ export default function RecipesListSection() {
           style={{ borderRadius: 20 }}
         >
           <Animated.View
-            entering={FadeInDown.delay(index * 80)
-              .duration(480)
-              .springify()}
+            entering={anima(
+              FadeInDown.delay(index * 80)
+                .duration(480)
+                .springify(),
+            )}
             style={styles.card}
           >
-            <Text style={styles.cardTitle} numberOfLines={2}>
+            <Text style={styles.cardTitle} numberOfLines={3}>
               {item.title}
             </Text>
 
@@ -73,16 +77,19 @@ export default function RecipesListSection() {
         </Pressable>
       );
     },
-    [styles, theme],
+    [styles, theme, anima],
   );
 
   const ListHeader = useMemo(
     () => (
-      <Animated.View entering={FadeInDown.duration(520).springify()} style={styles.headerRow}>
+      <Animated.View
+        entering={anima(FadeInDown.duration(520).springify())}
+        style={styles.headerRow}
+      >
         <Text style={styles.headerTitle}>Le tue ricette</Text>
       </Animated.View>
     ),
-    [styles],
+    [styles, anima],
   );
 
   if (pageLoading) {
@@ -164,7 +171,10 @@ const makeStyles = (theme: AppTheme) =>
       justifyContent: 'space-between',
       gap: 12,
     },
+    // flex: 1 lascia il posto alla freccia: senza, il titolo ingrandito la spingeva
+    // fuori dalla scheda.
     cardTitle: {
+      flex: 1,
       fontSize: 14,
       color: '#1F1F1F',
       fontFamily: GraphitFonts.GraphitRegular,

@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Keyboard,
-  KeyboardAvoidingView,
   NativeSyntheticEvent,
   Platform,
   StyleSheet,
@@ -22,7 +21,7 @@ import BackgroundGradientComponent from '@components/core/BackgroundGradientComp
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { AppTheme } from '@mr-types/theme.types';
-import { DismissKeyboardView } from '@/src/components/layouts/DismissKeyboardView';
+import { FormScrollLayout } from '@/src/components/layouts/FormScrollLayout';
 import { useLogo } from '@/src/hooks/core/useLogo';
 import { useConsensiStore } from '@/src/store/consensiStore';
 import { TESTO_TERMINI_AL_LOGIN } from '@/src/lib/consensi';
@@ -110,93 +109,87 @@ const LoginScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea}>
       <BackgroundGradientComponent />
 
-      <DismissKeyboardView>
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
-        >
-          <View style={styles.logoContainer}>
-            <Image source={logo} style={styles.logo} contentFit="contain" />
+      <FormScrollLayout contentContainerStyle={styles.container}>
+        <View style={styles.logoContainer}>
+          <Image source={logo} style={styles.logo} contentFit="contain" />
+        </View>
+
+        <Text style={styles.title}>Accedi</Text>
+        <Text style={styles.subtitle}>
+          Bentornato! Inserisci le tue credenziali per continuare.
+        </Text>
+
+        <View style={styles.form}>
+          <TextInput
+            onChange={handleEmailChange}
+            value={email}
+            placeholder="Email"
+            autoCapitalize="none"
+            style={styles.input}
+            placeholderTextColor={'#9CA3AF'}
+            keyboardType="email-address"
+            editable={!loading}
+            returnKeyType="next"
+            onSubmitEditing={() => Keyboard.dismiss()}
+          />
+
+          <View style={styles.passwordField}>
+            <TextInput
+              onChange={handlePasswordChange}
+              value={password}
+              secureTextEntry={!showPassword}
+              placeholder="Password"
+              placeholderTextColor={'#9CA3AF'}
+              autoCapitalize="none"
+              style={[styles.input, !showPassword && styles.secureInput, styles.passwordInput]}
+              editable={!loading}
+              returnKeyType="done"
+              onSubmitEditing={Keyboard.dismiss}
+            />
+            <TouchableOpacity
+              style={styles.passwordVisibilityButton}
+              onPress={() => setShowPassword((visible) => !visible)}
+              disabled={loading}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Nascondi password' : 'Mostra password'}
+            >
+              {showPassword ? (
+                <EyeOff size={21} color="#6B7280" />
+              ) : (
+                <Eye size={21} color="#6B7280" />
+              )}
+            </TouchableOpacity>
           </View>
 
-          <Text style={styles.title}>Accedi</Text>
-          <Text style={styles.subtitle}>
-            Bentornato! Inserisci le tue credenziali per continuare.
-          </Text>
+          <TouchableOpacity onPress={handleForgotPassword} disabled={loading}>
+            <Text style={styles.forgotPassword}>Hai dimenticato la password?</Text>
+          </TouchableOpacity>
 
-          <View style={styles.form}>
-            <TextInput
-              onChange={handleEmailChange}
-              value={email}
-              placeholder="Email"
-              autoCapitalize="none"
-              style={styles.input}
-              placeholderTextColor={'#9CA3AF'}
-              keyboardType="email-address"
-              editable={!loading}
-              returnKeyType="next"
-              onSubmitEditing={() => Keyboard.dismiss()}
-            />
-
-            <View style={styles.passwordField}>
-              <TextInput
-                onChange={handlePasswordChange}
-                value={password}
-                secureTextEntry={!showPassword}
-                placeholder="Password"
-                placeholderTextColor={'#9CA3AF'}
-                autoCapitalize="none"
-                style={[styles.input, !showPassword && styles.secureInput, styles.passwordInput]}
-                editable={!loading}
-                returnKeyType="done"
-                onSubmitEditing={Keyboard.dismiss}
-              />
-              <TouchableOpacity
-                style={styles.passwordVisibilityButton}
-                onPress={() => setShowPassword((visible) => !visible)}
-                disabled={loading}
-                accessibilityRole="button"
-                accessibilityLabel={showPassword ? 'Nascondi password' : 'Mostra password'}
-              >
-                {showPassword ? (
-                  <EyeOff size={21} color="#6B7280" />
-                ) : (
-                  <Eye size={21} color="#6B7280" />
-                )}
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity onPress={handleForgotPassword} disabled={loading}>
-              <Text style={styles.forgotPassword}>Hai dimenticato la password?</Text>
-            </TouchableOpacity>
-
-            {/* I Termini si accettano accedendo, quindi la frase sta subito sopra
+          {/* I Termini si accettano accedendo, quindi la frase sta subito sopra
                 «Accedi» (sotto, la tastiera aperta la puo' coprire). A schermo va
                 TESTO_TERMINI_AL_LOGIN stessa, che il login confronta con il testo
                 corrente del registro prima di registrarla come consenso: una sola
                 stringa per schermo e prova. I dati sulla salute si chiedono dopo. */}
-            <TestoConLink
-              testo={TESTO_TERMINI_AL_LOGIN}
-              links={[
-                { frase: LINK_TERMINI, onPress: handleOpenTermini },
-                { frase: LINK_INFORMATIVA, onPress: handleOpenPrivacy },
-              ]}
-              style={styles.termsText}
-              linkStyle={styles.linkText}
-            />
+          <TestoConLink
+            testo={TESTO_TERMINI_AL_LOGIN}
+            links={[
+              { frase: LINK_TERMINI, onPress: handleOpenTermini },
+              { frase: LINK_INFORMATIVA, onPress: handleOpenPrivacy },
+            ]}
+            style={styles.termsText}
+            linkStyle={styles.linkText}
+          />
 
-            <TouchableOpacity
-              onPress={signInWithEmail}
-              disabled={!isValid || loading}
-              style={[styles.button, (!isValid || loading) && styles.buttonDisabled]}
-              accessibilityRole="button"
-            >
-              <Text style={styles.buttonText}>{loading ? 'Accesso in corso...' : 'Accedi'}</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </DismissKeyboardView>
+          <TouchableOpacity
+            onPress={signInWithEmail}
+            disabled={!isValid || loading}
+            style={[styles.button, (!isValid || loading) && styles.buttonDisabled]}
+            accessibilityRole="button"
+          >
+            <Text style={styles.buttonText}>{loading ? 'Accesso in corso...' : 'Accedi'}</Text>
+          </TouchableOpacity>
+        </View>
+      </FormScrollLayout>
     </SafeAreaView>
   );
 };
@@ -206,7 +199,7 @@ export default LoginScreen;
 const makeStyles = (theme: AppTheme) =>
   StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#f8f8f8' },
-    container: { flex: 1, padding: 20 },
+    container: { padding: 20 },
     logoContainer: { alignItems: 'center', marginBottom: 40, marginTop: 20 },
     logo: { width: 150, height: 55 },
     title: {
@@ -226,7 +219,8 @@ const makeStyles = (theme: AppTheme) =>
     },
     form: { gap: 15 },
     input: {
-      height: 50,
+      minHeight: 50,
+      paddingVertical: 10,
       borderWidth: 1,
       borderColor: '#E6E6E6',
       borderRadius: 8,
@@ -245,8 +239,8 @@ const makeStyles = (theme: AppTheme) =>
       position: 'absolute',
       right: 0,
       top: 0,
+      bottom: 0,
       width: 50,
-      height: 50,
       alignItems: 'center',
       justifyContent: 'center',
     },

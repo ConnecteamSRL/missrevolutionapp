@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SvgProps } from 'react-native-svg';
 import { colors, GraphitFonts } from '@/src/theme';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutStretto } from '@/src/hooks/core/useLayoutStretto';
 import { AppTheme } from '@mr-types/theme.types';
 
 export interface GridCtaItemProps {
@@ -26,9 +27,15 @@ const GridCtaItem: React.FC<GridCtaItemProps> = ({
 }) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const stretto = useLayoutStretto();
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.8}>
+    <TouchableOpacity
+      style={[styles.container, stretto && styles.containerTestoGrande]}
+      onPress={onPress}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+    >
       <LinearGradient colors={[...gradientColors]} style={styles.gradient}>
         {icon}
         <Text style={styles.title}>{title}</Text>
@@ -55,8 +62,12 @@ const makeStyles = (theme: AppTheme) =>
       elevation: 5,
       backgroundColor: colors.white,
     },
+    // Con il testo ingrandito la proporzione fissa tagliava l'etichetta (overflow
+    // hidden): il riquadro cresce con il contenuto, alto almeno come prima.
+    containerTestoGrande: { aspectRatio: undefined, flex: undefined, flexGrow: 1, minHeight: 112 },
+    // flexGrow e non flex: 1, cosi' a riquadro libero l'altezza viene dal contenuto.
     gradient: {
-      flex: 1,
+      flexGrow: 1,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 16,

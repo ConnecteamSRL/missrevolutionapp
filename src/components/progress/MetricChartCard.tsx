@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { useLayoutAnimation } from '@/src/hooks/core/useLayoutAnimation';
 import { GraphitFonts } from '@/src/theme';
 import { AppTheme } from '@mr-types/theme.types';
 
@@ -51,6 +52,8 @@ export const MetricChartCard: React.FC<{
 }> = ({ cfg, series, index, disabledMessage }) => {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const anima = useLayoutAnimation();
+  const { fontScale } = useWindowDimensions();
   const [selected, setSelected] = useState<SelectedPoint>(null);
 
   const points = series.data.length;
@@ -121,9 +124,11 @@ export const MetricChartCard: React.FC<{
   if (series.data.length < 2) {
     return (
       <Animated.View
-        entering={FadeInDown.delay(index * 150)
-          .duration(600)
-          .springify()}
+        entering={anima(
+          FadeInDown.delay(index * 150)
+            .duration(600)
+            .springify(),
+        )}
         style={styles.chartCard}
       >
         <View style={styles.disabledDim}>
@@ -144,9 +149,11 @@ export const MetricChartCard: React.FC<{
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 150)
-        .duration(600)
-        .springify()}
+      entering={anima(
+        FadeInDown.delay(index * 150)
+          .duration(600)
+          .springify(),
+      )}
       style={styles.chartCard}
     >
       <Text style={styles.chartTitle}>{title}</Text>
@@ -179,8 +186,10 @@ export const MetricChartCard: React.FC<{
               style={[
                 styles.tooltip,
                 (() => {
-                  const W = 120;
-                  const H = 44;
+                  // Il riquadro cresce con il testo: a misura fissa valore e data
+                  // ingranditi uscivano dal tooltip.
+                  const W = 120 * Math.max(1, fontScale);
+                  const H = 44 * Math.max(1, fontScale);
                   const left = clamp(selected.x - W / 2, 0, chartWidth - W);
                   const top = clamp(selected.y - (H + 10), 0, CHART_HEIGHT - H);
                   return { left, top, width: W, height: H };

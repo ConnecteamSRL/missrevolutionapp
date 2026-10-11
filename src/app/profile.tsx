@@ -18,10 +18,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import MembershipsSection from '@components/core/MembershipsSection';
 import PrivacySection from '@components/core/PrivacySection';
 import { logout } from '@/src/hooks/auth/useLogout';
+import { useLayoutStretto } from '@/src/hooks/core/useLayoutStretto';
 
 export default function Profile() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const stretto = useLayoutStretto();
 
   const { me } = useUser();
   const userId = me?.profile.user_id;
@@ -61,9 +63,9 @@ export default function Profile() {
     <ContentScreenLayout title="Profilo">
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
-          <View style={styles.avatarContainer}>
+          <View style={[styles.avatarContainer, stretto && styles.avatarContainerColonna]}>
             <UserAvatarComponent size={80} editable={true} />
-            <View>
+            <View style={styles.nameBox}>
               {loading ? (
                 <ActivityIndicator size="small" color={theme.accent} />
               ) : (
@@ -83,9 +85,7 @@ export default function Profile() {
                 <View style={styles.infoGroup}>
                   <Text style={styles.infoLabel}>Email</Text>
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoText} numberOfLines={1}>
-                      {data?.primary_email || '-'}
-                    </Text>
+                    <Text style={styles.infoText}>{data?.primary_email || '-'}</Text>
                     <View style={styles.iconBox}>
                       <MaterialIcons name="email" size={24} color={iconColor} />
                     </View>
@@ -95,9 +95,7 @@ export default function Profile() {
                 <View style={styles.infoGroup}>
                   <Text style={styles.infoLabel}>Numero di telefono</Text>
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoText} numberOfLines={1}>
-                      {data?.phone_number || '-'}
-                    </Text>
+                    <Text style={styles.infoText}>{data?.phone_number || '-'}</Text>
                     <View style={styles.iconBox}>
                       <MaterialIcons name="phone" size={24} color={iconColor} />
                     </View>
@@ -107,9 +105,7 @@ export default function Profile() {
                 <View style={styles.infoGroup}>
                   <Text style={styles.infoLabel}>Indirizzo</Text>
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoText} numberOfLines={2}>
-                      {address || '-'}
-                    </Text>
+                    <Text style={styles.infoText}>{address || '-'}</Text>
                     <View style={styles.iconBox}>
                       <MaterialIcons name="location-on" size={24} color={iconColor} />
                     </View>
@@ -170,6 +166,11 @@ const makeStyles = (theme: AppTheme) =>
       backgroundColor: theme.primary,
       borderRadius: 20,
     },
+    // Senza flexShrink il nome, con il testo ingrandito, usciva dal riquadro invece di
+    // andare a capo; allo stesso modo email e indirizzo si leggono interi.
+    nameBox: { flexGrow: 1, flexShrink: 1 },
+    // Testo ingrandito o zoom: accanto all'avatar da 80 il nome si spezzava («Collaud-o»).
+    avatarContainerColonna: { flexDirection: 'column', alignItems: 'flex-start', gap: 12 },
     displayName: {
       color: theme.onPrimary,
       fontSize: 18,
